@@ -26,14 +26,13 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -48,5 +47,33 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+  
+  
+  
+  <key>NSCameraUsageDescription</key>
+    <string> Vinelight needs camera access for user's profile photo</string>
+    <key>NSHealthShareUsageDescription</key>
+    <string>Read and understand health data.</string>
+   
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Vinelight needs Location access to show Gyms on the basis of Current User's location</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Vinelight needs library access for user's profile photo</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>We need access to save your images to the photo library.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>EBGaramond-Italic.ttf</string>
+		<string>EBGaramond-Variable.ttf</string>
+		<string>EBGaramond-Bold.ttf</string>
+		<string>EBGaramond-Medium.ttf</string>
+		<string>EBGaramond-BoldItalic.ttf</string>
+		<string>EBGaramond-ExtraBold.ttf</string>
+		<string>EBGaramond-ExtraBoldItalic.ttf</string>
+		<string>EBGaramond-MediumItalic.ttf</string>
+		<string>EBGaramond-Regular.ttf</string>
+		<string>EBGaramond-SemiBold.ttf</string>
+		<string>EBGaramond-SemiBoldItalic.ttf</string>
+	</array>
 </dict>
 </plist>
