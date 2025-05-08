@@ -8,7 +8,7 @@ export const ImageData = {
   TABBACKGROUND: require('../assets/Image/img/tab.png'),
   ARROWNEXT: require('../assets/Image/img/arrownext.png'),
   NOIMAGE: require('../assets/Image/img/noimage.png'),
-
+  MODAL: require('../assets/Image/img/modal.png'),
   LEFT: require('../assets/Image/img/Left.webp'),
   RIGHT: require('../assets/Image/img/Right.webp'),
   BACKLEFT: require('../assets/Image/img/Backleft.webp'),
@@ -16,6 +16,7 @@ export const ImageData = {
   YOGA: require('../assets/Image/img/yoga.png'),
   BOOK: require('../assets/Image/img/book.png'),
   SELECTIMAGE: require('../assets/Image/img/image.png'),
+
 };
 
 export const IconData = {
@@ -35,6 +36,11 @@ export const IconData = {
   GOALA: require('../assets/Image/icon/goalsA.png'),
   PEN: require('../assets/Image/icon/pen.png'),
   SAVE: require('../assets/Image/icon/save.png'),
+  UPGRADE: require('../assets/Image/icon/upgrade.png'),
+  FACEBOOK: require('../assets/Image/icon/fb.png'),
+  INSTA: require('../assets/Image/icon/insta.png'),
+  YOUTOUB: require('../assets/Image/icon/youtoub.png'),
+  CANCEL: require('../assets/Image/icon/cancel.png'),
 
 };
 export const Font = {
@@ -60,4 +66,5 @@ export const Color = {
   BROWN2: '#BEA679',
   BROWN3: '#E3DBC5',
   BROWN4: '#CBBB92',
+  BROWN5:'#886746'
 };

@@ -13,6 +13,8 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.10",
+    "@reduxjs/toolkit": "^2.8.0",
+    "lottie-react-native": "^7.2.2",
     "react": "19.0.0",
     "react-native": "0.79.1",
     "react-native-calendars": "^1.1312.0",
@@ -21,7 +23,10 @@
     "react-native-permissions": "^5.4.0",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.10.0",
-    "react-native-toast-message": "^2.3.0"
+    "react-native-toast-message": "^2.3.0",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1",
+    "redux-persist": "^6.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

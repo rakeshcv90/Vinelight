@@ -3,7 +3,7 @@ import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Splash from '../Screen/Splash';
 import IntroScreen from '../Screen/IntroScreen';
-import MainPage from '../Screen/Home/MainPage';
+import MainPage from '../Screen/MainPage';
 import Profile from '../Screen/Profile';
 
 

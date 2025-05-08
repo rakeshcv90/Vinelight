@@ -15,6 +15,7 @@ import Button2 from '../../Component/Button2';
 import {storage} from '../../Component/Storage';
 import {Calendar} from 'react-native-calendars';
 import {LocaleConfig} from 'react-native-calendars';
+
 const {width, height} = Dimensions.get('window');
 
 const today = new Date().toISOString().split('T')[0];
@@ -64,6 +65,7 @@ LocaleConfig.locales['custom'] = {
 LocaleConfig.defaultLocale = 'custom';
 
 const Home = () => {
+
   const [selectedDate, setSelectedDate] = useState(today);
 
   return (

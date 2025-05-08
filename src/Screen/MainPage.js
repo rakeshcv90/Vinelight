@@ -8,27 +8,20 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {Color, Font, IconData, ImageData} from '../../../assets/Image';
-import Home from './Home';
-import {storage} from '../../Component/Storage';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Color, Font, IconData, ImageData} from '../../assets/Image';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {useSelector} from 'react-redux';
+import {storage} from '../Component/Storage';
+import Meditation from './Meditate/Meditation';
+import Home from './Home/Home';
 const {width, height} = Dimensions.get('window');
 
 const MainPage = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('Home');
-  const [userPhotoUri, setUserPhotoUri] = useState(null);
-  useEffect(() => {
-    const storedUserString = storage.getString('userInfo');
 
-    try {
-      if (storedUserString && typeof storedUserString === 'string') {
-        const user = JSON.parse(storedUserString);
-        setUserPhotoUri(user?.photo?.uri || null);
-      }
-    } catch (e) {
-      console.error('Error parsing userInfo from storage:', storedUserString);
-    }
-  }, []);
+  const userInfo = useSelector(state => state?.user?.userInfo);
 
   const tabs = [
     {key: 'Home', inactiveIcon: IconData?.HOME, activeIcon: IconData?.HOMEA},
@@ -84,8 +77,13 @@ const MainPage = ({navigation}) => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
+    {      console.log("ZXvxcxv",userInfo?.photo?.uri)}
           <Image
-            source={{uri: userPhotoUri}}
+            source={
+              userInfo
+                ? {uri: userInfo?.photo?.uri}
+                : ImageData?.NOIMAGE
+            }
             style={{
               width: 50,
               height: 50,
@@ -96,7 +94,7 @@ const MainPage = ({navigation}) => {
             }}
           />
         </TouchableOpacity>
-        {activeTab === 'Home' ? <Home /> : <></>}
+        {activeTab === 'Home' ? <Home /> : <Meditation/>}
 
         <View
           style={{

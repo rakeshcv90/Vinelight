@@ -10,11 +10,13 @@ import {
 import React, {useEffect, useRef} from 'react';
 import {ImageData} from '../../assets/Image';
 import {storage} from '../Component/Storage';
+import {useSelector} from 'react-redux';
 
 const Splash = ({navigation}) => {
   const scaleAnim = useRef(new Animated.Value(0.72)).current; // Start invisible (scale 0)
   const opacityAnim = useRef(new Animated.Value(0)).current; // Start transparent
-  const storedUserString = storage.getString('userInfo');
+  // const storedUserString = storage.getString('userInfo');
+  const storedUserString = useSelector(state => state?.user?.userInfo);
   useEffect(() => {
     const timeout = setTimeout(() => {
       Animated.parallel([

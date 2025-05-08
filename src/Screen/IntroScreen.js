@@ -15,10 +15,14 @@ import Button from '../Component/Button';
 import {useGalleryPermission} from '../Component/PermissionHooks';
 import Toast from 'react-native-toast-message';
 import {storage} from '../Component/Storage';
-
+import ActivityLoader from '../Component/ActivityLoader';
+import {useDispatch} from 'react-redux';
+import { setUserInfo } from '../redux/actions';
 const {width, height} = Dimensions.get('window');
 
 const IntroScreen = ({navigation}) => {
+  const dispatch = useDispatch();
+  const [loader, setLoader] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const {launchLibrary} = useGalleryPermission();
   const [name, setName] = useState(null);
@@ -47,45 +51,36 @@ const IntroScreen = ({navigation}) => {
       setCurrentPage(currentPage + 1);
     } else {
       if (name && image) {
+        setLoader(true);
         const user = {
           name: name,
           photo: image,
         };
 
         try {
-          storage.set('userInfo', JSON.stringify(user));
+          dispatch(setUserInfo(user));
 
           setTimeout(() => {
-            const storedUserString = storage.getString('userInfo');
-            if (storedUserString) {
-              try {
-                const parsed = JSON.parse(storedUserString);
+            setLoader(false);
+            Toast.show({
+              type: 'success',
+              text1: 'Profile Created',
+              text2: 'Your profile has been created successfully',
+              visibilityTime: 3000,
+              position: 'top',
+            });
 
-                Toast.show({
-                  type: 'success',
-                  text1: 'Profile Created',
-                  text2: 'Your profile has been created successfully',
-                  visibilityTime: 3000,
-                  position: 'top',
-                });
-
-                setName(null);
-                setImage(null);
-                setCurrentPage(0);
-                navigation.replace('MainPage');
-              } catch (error) {
-                console.error('❌ JSON Parse Error:', error);
-                showParseFailToast();
-              }
-            } else {
-              showParseFailToast();
-            }
-          }, 1000); // Optional: 100ms delay
+            setName(null);
+            setImage(null);
+            setCurrentPage(0);
+            navigation.replace('MainPage');
+          }, 1000);
         } catch (error) {
+          setLoader(false);
           console.error('❌ Storage Save Error:', error);
-          showParseFailToast();
         }
       } else {
+        setLoader(false);
         Toast.show({
           type: 'error',
           text1: 'Data Save failed',
@@ -123,7 +118,7 @@ const IntroScreen = ({navigation}) => {
         backgroundColor="transparent"
         barStyle="light-content"
       />
-
+      <ActivityLoader visible={loader} />
       <ImageBackground
         source={ImageData.BACKGROUND}
         style={styles.primaryBackground}
@@ -365,6 +360,11 @@ const IntroScreen = ({navigation}) => {
                   handleNext();
                 }}
                 style={{width: '50%', backgroundColor: 'red', zIndex: -1}}
+                width={91}
+                height={47}
+                size={16}
+                font={Font.EBGaramond_SemiBold}
+
                 // disabled={currentPage === subTitleText?.length - 1}
               />
             </View>
