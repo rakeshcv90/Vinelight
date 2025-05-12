@@ -2,21 +2,48 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
 import {Color, Font} from '../../assets/Image';
 
-const Button = ({img, text, onPress, left, disabled, width, height,size,font}) => {
+const Button = ({
+  img,
+  text,
+  onPress,
+  left,
+  disabled,
+  width,
+  height,
+  size,
+  font,
+  backgroundColor,
+  color,
+  tintColor,
+}) => {
   return (
     <View style={[styles.shadowWrapper, {width: width, height: height}]}>
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, {backgroundColor: backgroundColor}]}
         activeOpacity={0.8}
         disabled={disabled}
         onPress={() => onPress()}>
         {left && (
-          <Image source={img} style={{width: 24, height: 24, right: 8}} resizeMode='contain'/>
+          <Image
+            source={img}
+            style={{width: 24, height: 24, right: 8, tintColor: tintColor}}
+            resizeMode="contain"
+          />
         )}
 
-        <Text style={[styles.text,{fontSize: size,fontFamily:font}]}>{text}</Text>
+        <Text
+          style={[
+            styles.text,
+            {fontSize: size, fontFamily: font, color: color},
+          ]}>
+          {text}
+        </Text>
         {!left && (
-          <Image source={img} style={{width: 16, height: 14, left: 8}} resizeMode='contain'/>
+          <Image
+            source={img}
+            style={{width: 16, height: 14, left: 8, tintColor: tintColor}}
+            resizeMode="contain"
+          />
         )}
       </TouchableOpacity>
     </View>
@@ -53,6 +80,5 @@ const styles = StyleSheet.create({
   text: {
     color: Color.GREEN,
     fontSize: 16,
-   
   },
 });

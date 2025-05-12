@@ -2,7 +2,8 @@ export const ImageData = {
   LOGO: require('../assets/Image/img/Logo.png'),
   SPLASHLOGO: require('../assets/Image/img/splashlogo.png'),
   BACKGROUND: require('../assets/Image/img/BG.png'),
-  MAINBACKGROUND: require('../assets/Image/img/Home.png'),
+  // MAINBACKGROUND: require('../assets/Image/img/Home.png'),
+  MAINBACKGROUND: require('../assets/Image/img/Home1.webp'),
   PROFILEBACK: require('../assets/Image/img/profilebackground.png'),
   PROFILEBACK1: require('../assets/Image/img/profilebackground1.webp'),
   TABBACKGROUND: require('../assets/Image/img/tab.png'),
@@ -16,7 +17,7 @@ export const ImageData = {
   YOGA: require('../assets/Image/img/yoga.png'),
   BOOK: require('../assets/Image/img/book.png'),
   SELECTIMAGE: require('../assets/Image/img/image.png'),
-
+  MEDATATION: require('../assets/Image/img/medatation.webp'),
 };
 
 export const IconData = {
@@ -41,7 +42,13 @@ export const IconData = {
   INSTA: require('../assets/Image/icon/insta.png'),
   YOUTOUB: require('../assets/Image/icon/youtoub.png'),
   CANCEL: require('../assets/Image/icon/cancel.png'),
-
+  MUSIC: require('../assets/Image/icon/music.png'),
+  PAUSE: require('../assets/Image/icon/pause.png'),
+  PLAY: require('../assets/Image/icon/Play.png'),
+  SPEAK: require('../assets/Image/icon/speak.png'),
+  PROGRESS: require('../assets/Image/icon/progress.png'),
+  MED: require('../assets/Image/icon/med.png'),
+  SETTING: require('../assets/Image/icon/setting.png'),
 };
 export const Font = {
   EB_Garamond: 'EBGaramond-Variable',
@@ -62,9 +69,10 @@ export const Color = {
   GREEN: '#353E29',
   LIGHTGREEN: '#404B2E',
   BROWN: '#B1915E',
-  LIGHTBROWN: 'D5C69C',
+  LIGHTBROWN: '#D5C69C',
+  LIGHTBROWN2: '#F2EEE2',
   BROWN2: '#BEA679',
   BROWN3: '#E3DBC5',
   BROWN4: '#CBBB92',
-  BROWN5:'#886746'
+  BROWN5: '#886746',
 };

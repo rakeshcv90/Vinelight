@@ -50,13 +50,24 @@ const IntroScreen = ({navigation}) => {
     if (currentPage < subTitleText?.length - 1) {
       setCurrentPage(currentPage + 1);
     } else {
-      if (name && image) {
+      if (name && image?.uri) {
+
         setLoader(true);
+        // const user = {
+        //   name: name,
+        //   photo: image,
+        // };
         const user = {
           name: name,
-          photo: image,
-        };
-
+          photo: {
+            uri: image?.uri,
+            base64: image?.base64 || null, // fallback safe
+            type: image?.type || 'image/jpeg',
+            fileName: image?.fileName || 'photo.jpg',
+            width: image?.width,
+            height: image?.height,
+            fileSize: image?.fileSize,
+          },}
         try {
           dispatch(setUserInfo(user));
 
@@ -104,7 +115,7 @@ const IntroScreen = ({navigation}) => {
       const resultLibrary = await launchLibrary();
 
       if (resultLibrary) {
-        console.lo;
+
         setImage(resultLibrary.assets[0]);
       }
     } catch (error) {

@@ -8,14 +8,17 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../assets/Image';
 
-import {useFocusEffect} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
-import {storage} from '../Component/Storage';
+
 import Meditation from './Meditate/Meditation';
 import Home from './Home/Home';
+import Journal from './Journal/Journal';
+import Dreams from './Dreams/Dreams';
+import Ceremony from './Ceremony/Ceremony';
+
 const {width, height} = Dimensions.get('window');
 
 const MainPage = ({navigation}) => {
@@ -77,12 +80,27 @@ const MainPage = ({navigation}) => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-    {      console.log("ZXvxcxv",userInfo?.photo?.uri)}
+          {console.log('DSfdsfdfsd', userInfo)}
+          {/* <Image
+            source={userInfo ? {uri: userInfo?.photo?.uri} : ImageData?.NOIMAGE}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              borderWidth: 1,
+              zIndex: 1,
+              borderColor: Color.BROWN4,
+            }}
+          /> */}
           <Image
             source={
-              userInfo
-                ? {uri: userInfo?.photo?.uri}
-                : ImageData?.NOIMAGE
+              userInfo?.photo?.base64
+                ? {
+                    uri: `data:${userInfo.photo.type};base64,${userInfo.photo.base64}`,
+                  }
+                : userInfo?.photo?.uri
+                ? {uri: userInfo.photo.uri}
+                : ImageData.NOIMAGE
             }
             style={{
               width: 50,
@@ -94,7 +112,17 @@ const MainPage = ({navigation}) => {
             }}
           />
         </TouchableOpacity>
-        {activeTab === 'Home' ? <Home /> : <Meditation/>}
+        {activeTab === 'Home' ? (
+          <Home />
+        ) : activeTab === 'Journal' ? (
+          <Journal />
+        ) : activeTab === 'Dreams' ? (
+          <Dreams />
+        ) : activeTab === 'Ceremony' ? (
+          <Ceremony />
+        ) : (
+          <Meditation />
+        )}
 
         <View
           style={{

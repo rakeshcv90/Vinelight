@@ -232,7 +232,7 @@ const Home = () => {
             <Button2
               width={300}
               height={50}
-              buttonTitle={'Meditation Timer'}
+              buttonTitle={'Add Journal Entry'}
               img={IconData.PLUS}
               left={true}
               size={20}

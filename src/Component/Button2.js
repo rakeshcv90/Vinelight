@@ -13,7 +13,7 @@ const Button2 = ({width, height, onPress, buttonTitle, img, left, size}) => {
           <Image
             source={img}
             resizeMode="contain"
-            style={{width: 24, height: 24, right: 20}}
+            style={{width: 24, height: 24, right: 10}}
           />
         )}
 

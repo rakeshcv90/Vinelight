@@ -17,6 +17,7 @@ const Splash = ({navigation}) => {
   const opacityAnim = useRef(new Animated.Value(0)).current; // Start transparent
   // const storedUserString = storage.getString('userInfo');
   const storedUserString = useSelector(state => state?.user?.userInfo);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       Animated.parallel([

@@ -40,13 +40,20 @@ const Profile = ({navigation}) => {
     setImage(userInfo?.photo);
   }, [modalopen]);
   const updateProfile = () => {
-    if (name && image) {
+    if (name && image?.uri) {
       setLoader(true);
       const user = {
         name: name,
-        photo: image,
+        photo: {
+          uri: image.uri,
+          base64: image.base64 || null,
+          type: image.type || 'image/jpeg',
+          fileName: image.fileName || 'profile.jpg',
+          width: image.width,
+          height: image.height,
+          fileSize: image.fileSize,
+        },
       };
-
       try {
         dispatch(setUserInfo(user));
         setTimeout(() => {
@@ -84,7 +91,7 @@ const Profile = ({navigation}) => {
       const resultLibrary = await launchLibrary();
 
       if (resultLibrary) {
-        console.log;
+        console.log('dddddddd', resultLibrary.assets[0]);
         setImage(resultLibrary.assets[0]);
       }
     } catch (error) {
@@ -222,7 +229,13 @@ const Profile = ({navigation}) => {
                   borderColor: Color?.BROWN2,
                 }}>
                 <Image
-                  source={image?.uri ? {uri: image?.uri} : ImageData?.NOIMAGE}
+                  source={
+                    image?.base64
+                      ? {uri: `data:${image.type};base64,${image.base64}`}
+                      : image?.uri
+                      ? {uri: image.uri}
+                      : ImageData.NOIMAGE
+                  }
                   resizeMode="cover"
                   style={{
                     width: 95,
@@ -574,9 +587,14 @@ const Profile = ({navigation}) => {
                   alignItems: 'center',
                   // backgroundColor: Color.BROWN2,
                 }}>
-               
                 <Image
-                  source={image ? {uri: image?.uri} : ImageData?.NOIMAGE}
+                  source={
+                    image?.base64
+                      ? {uri: `data:${image.type};base64,${image.base64}`}
+                      : image?.uri
+                      ? {uri: image.uri}
+                      : ImageData.NOIMAGE
+                  }
                   style={{
                     width: 110,
                     height: 110,

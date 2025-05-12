@@ -11,8 +11,10 @@ import {
 import React from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
+import {useNavigation} from '@react-navigation/native';
 const {width, height} = Dimensions.get('window');
 const Meditation = () => {
+  const navigation = useNavigation(); // ✅ Fix here
   const data = [
     {
       id: 1,
@@ -23,21 +25,21 @@ const Meditation = () => {
     },
     {
       id: 2,
-      title: 'Body Scan',
+      title: 'Meditation #2',
       description:
         'The body scan is a practice of noticing.We’re not trying to fix or change anything - just becoming aware.',
       timer: '15 Min',
     },
     {
       id: 3,
-      title: 'Body Scan',
+      title: 'Meditation #3',
       description:
         'The body scan is a practice of noticing.We’re not trying to fix or change anything - just becoming aware.',
       timer: '15 Min',
     },
     {
       id: 4,
-      title: 'Body Scan',
+      title: 'Meditation #4',
       description:
         'The body scan is a practice of noticing.We’re not trying to fix or change anything - just becoming aware.',
       timer: '15 Min',
@@ -47,18 +49,19 @@ const Meditation = () => {
     return (
       <View style={styles.card}>
         <View style={styles.content}>
-          <Text style={styles.title}>Body Scan</Text>
-          <Text style={styles.description}>
-            The body scan is a practice of noticing.{'\n'}
-            We’re not trying to fix or change anything - just becoming aware.
-          </Text>
+          <Text style={styles.title}>{item?.title}</Text>
+          <Text style={styles.description}>{item?.description}</Text>
         </View>
         <View style={styles.rightSide}>
-          <TouchableOpacity style={styles.playButton}>
+          <TouchableOpacity
+            style={styles.playButton}
+            onPress={() => {
+              navigation.navigate('MeditationPlayer', {itemData: item});
+            }}>
             <Text style={styles.icon}>▶</Text>
           </TouchableOpacity>
           <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>15 Min</Text>
+            <Text style={styles.durationText}>{item?.timer}</Text>
           </View>
         </View>
       </View>
@@ -76,15 +79,13 @@ const Meditation = () => {
             height: '76%',
             justifyContent: 'center',
             alignItems: 'center',
-            marginVertical: '30%',
-            // paddingVertical: '0%',
+            marginVertical: '35%',
           }}>
           <View
             style={{
               width: '90%',
               height: '100%',
               alignItems: 'center',
-              marginTop: '3%',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
               backgroundColor: Color?.LIGHTBROWN,
@@ -128,10 +129,9 @@ const Meditation = () => {
               style={{
                 width: '96%',
                 height: '63%',
-            
+
                 alignSelf: 'center',
                 top: -20,
-              
               }}>
               <FlatList
                 data={data}
@@ -156,7 +156,7 @@ const Meditation = () => {
                 img={IconData.PLUS}
                 left={true}
                 size={20}
-                onPress={() => console.log('Pressed')}
+                onPress={() => navigation.navigate('CustomMeditation')}
               />
             </View>
             <View
@@ -197,13 +197,12 @@ export default Meditation;
 
 const styles = StyleSheet.create({
   secondaryContainer: {
-    // flex:1,
     width: '90%',
     height: '85%',
   },
   secondaryBackground: {
-    width: '100%', // Fills the parent container
-    height: '100%', // Fills the parent container
+    width: '100%',
+    height: '100%',
   },
   subText: {
     fontSize: 24,
@@ -238,8 +237,8 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
-    color:Color.BROWN5,
-    fontFamily:Font.EBGaramond_Regular,
+    color: Color.BROWN5,
+    fontFamily: Font.EBGaramond_Regular,
     lineHeight: 24,
   },
   rightSide: {
@@ -257,23 +256,21 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   durationBadge: {
-    backgroundColor: '#F3EFE6',
-    // paddingHorizontal: 10,
-    // paddingVertical: 4,
-    paddingLeft:6,
-    paddingRight:6,
-    gap:10,
-    paddingVertical:5,
+    backgroundColor: Color.LIGHTBROWN2,
+    paddingLeft: 6,
+    paddingRight: 6,
+    gap: 10,
+    paddingVertical: 5,
     borderRadius: 12,
   },
   durationText: {
     fontSize: 12,
-    color: '#3C4A35',
-    fontWeight: '500',
+    color: Color.LIGHTGREEN,
+    fontFamily: Font.EBGaramond_SemiBold,
   },
   icon: {
     fontSize: 20,
-    color: '#3C4A35', // play icon color
+    color: '#3C4A35',
     fontWeight: 'bold',
   },
 });
