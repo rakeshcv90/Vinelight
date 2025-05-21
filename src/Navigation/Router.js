@@ -3,11 +3,13 @@ import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Splash from '../Screen/Splash';
 import IntroScreen from '../Screen/IntroScreen';
-import MainPage from '../Screen/Home/MainPage';
+import MainPage from '../Screen/MainPage';
 import Profile from '../Screen/Profile';
-
-
-
+import MeditationPlayer from '../Screen/Meditate/MeditationPlayer';
+import CustomMeditationPlayer from '../Screen/Meditate/CustomMeditationPlayer';
+import CustomMeditation from '../Screen/Meditate/CustomMeditation';
+import AdvanceSetting from '../Screen/Meditate/AdvanceSetting';
+import CreateDream from '../Screen/Dreams/CreateDream';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +28,15 @@ const Router = () => {
       <Stack.Screen name="Intro" component={IntroScreen} />
       <Stack.Screen name="MainPage" component={MainPage} />
       <Stack.Screen name="Profile" component={Profile} />
+      <Stack.Screen name="MeditationPlayer" component={MeditationPlayer} />
+      <Stack.Screen
+        name="CustomMeditationPlayer"
+        component={CustomMeditationPlayer}
+      />
+      <Stack.Screen name="CustomMeditation" component={CustomMeditation} />
+      <Stack.Screen name="AdvanceSetting" component={AdvanceSetting} />
+
+      <Stack.Screen name="CreateDream" component={CreateDream} />
     </Stack.Navigator>
   );
 };

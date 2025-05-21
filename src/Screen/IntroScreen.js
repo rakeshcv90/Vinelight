@@ -2,11 +2,16 @@ import {
   Dimensions,
   Image,
   ImageBackground,
+  Keyboard,
+  KeyboardAvoidingView,
+  SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import React, {useState} from 'react';
@@ -15,10 +20,14 @@ import Button from '../Component/Button';
 import {useGalleryPermission} from '../Component/PermissionHooks';
 import Toast from 'react-native-toast-message';
 import {storage} from '../Component/Storage';
-
+import ActivityLoader from '../Component/ActivityLoader';
+import {useDispatch} from 'react-redux';
+import {setUserInfo} from '../redux/actions';
 const {width, height} = Dimensions.get('window');
 
 const IntroScreen = ({navigation}) => {
+  const dispatch = useDispatch();
+  const [loader, setLoader] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const {launchLibrary} = useGalleryPermission();
   const [name, setName] = useState(null);
@@ -46,46 +55,48 @@ const IntroScreen = ({navigation}) => {
     if (currentPage < subTitleText?.length - 1) {
       setCurrentPage(currentPage + 1);
     } else {
-      if (name && image) {
+      if (name && image?.uri) {
+        setLoader(true);
+        // const user = {
+        //   name: name,
+        //   photo: image,
+        // };
         const user = {
           name: name,
-          photo: image,
+          photo: {
+            uri: image?.uri,
+            base64: image?.base64 || null, // fallback safe
+            type: image?.type || 'image/jpeg',
+            fileName: image?.fileName || 'photo.jpg',
+            width: image?.width,
+            height: image?.height,
+            fileSize: image?.fileSize,
+          },
         };
-
         try {
-          storage.set('userInfo', JSON.stringify(user));
+          dispatch(setUserInfo(user));
 
           setTimeout(() => {
-            const storedUserString = storage.getString('userInfo');
-            if (storedUserString) {
-              try {
-                const parsed = JSON.parse(storedUserString);
+            setLoader(false);
+            Toast.show({
+              type: 'success',
+              text1: 'Profile Created',
+              text2: 'Your profile has been created successfully',
+              visibilityTime: 3000,
+              position: 'top',
+            });
 
-                Toast.show({
-                  type: 'success',
-                  text1: 'Profile Created',
-                  text2: 'Your profile has been created successfully',
-                  visibilityTime: 3000,
-                  position: 'top',
-                });
-
-                setName(null);
-                setImage(null);
-                setCurrentPage(0);
-                navigation.replace('MainPage');
-              } catch (error) {
-                console.error('❌ JSON Parse Error:', error);
-                showParseFailToast();
-              }
-            } else {
-              showParseFailToast();
-            }
-          }, 1000); // Optional: 100ms delay
+            setName(null);
+            setImage(null);
+            setCurrentPage(0);
+            navigation.replace('MainPage');
+          }, 1000);
         } catch (error) {
+          setLoader(false);
           console.error('❌ Storage Save Error:', error);
-          showParseFailToast();
         }
       } else {
+        setLoader(false);
         Toast.show({
           type: 'error',
           text1: 'Data Save failed',
@@ -109,7 +120,6 @@ const IntroScreen = ({navigation}) => {
       const resultLibrary = await launchLibrary();
 
       if (resultLibrary) {
-        console.lo;
         setImage(resultLibrary.assets[0]);
       }
     } catch (error) {
@@ -117,260 +127,523 @@ const IntroScreen = ({navigation}) => {
     }
   };
   return (
+    // <View style={styles.container}>
+    //   <StatusBar
+    //     translucent
+    //     backgroundColor="transparent"
+    //     barStyle="light-content"
+    //   />
+    //   <ActivityLoader visible={loader} />
+    //   <ImageBackground
+    //     source={ImageData.BACKGROUND}
+    //     style={styles.primaryBackground}
+    //     resizeMode="cover">
+    //     <View style={styles.secondaryContainer}>
+    //       <ImageBackground
+    //         source={ImageData.MAINBACKGROUND}
+    //         style={styles.secondaryBackground}
+    //         resizeMode="stretch">
+    //         <View
+    //           style={{
+    //             width: '100%',
+    //             justifyContent: 'center',
+    //             alignItems: 'center',
+    //             marginVertical: '35%',
+    //             paddingVertical: '5%',
+    //           }}>
+    //           <Text style={styles.title}>Welcome To</Text>
+    //           <Text style={styles.title2}>VineLight</Text>
+    //           <View
+    //             style={{
+    //               width: '90%',
+    //               height: '80%',
+    //               alignItems: 'center',
+    //               marginTop: '5%',
+    //               borderWidth: currentPage === 2 ? 0 : 1,
+    //               borderColor: Color.LIGHTGREEN,
+    //               backgroundColor: Color?.LIGHTBROWN,
+    //             }}>
+    //             <View
+    //               style={{
+    //                 width: '100%',
+    //                 height: '10%',
+    //                 flexDirection: 'row',
+
+    //                 justifyContent: 'space-between',
+    //               }}>
+    //               {currentPage !== 2 && (
+    //                 <>
+    //                   <Image
+    //                     source={ImageData.LEFT}
+    //                     resizeMode="contain"
+    //                     style={{width: 31, height: 31}}
+    //                   />
+    //                   <Image
+    //                     source={ImageData.RIGHT}
+    //                     resizeMode="contain"
+    //                     style={{
+    //                       width: 31,
+    //                       height: 31,
+    //                       backgroundColor: 'transparent',
+    //                     }}
+    //                   />
+    //                 </>
+    //               )}
+    //             </View>
+    //             <TouchableOpacity
+    //               style={{
+    //                 width: '100%',
+    //                 height: '25%',
+    //                 alignItems: 'center',
+    //                 justifyContent: 'center',
+    //               }}
+    //               disabled={currentPage !== 2}
+    //               onPress={() => {
+    //                 openLibrary();
+    //               }}>
+    //               <Image
+    //                 source={
+    //                   currentPage == 2 && image
+    //                     ? {uri: image?.uri}
+    //                     : subTitleText[currentPage]?.image ?? ImageData.NOIMAGE
+    //                 }
+    //                 resizeMode="contain"
+    //                 style={{
+    //                   width: 100,
+    //                   height: 100,
+    //                   borderWidth: currentPage === 2 ? 3 : 0,
+    //                   borderRadius: currentPage === 2 ? 50 : 0,
+    //                   borderColor:
+    //                     currentPage === 2 ? Color.LIGHTGREEN : 'transparent',
+    //                 }}
+    //               />
+    //             </TouchableOpacity>
+    //             <View
+    //               style={{
+    //                 width: '100%',
+    //                 height: '56%',
+
+    //                 justifyContent: 'center',
+    //                 alignItems: 'center',
+    //               }}>
+    //               <View
+    //                 style={{
+    //                   width: '90%',
+    //                   height: '80%',
+    //                   // padding: 10,
+    //                   justifyContent: 'center',
+    //                   alignItems: 'center',
+    //                   alignSelf: 'center',
+    //                 }}>
+    //                 <Text
+    //                   style={[
+    //                     styles.titleText,
+    //                     {marginVertical: currentPage === 2 ? 20 : 0},
+    //                   ]}>
+    //                   {subTitleText[currentPage]?.text}
+    //                 </Text>
+    //                 {currentPage === 2 && (
+    //                   <View
+    //                     style={{
+    //                       width: '100%',
+
+    //                       height: 52,
+    //                       borderRadius: 12,
+    //                       borderWidth: 1,
+    //                       borderColor: Color.LIGHTGREEN,
+    //                       justifyContent: 'center',
+    //                       alignItems: 'center',
+    //                       alignSelf: 'center',
+    //                       backgroundColor: 'white',
+    //                     }}>
+    //                     <TextInput
+    //                       value={name}
+    //                       onChangeText={text => setName(text)}
+    //                       placeholder="Enter your name"
+    //                       placeholderTextColor={Color.LIGHTGREEN}
+    //                       style={{
+    //                         width: '90%',
+    //                         height: '100%',
+    //                         color: Color.LIGHTGREEN,
+    //                         fontSize: 16,
+    //                         fontFamily: Font.EBGaramond_Regular,
+    //                       }}
+    //                       selectionColor={Color.LIGHTGREEN}
+    //                     />
+    //                   </View>
+    //                 )}
+    //               </View>
+    //               <View
+    //                 style={{
+    //                   width: '90%',
+    //                   height: '10%',
+    //                   alignSelf: 'center',
+    //                   justifyContent: 'center',
+    //                   alignItems: 'center',
+    //                   top: 20,
+    //                 }}>
+    //                 <View style={styles.dotsContainer}>
+    //                   {[0, 1, 2].map(index => (
+    //                     <View
+    //                       key={index}
+    //                       style={{
+    //                         width: 8,
+    //                         height: 8,
+    //                         borderRadius: 4,
+    //                         marginHorizontal: 2,
+    //                         backgroundColor:
+    //                           index === currentPage
+    //                             ? Color.LIGHTGREEN
+    //                             : Color.BROWN,
+    //                       }}></View>
+    //                   ))}
+    //                 </View>
+    //               </View>
+    //             </View>
+    //             <View
+    //               style={{
+    //                 width: '100%',
+    //                 height: '10%',
+    //                 flexDirection: 'row',
+
+    //                 justifyContent: 'space-between',
+    //               }}>
+    //               {currentPage !== 2 && (
+    //                 <>
+    //                   <Image
+    //                     source={ImageData.BACKLEFT}
+    //                     resizeMode="contain"
+    //                     style={{
+    //                       width: 31,
+    //                       height: 31,
+    //                       top: height >= 844 ? height * 0.005 : 0,
+    //                     }}
+    //                   />
+
+    //                   <Image
+    //                     source={ImageData.BACKRIGHT}
+    //                     resizeMode="contain"
+    //                     style={{
+    //                       width: 31,
+    //                       height: 31,
+    //                       top: height >= 844 ? height * 0.005 : 0,
+    //                     }}
+    //                   />
+    //                 </>
+    //               )}
+    //             </View>
+    //           </View>
+    //         </View>
+    //       </ImageBackground>
+    //     </View>
+    //     <View
+    //       style={{
+    //         width: '95%',
+    //         height: 56,
+    //         position: 'absolute',
+    //         bottom: height * 0.02,
+    //         alignSelf: 'center',
+
+    //         zIndex: 1,
+    //       }}>
+    //       <ImageBackground
+    //         source={ImageData.TABBACKGROUND}
+    //         style={styles.thirdBackground}
+    //         resizeMode="contain">
+    //         <View
+    //           style={{
+    //             width: '95%',
+    //             height: '100%',
+    //             flexDirection: 'row',
+    //             justifyContent: 'space-between',
+    //             alignItems: 'center',
+    //           }}>
+    //           <TouchableOpacity
+    //             onPress={handleBack}
+    //             disabled={currentPage === 0}>
+    //             <Image
+    //               source={IconData.BACK}
+    //               style={{width: 24, height: 24, left: 8}}
+    //             />
+    //           </TouchableOpacity>
+    //           <Button
+    //             img={ImageData.ARROWNEXT}
+    //             text="Next"
+    //             left={false}
+    //             onPress={() => {
+    //               handleNext();
+    //             }}
+    //             style={{width: '50%', backgroundColor: 'red', zIndex: -1}}
+    //             width={91}
+    //             height={47}
+    //             size={16}
+    //             font={Font.EBGaramond_SemiBold}
+
+    //             // disabled={currentPage === subTitleText?.length - 1}
+    //           />
+    //         </View>
+    //       </ImageBackground>
+    //     </View>
+    //   </ImageBackground>
+    // </View>
     <View style={styles.container}>
       <StatusBar
         translucent
         backgroundColor="transparent"
         barStyle="light-content"
       />
-
-      <ImageBackground
-        source={ImageData.BACKGROUND}
-        style={styles.primaryBackground}
-        resizeMode="cover">
-        {/* Centered Container */}
-        <View style={styles.secondaryContainer}>
-          <ImageBackground
-            source={ImageData.MAINBACKGROUND}
-            style={styles.secondaryBackground}
-            resizeMode="stretch">
-            <View
-              style={{
-                width: '100%',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginVertical: '35%',
-                paddingVertical: '5%',
-              }}>
-              <Text style={styles.title}>Welcome To</Text>
-              <Text style={styles.title2}>VineLight</Text>
-              <View
-                style={{
-                  width: '90%',
-                  height: '80%',
-                  alignItems: 'center',
-                  marginTop: '5%',
-                  borderWidth: currentPage === 2 ? 0 : 1,
-                  borderColor: Color.LIGHTGREEN,
-                  backgroundColor: Color?.LIGHTBROWN,
-                }}>
-                <View
-                  style={{
-                    width: '100%',
-                    height: '10%',
-                    flexDirection: 'row',
-
-                    justifyContent: 'space-between',
-                  }}>
-                  {currentPage !== 2 && (
-                    <>
-                      <Image
-                        source={ImageData.LEFT}
-                        resizeMode="contain"
-                        style={{width: 31, height: 31}}
-                      />
-                      <Image
-                        source={ImageData.RIGHT}
-                        resizeMode="contain"
-                        style={{
-                          width: 31,
-                          height: 31,
-                          backgroundColor: 'transparent',
-                        }}
-                      />
-                    </>
-                  )}
-                </View>
-                <TouchableOpacity
-                  style={{
-                    width: '100%',
-                    height: '25%',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  disabled={currentPage !== 2}
-                  onPress={() => {
-                    openLibrary();
-                  }}>
-                  <Image
-                    source={
-                      currentPage == 2 && image
-                        ? {uri: image?.uri}
-                        : subTitleText[currentPage]?.image ?? ImageData.NOIMAGE
-                    }
-                    resizeMode="contain"
-                    style={{
-                      width: 100,
-                      height: 100,
-                      borderWidth: currentPage === 2 ? 3 : 0,
-                      borderRadius: currentPage === 2 ? 50 : 0,
-                      borderColor:
-                        currentPage === 2 ? Color.LIGHTGREEN : 'transparent',
-                    }}
-                  />
-                </TouchableOpacity>
-                <View
-                  style={{
-                    width: '100%',
-                    height: '56%',
-
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        style={{flex: 1}}>
+        <ScrollView
+          contentContainerStyle={{flexGrow: 1}}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.container}>
+            <StatusBar
+              translucent
+              backgroundColor="transparent"
+              barStyle="light-content"
+            />
+            <ActivityLoader visible={loader} />
+            <ImageBackground
+              source={ImageData.BACKGROUND}
+              style={styles.primaryBackground}
+              resizeMode="cover">
+              <View style={styles.secondaryContainer}>
+                <ImageBackground
+                  source={ImageData.MAINBACKGROUND}
+                  style={styles.secondaryBackground}
+                  resizeMode="stretch">
                   <View
                     style={{
-                      width: '90%',
-                      height: '80%',
-                      // padding: 10,
+                      width: '100%',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      alignSelf: 'center',
+                      marginVertical: '35%',
+                      paddingVertical: '5%',
                     }}>
-                    <Text
-                      style={[
-                        styles.titleText,
-                        {marginVertical: currentPage === 2 ? 20 : 0},
-                      ]}>
-                      {subTitleText[currentPage]?.text}
-                    </Text>
-                    {currentPage === 2 && (
+                    <Text style={styles.title}>Welcome To</Text>
+                    <Text style={styles.title2}>VineLight</Text>
+                    <View
+                      style={{
+                        width: '90%',
+                        height: '80%',
+                        alignItems: 'center',
+                        marginTop: '5%',
+                        borderWidth: currentPage === 2 ? 0 : 1,
+                        borderColor: Color.LIGHTGREEN,
+                        backgroundColor: Color?.LIGHTBROWN,
+                      }}>
                       <View
                         style={{
                           width: '100%',
-
-                          height: 52,
-                          borderRadius: 12,
-                          borderWidth: 1,
-                          borderColor: Color.LIGHTGREEN,
+                          height: '10%',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
+                        {currentPage !== 2 && (
+                          <>
+                            <Image
+                              source={ImageData.LEFT}
+                              resizeMode="contain"
+                              style={{width: 31, height: 31}}
+                            />
+                            <Image
+                              source={ImageData.RIGHT}
+                              resizeMode="contain"
+                              style={{width: 31, height: 31}}
+                            />
+                          </>
+                        )}
+                      </View>
+                      <TouchableOpacity
+                        style={{
+                          width: '100%',
+                          height: '25%',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        disabled={currentPage !== 2}
+                        onPress={openLibrary}>
+                        <Image
+                          source={
+                            currentPage === 2 && image
+                              ? {uri: image?.uri}
+                              : subTitleText[currentPage]?.image ??
+                                ImageData.NOIMAGE
+                          }
+                          resizeMode="contain"
+                          style={{
+                            width: 100,
+                            height: 100,
+                            borderWidth: currentPage === 2 ? 3 : 0,
+                            borderRadius: currentPage === 2 ? 50 : 0,
+                            borderColor:
+                              currentPage === 2
+                                ? Color.LIGHTGREEN
+                                : 'transparent',
+                          }}
+                        />
+                      </TouchableOpacity>
+                      <View
+                        style={{
+                          width: '100%',
+                          height: '56%',
                           justifyContent: 'center',
                           alignItems: 'center',
-                          alignSelf: 'center',
-                          backgroundColor: 'white',
                         }}>
-                        <TextInput
-                          value={name}
-                          onChangeText={text => setName(text)}
-                          placeholder="Enter your name"
-                          placeholderTextColor={Color.LIGHTGREEN}
+                        <View
                           style={{
                             width: '90%',
-                            height: '100%',
-                            color: Color.LIGHTGREEN,
-                            fontSize: 16,
-                            fontFamily: Font.EBGaramond_Regular,
-                          }}
-                          selectionColor={Color.LIGHTGREEN}
-                        />
-                      </View>
-                    )}
-                  </View>
-                  <View
-                    style={{
-                      width: '90%',
-                      height: '10%',
-                      alignSelf: 'center',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      top: 20,
-                    }}>
-                    <View style={styles.dotsContainer}>
-                      {[0, 1, 2].map(index => (
+                            height: '80%',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}>
+                          <Text
+                            style={[
+                              styles.titleText,
+                              {marginVertical: currentPage === 2 ? 20 : 0},
+                            ]}>
+                            {subTitleText[currentPage]?.text}
+                          </Text>
+                          {currentPage === 2 && (
+                            <View
+                              style={{
+                                width: '100%',
+                                height: 52,
+                                borderRadius: 12,
+                                borderWidth: 1,
+                                borderColor: Color.LIGHTGREEN,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                backgroundColor: 'white',
+                              }}>
+                              <TextInput
+                                value={name}
+                                onChangeText={setName}
+                                placeholder="Enter your name"
+                                placeholderTextColor={Color.LIGHTGREEN}
+                                style={{
+                                  width: '90%',
+                                  height: '100%',
+                                  color: Color.LIGHTGREEN,
+                                  fontSize: 16,
+                                  fontFamily: Font.EBGaramond_Regular,
+                                }}
+                                selectionColor={Color.LIGHTGREEN}
+                              />
+                            </View>
+                          )}
+                        </View>
                         <View
-                          key={index}
                           style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: 4,
-                            marginHorizontal: 2,
-                            backgroundColor:
-                              index === currentPage
-                                ? Color.LIGHTGREEN
-                                : Color.BROWN,
-                          }}></View>
-                      ))}
+                            width: '90%',
+                            height: '10%',
+                            alignItems: 'center',
+                            top: 20,
+                          }}>
+                          <View style={styles.dotsContainer}>
+                            {[0, 1, 2].map(index => (
+                              <View
+                                key={index}
+                                style={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: 4,
+                                  marginHorizontal: 2,
+                                  backgroundColor:
+                                    index === currentPage
+                                      ? Color.LIGHTGREEN
+                                      : Color.BROWN,
+                                }}
+                              />
+                            ))}
+                          </View>
+                        </View>
+                      </View>
+                      <View
+                        style={{
+                          width: '100%',
+                          height: '10%',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
+                        {currentPage !== 2 && (
+                          <>
+                            <Image
+                              source={ImageData.BACKLEFT}
+                              resizeMode="contain"
+                              style={{
+                                width: 31,
+                                height: 31,
+                                top: height >= 844 ? height * 0.005 : 0,
+                              }}
+                            />
+                            <Image
+                              source={ImageData.BACKRIGHT}
+                              resizeMode="contain"
+                              style={{
+                                width: 31,
+                                height: 31,
+                                top: height >= 844 ? height * 0.005 : 0,
+                              }}
+                            />
+                          </>
+                        )}
+                      </View>
                     </View>
                   </View>
-                </View>
-                <View
-                  style={{
-                    width: '100%',
-                    height: '10%',
-                    flexDirection: 'row',
-
-                    justifyContent: 'space-between',
-                  }}>
-                  {currentPage !== 2 && (
-                    <>
-                      <Image
-                        source={ImageData.BACKLEFT}
-                        resizeMode="contain"
-                        style={{
-                          width: 31,
-                          height: 31,
-                          top: height >= 844 ? height * 0.005 : 0,
-                        }}
-                      />
-
-                      <Image
-                        source={ImageData.BACKRIGHT}
-                        resizeMode="contain"
-                        style={{
-                          width: 31,
-                          height: 31,
-                          top: height >= 844 ? height * 0.005 : 0,
-                        }}
-                      />
-                    </>
-                  )}
-                </View>
+                </ImageBackground>
               </View>
-            </View>
-          </ImageBackground>
-        </View>
-        <View
-          style={{
-            width: '95%',
-            height: 56,
-            position: 'absolute',
-            bottom: height * 0.02,
-            alignSelf: 'center',
-
-            zIndex: 1,
-          }}>
-          <ImageBackground
-            source={ImageData.TABBACKGROUND}
-            style={styles.thirdBackground}
-            resizeMode="contain">
-            <View
-              style={{
-                width: '95%',
-                height: '100%',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-              <TouchableOpacity
-                onPress={handleBack}
-                disabled={currentPage === 0}>
-                <Image
-                  source={IconData.BACK}
-                  style={{width: 24, height: 24, left: 8}}
-                />
-              </TouchableOpacity>
-              <Button
-                img={ImageData.ARROWNEXT}
-                text="Next"
-                left={false}
-                onPress={() => {
-                  handleNext();
-                }}
-                style={{width: '50%', backgroundColor: 'red', zIndex: -1}}
-                // disabled={currentPage === subTitleText?.length - 1}
-              />
-            </View>
-          </ImageBackground>
-        </View>
-      </ImageBackground>
+              <View
+                style={{
+                  width: '95%',
+                  height: 56,
+                  position: 'absolute',
+                  bottom: height * 0.02,
+                  alignSelf: 'center',
+                  zIndex: 1,
+                }}>
+                <ImageBackground
+                  source={ImageData.TABBACKGROUND}
+                  style={styles.thirdBackground}
+                  resizeMode="contain">
+                  <View
+                    style={{
+                      width: '95%',
+                      height: '100%',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}>
+                    <TouchableOpacity
+                      onPress={handleBack}
+                      disabled={currentPage === 0}>
+                      <Image
+                        source={IconData.BACK}
+                        style={{width: 24, height: 24, left: 8}}
+                      />
+                    </TouchableOpacity>
+                    <Button
+                      img={ImageData.ARROWNEXT}
+                      text="Next"
+                      left={false}
+                      onPress={handleNext}
+                      style={{width: '50%', backgroundColor: 'red', zIndex: -1}}
+                      width={91}
+                      height={47}
+                      size={16}
+                      font={Font.EBGaramond_SemiBold}
+                    />
+                  </View>
+                </ImageBackground>
+              </View>
+            </ImageBackground>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };
@@ -388,7 +661,7 @@ const styles = StyleSheet.create({
   },
   secondaryContainer: {
     width: '90%',
-    height: '90%',
+    height: '85%',
   },
   secondaryBackground: {
     width: '100%', // Fills the parent container

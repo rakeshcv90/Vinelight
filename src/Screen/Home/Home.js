@@ -15,6 +15,7 @@ import Button2 from '../../Component/Button2';
 import {storage} from '../../Component/Storage';
 import {Calendar} from 'react-native-calendars';
 import {LocaleConfig} from 'react-native-calendars';
+
 const {width, height} = Dimensions.get('window');
 
 const today = new Date().toISOString().split('T')[0];
@@ -72,53 +73,58 @@ const Home = () => {
         source={ImageData.MAINBACKGROUND}
         style={styles.secondaryBackground}
         resizeMode="stretch">
+    
         <View
           style={{
             width: '100%',
             justifyContent: 'center',
             alignItems: 'center',
-            marginVertical: '30%',
-            paddingVertical: '10%',
+            marginTop: '30%',
           }}>
           <Text style={styles.title2}>VineLight</Text>
+        </View>
+        <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 50}} showsVerticalScrollIndicator={false}>
           <View
             style={{
-              width: '90%',
-              height: '60%',
+              width: '95%',
+
               alignItems: 'center',
-              marginTop: '2%',
+              marginTop: '5%',
+
               borderWidth: 1,
+              alignSelf: 'center',
               borderColor: Color.LIGHTGREEN,
               backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
                 width: '100%',
-                height: '10%',
+                // height: '10%',
                 flexDirection: 'row',
 
                 justifyContent: 'space-between',
               }}>
-              <Image
-                source={ImageData.LEFT}
-                resizeMode="contain"
-                style={{width: 31, height: 31}}
-              />
-              <Image
-                source={ImageData.RIGHT}
-                resizeMode="contain"
-                style={{
-                  width: 31,
-                  height: 31,
-                  backgroundColor: 'transparent',
-                }}
-              />
+              <>
+                <Image
+                  source={ImageData.LEFT}
+                  resizeMode="contain"
+                  style={{width: 31, height: 31}}
+                />
+                <Image
+                  source={ImageData.RIGHT}
+                  resizeMode="contain"
+                  style={{
+                    width: 31,
+                    height: 31,
+                    backgroundColor: 'transparent',
+                  }}
+                />
+              </>
             </View>
 
             <View
               style={{
-                width: '100%',
-                height: '77%',
+                width: '90%',
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
@@ -151,7 +157,6 @@ const Home = () => {
                       <TouchableOpacity
                         onPress={() => setSelectedDate(date.dateString)}
                         style={styles.dayContainer}>
-                        {/* {emoji && <Text style={styles.emoji}>{emoji}</Text>} */}
                         <View
                           style={[
                             styles.circle,
@@ -174,30 +179,30 @@ const Home = () => {
             <View
               style={{
                 width: '100%',
-                height: '10%',
+                // height: '10%',
                 flexDirection: 'row',
 
                 justifyContent: 'space-between',
               }}>
-              <Image
-                source={ImageData.BACKLEFT}
-                resizeMode="contain"
-                style={{
-                  width: 31,
-                  height: 31,
-                  top: height >= 844 ? height * 0.005 : 0,
-                }}
-              />
+              <>
+                <Image
+                  source={ImageData.BACKLEFT}
+                  resizeMode="contain"
+                  style={{
+                    width: 31,
+                    height: 31,
+                  }}
+                />
 
-              <Image
-                source={ImageData.BACKRIGHT}
-                resizeMode="contain"
-                style={{
-                  width: 31,
-                  height: 31,
-                  top: height >= 844 ? height * 0.005 : 0,
-                }}
-              />
+                <Image
+                  source={ImageData.BACKRIGHT}
+                  resizeMode="contain"
+                  style={{
+                    width: 31,
+                    height: 31,
+                  }}
+                />
+              </>
             </View>
           </View>
           <Text style={styles.subText}>Journal prompt of the day</Text>
@@ -208,8 +213,11 @@ const Home = () => {
               borderRadius: 12,
               borderWidth: 1,
               padding: 12,
-              // gap: 2,
+              alignSelf: 'center',
+              justifyContent: 'center',
+              alignItems: 'center',
               borderColor: Color.BROWN2,
+              backgroundColor:Color.BROWN3
             }}>
             <Text style={styles.text}>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut et
@@ -230,14 +238,14 @@ const Home = () => {
             <Button2
               width={300}
               height={50}
-              buttonTitle={'Meditation Timer'}
+              buttonTitle={'Add Journal Entry'}
               img={IconData.PLUS}
               left={true}
               size={20}
               onPress={() => console.log('Pressed')}
             />
           </View>
-        </View>
+        </ScrollView>
       </ImageBackground>
     </View>
   );
@@ -268,7 +276,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Color.LIGHTGREEN,
     textAlign: 'center',
-    marginVertical: height * 0.01,
+    marginVertical: height * 0.02,
     fontFamily: Font.EBGaramond_SemiBold,
   },
   text: {
@@ -282,15 +290,18 @@ const styles = StyleSheet.create({
 
   calendarWrapper: {
     width: '100%',
-    height: height * 0.3, // 77% of screen height
+    height: height * 0.35, // 77% of screen height
     overflow: 'hidden',
     backgroundColor: 'transparent',
+        padding:0,
   },
   calendar: {
     width: '100%',
-    height: height * 0.3, // 77% of screen height
+    height: height * 0.35, // 77% of screen height
     overflow: 'hidden',
     backgroundColor: 'transparent',
+
+
   },
   arrow: {
     fontSize: 20,
@@ -313,11 +324,11 @@ const styles = StyleSheet.create({
   selectedCircle: {
     backgroundColor: '#2e2e1f',
   },
-  
+
   dayText: {
     fontSize: 14,
     color: '#2e2e1f',
-    fontFamily:Font.EB_Garamond_Bold,
+    fontFamily: Font.EB_Garamond_Bold,
   },
   selectedText: {
     color: '#f3e7c1',

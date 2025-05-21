@@ -7,6 +7,12 @@ import {
   StyleSheet,
   Dimensions,
   Image,
+  ScrollView,
+  Pressable,
+  TextInput,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../assets/Image';
@@ -14,25 +20,87 @@ import {storage} from '../Component/Storage';
 import {Background} from '@react-navigation/elements';
 import Button from '../Component/Button';
 import ProfileGoalComponent from '../Component/ProfileGoalComponent';
+import Button2 from '../Component/Button2';
+import Toast from 'react-native-toast-message';
+import {useGalleryPermission} from '../Component/PermissionHooks';
+import {useDispatch, useSelector} from 'react-redux';
+import ActivityLoader from '../Component/ActivityLoader';
+import {setUserInfo} from '../redux/actions';
 
 const {width, height} = Dimensions.get('window');
 const Profile = ({navigation}) => {
+  const dispatch = useDispatch();
+  const [loader, setLoader] = useState(false);
+  const {launchLibrary} = useGalleryPermission();
   const [userData, setUserData] = useState(null);
-
+  const [name, setName] = useState(null);
+  const [image, setImage] = useState(null);
   const [modalopen, setModalOpen] = useState(false);
+  const userInfo = useSelector(state => state?.user?.userInfo);
+
   useEffect(() => {
-    const storedUserString = storage.getString('userInfo');
+    setName(userInfo?.name);
+    setImage(userInfo?.photo);
+  }, [modalopen]);
+  const updateProfile = () => {
+    if (name && image?.uri) {
+      setLoader(true);
+      const user = {
+        name: name,
+        photo: {
+          uri: image.uri,
+          base64: image.base64 || null,
+          type: image.type || 'image/jpeg',
+          fileName: image.fileName || 'profile.jpg',
+          width: image.width,
+          height: image.height,
+          fileSize: image.fileSize,
+        },
+      };
+      try {
+        dispatch(setUserInfo(user));
+        setTimeout(() => {
+          setLoader(false); // ✅ Hide loader
 
-    try {
-      if (storedUserString && typeof storedUserString === 'string') {
-        const user = JSON.parse(storedUserString);
-        setUserData(user || null);
+          Toast.show({
+            type: 'success',
+            text1: 'Profile Updated',
+            text2: 'Your profile has been updated successfully',
+            visibilityTime: 3000,
+            position: 'top',
+          });
+
+          setName(null);
+          setImage(null);
+          setModalOpen(false);
+        }, 1000);
+      } catch (error) {
+        setLoader(false);
+        console.error('❌ Storage Save Error:', error);
       }
-    } catch (e) {
-      console.error('Error parsing userInfo from storage:', storedUserString);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Data Save failed',
+        text2: 'Please enter your name and select an image',
+        visibilityTime: 3000,
+        position: 'top', // 'top' or 'bottom'
+      });
     }
-  }, []);
+  };
 
+  const openLibrary = async () => {
+    try {
+      const resultLibrary = await launchLibrary();
+
+      if (resultLibrary) {
+        console.log('dddddddd', resultLibrary.assets[0]);
+        setImage(resultLibrary.assets[0]);
+      }
+    } catch (error) {
+      console.log('LibimageError', error);
+    }
+  };
   return (
     <View style={styles.container}>
       <StatusBar
@@ -40,7 +108,7 @@ const Profile = ({navigation}) => {
         backgroundColor="transparent"
         barStyle="light-content"
       />
-
+      <ActivityLoader visible={loader} />
       <ImageBackground
         source={ImageData.BACKGROUND}
         style={styles.primaryBackground}
@@ -144,7 +212,7 @@ const Profile = ({navigation}) => {
                 borderRadius: 60,
                 alignSelf: 'center',
                 // marginVertical: '%',
-                marginTop:30,
+                marginTop: 30,
                 borderWidth: 3,
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -165,9 +233,11 @@ const Profile = ({navigation}) => {
                 }}>
                 <Image
                   source={
-                    userData?.photo?.uri
-                      ? {uri: userData?.photo?.uri}
-                      : ImageData?.NOIMAGE
+                    image?.base64
+                      ? {uri: `data:${image.type};base64,${image.base64}`}
+                      : image?.uri
+                      ? {uri: image.uri}
+                      : ImageData.NOIMAGE
                   }
                   resizeMode="cover"
                   style={{
@@ -185,36 +255,193 @@ const Profile = ({navigation}) => {
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
-              <Text style={styles.title}>{userData?.name}</Text>
+              <Text style={styles.title}>{name}</Text>
             </View>
+            <ScrollView
+              contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}>
+              <View
+                style={{
+                  width: '95%',
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  alignItems: 'center',
+                  gap: 10,
+                    marginTop:10,
+                  flexDirection: 'row',
+                }}>
+                <ProfileGoalComponent
+                  count={6}
+                  title={'Hours Meditated'}
+                  image={IconData.MEDITATIONA}
+                />
+                <ProfileGoalComponent
+                  count={56}
+                  title={'Goals Completed'}
+                  image={IconData.GOALA}
+                />
+              </View>
+              <View
+                style={{
+                  width: '95%',
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginTop:10,
+                  marginBottom:10,
+                  flexDirection: 'row',
+                }}>
+                <ProfileGoalComponent
+                  count={14}
+                  title={'Journal Streak'}
+                  image={IconData.JOURNALA}
+                />
+                <ProfileGoalComponent
+                  count={56}
+                  title={'Dream Journal Streak'}
+                  image={IconData.DREAMA}
+                />
+              </View>
 
-            <View
-              style={{
-                width: '100%',
+              <View
+                style={{
+                  width: '95%',
 
-                justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: '2%',
 
-              
+                  borderWidth: 1,
+                  alignSelf: 'center',
+                  borderColor: Color.LIGHTGREEN,
+                  backgroundColor: Color?.LIGHTBROWN,
+                }}>
+                <View
+                  style={{
+                    width: '100%',
+                    // height: '10%',
+                    flexDirection: 'row',
 
-                padding: 10,
-                flexDirection: 'row',
-              }}>
-              <ProfileGoalComponent count={6} title={'Hours Meditated'} image={IconData.MEDITATIONA}/>
-              <ProfileGoalComponent count={56} title={'Goals Completed'} image={IconData.GOALA}/>
-            </View>
-            <View
-              style={{
-                width: '100%',
+                    justifyContent: 'space-between',
+                  }}>
+                  <>
+                    <Image
+                      source={ImageData.LEFT}
+                      resizeMode="contain"
+                      style={{width: 31, height: 31}}
+                    />
+                    <Image
+                      source={ImageData.RIGHT}
+                      resizeMode="contain"
+                      style={{
+                        width: 31,
+                        height: 31,
+                        backgroundColor: 'transparent',
+                      }}
+                    />
+                  </>
+                </View>
+                <View
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Text style={styles.subtitle}>Unlock Extra Features</Text>
+                  <Text style={styles.subText}>
+                    Lorem ipsum dolor sit amet, consectetur.
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    width: '90%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <View
+                    style={{
+                      width: '100%',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      top: -5,
+                    }}>
+                    <Image
+                      source={IconData.JOURNALA}
+                      style={{width: 24, height: 24}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: Color.LIGHTGREEN,
+                        marginLeft: 20,
+                        fontFamily: Font.EB_Garamond_Bold,
+                      }}>
+                      276 Journal Prompts (21 Category)
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      width: '100%',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      top: 10,
+                    }}>
+                    <Image
+                      source={IconData.DREAMA}
+                      style={{width: 24, height: 24}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: Color.LIGHTGREEN,
+                        marginLeft: 20,
+                        fontFamily: Font.EB_Garamond_Bold,
+                      }}>
+                      100+ Dream Journal Prompts (9 Category)
+                    </Text>
+                  </View>
+                  <View style={{width: '100%', padding: 20}}></View>
+                  <Button2
+                    width={300}
+                    height={50}
+                    buttonTitle={'Upgrade'}
+                    img={IconData.UPGRADE}
+                    left={true}
+                    size={20}
+                    onPress={() => console.log('Pressed')}
+                  />
+                </View>
+                <View
+                  style={{
+                    width: '100%',
+                    // height: '10%',
+                    flexDirection: 'row',
 
-                justifyContent: 'space-between',
+                    justifyContent: 'space-between',
+                  }}>
+                  <>
+                    <Image
+                      source={ImageData.BACKLEFT}
+                      resizeMode="contain"
+                      style={{
+                        width: 31,
+                        height: 31,
+                      }}
+                    />
 
-                padding: 10,
-
-                flexDirection: 'row',
-              }}>
-              <ProfileGoalComponent count={14} title={'Journal Streak'} image={IconData.JOURNALA}/>
-              <ProfileGoalComponent count={56} title={'Dream Journal Streak'} image={IconData.DREAMA}/>
-            </View>
+                    <Image
+                      source={ImageData.BACKRIGHT}
+                      resizeMode="contain"
+                      style={{
+                        width: 31,
+                        height: 31,
+                      }}
+                    />
+                  </>
+                </View>
+              </View>
+            </ScrollView>
           </ImageBackground>
         </View>
         <View
@@ -245,8 +472,12 @@ const Profile = ({navigation}) => {
                   img={IconData.SAVE}
                   text="Save"
                   left={true}
+                  width={91}
+                  height={47}
+                  size={16}
+                  font={Font.EBGaramond_SemiBold}
                   onPress={() => {
-                    console.log('Dvdsfdsfdsfds');
+                    updateProfile();
                   }}
                   style={{width: '50%', zIndex: -1}}
                   // disabled={currentPage === subTitleText?.length - 1}
@@ -261,29 +492,172 @@ const Profile = ({navigation}) => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                 }}>
-                <TouchableOpacity
-                // onPress={handleBack}
-                // disabled={currentPage === 0}
-                >
-                  <Image
-                    source={IconData.BACK}
-                    style={{width: 24, height: 24, left: 8}}
-                  />
-                </TouchableOpacity>
-                {/* <Button
-                img={ImageData.ARROWNEXT}
-                text="Next"
-                left={false}
-                onPress={() => {
-                  handleNext();
-                }}
-                style={{width: '50%', backgroundColor: 'red', zIndex: -1}}
-                // disabled={currentPage === subTitleText?.length - 1}
-              /> */}
+                <View
+                  style={{
+                    width: '40%',
+                    flexDirection: 'row',
+
+                    justifyContent: 'space-between',
+                  }}>
+                  <Pressable
+                    onPress={() => {
+                      console.log('Image clicked');
+                    }}>
+                    <Image
+                      source={IconData.FACEBOOK}
+                      style={{width: 24, height: 24, left: 10}}
+                    />
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      console.log('Image clicked');
+                    }}>
+                    <Image
+                      source={IconData.INSTA}
+                      style={{width: 24, height: 24}}
+                    />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      console.log('Image clicked');
+                    }}>
+                    <Image
+                      source={IconData.YOUTOUB}
+                      style={{width: 24, height: 24}}
+                    />
+                  </Pressable>
+                </View>
+                <Button
+                  img={ImageData.ARROWNEXT}
+                  text="Contact Us"
+                  left={true}
+                  width={140}
+                  height={47}
+                  size={16}
+                  font={Font.EBGaramond_SemiBold}
+                  onPress={() => {
+                    console.log('xdsddddddd');
+                  }}
+                />
               </View>
             )}
           </ImageBackground>
         </View>
+        {modalopen && (
+          <KeyboardAvoidingView
+            style={styles.backdrop}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <TouchableWithoutFeedback
+              onPress={Keyboard.dismiss}
+              accessible={false}>
+              {/* <ScrollView
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  justifyContent: 'flex-end',
+                }}> */}
+              <ImageBackground
+                source={ImageData.MODAL}
+                style={styles.modalSheet}
+                imageStyle={styles.imageStyle} // apply radius to image
+                resizeMode="cover">
+                <View
+                  style={{
+                    width: '95%',
+
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignSelf: 'center',
+                    paddingVertical: 10,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    position: 'relative',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontFamily: Font.EBGaramond_SemiBold,
+                      textAlign: 'center',
+                    }}>
+                    Edit Profile
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setModalOpen(false)}
+                    style={{position: 'absolute', right: 10}}>
+                    <Image
+                      source={IconData.CANCEL}
+                      style={{width: 35, height: 35}}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    openLibrary();
+                  }}
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 60,
+                    alignSelf: 'center',
+                    borderWidth: 3,
+                    padding: 2,
+                    borderColor: Color.BROWN2,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    // backgroundColor: Color.BROWN2,
+                  }}>
+                  <Image
+                    source={
+                      image?.base64
+                        ? {uri: `data:${image.type};base64,${image.base64}`}
+                        : image?.uri
+                        ? {uri: image.uri}
+                        : ImageData.NOIMAGE
+                    }
+                    style={{
+                      width: 110,
+                      height: 110,
+                      borderRadius: 55,
+                      alignSelf: 'center',
+
+                      // backgroundColor: Color.BROWN2,
+                    }}
+                  />
+                </TouchableOpacity>
+                <View
+                  style={{
+                    width: '90%',
+                    height: 52,
+                    borderRadius: 12,
+                    borderWidth: 2,
+                    borderColor: Color.BROWN2,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginVertical: height * 0.02,
+                    marginHorizontal: width * 0.03,
+                    backgroundColor: Color.BROWN3,
+                  }}>
+                  <TextInput
+                    value={name}
+                    onChangeText={text => setName(text)}
+                    placeholder="Enter your name"
+                    placeholderTextColor={Color.GREEN}
+                    style={{
+                      width: '90%',
+                      height: '100%',
+                      color: Color.LIGHTGREEN,
+                      fontSize: 16,
+                      fontFamily: Font.EBGaramond_Regular,
+                    }}
+                    selectionColor={Color.LIGHTGREEN}
+                  />
+                </View>
+              </ImageBackground>
+              {/* </ScrollView> */}
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+        )}
       </ImageBackground>
     </View>
   );
@@ -301,7 +675,7 @@ const styles = StyleSheet.create({
   },
   secondaryContainer: {
     width: '90%',
-    height: '90%',
+    height: '85%',
   },
   secondaryBackground: {
     width: '100%', // Fills the parent container
@@ -346,5 +720,63 @@ const styles = StyleSheet.create({
     color: Color.LIGHTGREEN,
     lineHeight: 35,
     textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Color.LIGHTGREEN,
+    top: -25,
+    fontFamily: Font.EBGaramond_SemiBold,
+  },
+  subText: {
+    fontSize: 16,
+    color: Color.LIGHTGREEN,
+    top: -20,
+    fontFamily: Font.EBGaramond_Regular,
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  modalSheet: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: 309,
+    alignSelf: 'center',
+    marginLeft: 10,
+    marginBottom: 50,
+    width: '96%',
+
+    borderTopLeftRadius: 20,
+  },
+  imageStyle: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: '#E91E63',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
