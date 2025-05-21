@@ -69,13 +69,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
 
     // iOS Shadow
-    shadowColor: '#000',
+    // shadowColor: '#000',
     shadowOffset: {width: 2, height: 3},
     shadowOpacity: 0.4,
     shadowRadius: 4,
 
     // Android Shadow
-    elevation: 8,
+    elevation:0,
   },
   text: {
     color: Color.GREEN,

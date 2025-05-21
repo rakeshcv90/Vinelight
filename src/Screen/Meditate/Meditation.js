@@ -67,6 +67,24 @@ const Meditation = () => {
       </View>
     );
   };
+    const emptyComponent = () => {
+    return (
+      <View
+        style={{
+          flex: 1,
+        }}>
+        <Image
+          source={IconData.CALENDER}
+    
+          resizeMode="contain"
+          style={{
+            width: width * 0.3,
+            height: height * 0.15,
+          }}
+        />
+      </View>
+    );
+  };
   return (
     <View style={styles.secondaryContainer}>
       <ImageBackground
@@ -137,7 +155,7 @@ const Meditation = () => {
                 data={data}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{paddingBottom: 20}}
-                //   ListEmptyComponent={emptyComponent}
+                  ListEmptyComponent={emptyComponent}
                 renderItem={renderItem}
               />
             </View>
@@ -227,6 +245,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingRight: 12,
+   
   },
   title: {
     fontSize: 18,

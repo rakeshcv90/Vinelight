@@ -34,6 +34,7 @@ const ActivityLoader = (props) => {
           borderRadius: 15,
           marginTop: 'auto',
           marginBottom: 'auto',
+          zIndex:1
         }}>
         <AnimatedLottieView
     

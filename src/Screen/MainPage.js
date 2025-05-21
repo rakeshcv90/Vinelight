@@ -18,6 +18,7 @@ import Home from './Home/Home';
 import Journal from './Journal/Journal';
 import Dreams from './Dreams/Dreams';
 import Ceremony from './Ceremony/Ceremony';
+import Goal from './Goal/Goal';
 
 const {width, height} = Dimensions.get('window');
 
@@ -27,28 +28,28 @@ const MainPage = ({navigation}) => {
   const userInfo = useSelector(state => state?.user?.userInfo);
 
   const tabs = [
-    {key: 'Home', inactiveIcon: IconData?.HOME, activeIcon: IconData?.HOMEA},
+    {key: 'Home', activeIcon: IconData?.HOMEA},
     {
       key: 'Journal',
-      inactiveIcon: IconData?.JOURNAL,
+
       activeIcon: IconData?.JOURNALA,
     },
     {
       key: 'Dreams',
-      inactiveIcon: IconData?.DREAM,
+
       activeIcon: IconData?.DREAMA,
     },
     {
       key: 'Meditate',
-      inactiveIcon: IconData?.MEDITATION,
+
       activeIcon: IconData?.MEDITATIONA,
     },
     {
       key: 'Ceremony',
-      inactiveIcon: IconData?.CEREMONY,
+
       activeIcon: IconData?.CEREMONYA,
     },
-    {key: 'Goal', inactiveIcon: IconData?.GOAL, activeIcon: IconData?.GOALA},
+    {key: 'Goal', activeIcon: IconData?.GOALA},
   ];
   return (
     <View style={styles.container}>
@@ -80,7 +81,6 @@ const MainPage = ({navigation}) => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-          {console.log('DSfdsfdfsd', userInfo)}
           {/* <Image
             source={userInfo ? {uri: userInfo?.photo?.uri} : ImageData?.NOIMAGE}
             style={{
@@ -120,6 +120,8 @@ const MainPage = ({navigation}) => {
           <Dreams />
         ) : activeTab === 'Ceremony' ? (
           <Ceremony />
+        ) : activeTab === 'Goal' ? (
+          <Goal />
         ) : (
           <Meditation />
         )}

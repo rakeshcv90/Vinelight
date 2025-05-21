@@ -9,8 +9,10 @@ import {
 import React from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
+import {useNavigation} from '@react-navigation/native';
 const {width, height} = Dimensions.get('window');
 const Dreams = () => {
+  const navigation = useNavigation();
   return (
     <View style={styles.secondaryContainer}>
       <ImageBackground
@@ -98,7 +100,10 @@ const Dreams = () => {
                 img={IconData.PLUS}
                 left={true}
                 size={20}
-                onPress={() => {}}
+                onPress={() => {
+                  console.log('Navigating to CreateDream');
+                  navigation.navigate('CreateDream');
+                }}
               />
             </View>
 

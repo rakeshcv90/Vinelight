@@ -9,6 +9,7 @@ import MeditationPlayer from '../Screen/Meditate/MeditationPlayer';
 import CustomMeditationPlayer from '../Screen/Meditate/CustomMeditationPlayer';
 import CustomMeditation from '../Screen/Meditate/CustomMeditation';
 import AdvanceSetting from '../Screen/Meditate/AdvanceSetting';
+import CreateDream from '../Screen/Dreams/CreateDream';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,8 @@ const Router = () => {
       />
       <Stack.Screen name="CustomMeditation" component={CustomMeditation} />
       <Stack.Screen name="AdvanceSetting" component={AdvanceSetting} />
+
+      <Stack.Screen name="CreateDream" component={CreateDream} />
     </Stack.Navigator>
   );
 };

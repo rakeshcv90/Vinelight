@@ -10,6 +10,9 @@ import {
   ScrollView,
   Pressable,
   TextInput,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../assets/Image';
@@ -258,9 +261,12 @@ const Profile = ({navigation}) => {
               contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}>
               <View
                 style={{
-                  width: '100%',
-                  justifyContent: 'space-between',
-                  padding: 10,
+                  width: '95%',
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  alignItems: 'center',
+                  gap: 10,
+                    marginTop:10,
                   flexDirection: 'row',
                 }}>
                 <ProfileGoalComponent
@@ -276,9 +282,13 @@ const Profile = ({navigation}) => {
               </View>
               <View
                 style={{
-                  width: '100%',
-                  justifyContent: 'space-between',
-                  padding: 10,
+                  width: '95%',
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginTop:10,
+                  marginBottom:10,
                   flexDirection: 'row',
                 }}>
                 <ProfileGoalComponent
@@ -535,106 +545,118 @@ const Profile = ({navigation}) => {
           </ImageBackground>
         </View>
         {modalopen && (
-          <View style={styles.backdrop}>
-            <ImageBackground
-              source={ImageData.MODAL}
-              style={styles.modalSheet}
-              imageStyle={styles.imageStyle} // apply radius to image
-              resizeMode="cover">
-              <View
-                style={{
-                  width: '95%',
-                  paddingVertical: 10,
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignSelf: 'center',
-                  paddingVertical: 10,
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  position: 'relative',
-                }}>
-                <Text
+          <KeyboardAvoidingView
+            style={styles.backdrop}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <TouchableWithoutFeedback
+              onPress={Keyboard.dismiss}
+              accessible={false}>
+              {/* <ScrollView
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  justifyContent: 'flex-end',
+                }}> */}
+              <ImageBackground
+                source={ImageData.MODAL}
+                style={styles.modalSheet}
+                imageStyle={styles.imageStyle} // apply radius to image
+                resizeMode="cover">
+                <View
                   style={{
-                    fontSize: 24,
-                    fontFamily: Font.EBGaramond_SemiBold,
-                    textAlign: 'center',
+                    width: '95%',
+
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignSelf: 'center',
+                    paddingVertical: 10,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    position: 'relative',
                   }}>
-                  Edit Profile
-                </Text>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontFamily: Font.EBGaramond_SemiBold,
+                      textAlign: 'center',
+                    }}>
+                    Edit Profile
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setModalOpen(false)}
+                    style={{position: 'absolute', right: 10}}>
+                    <Image
+                      source={IconData.CANCEL}
+                      style={{width: 35, height: 35}}
+                    />
+                  </TouchableOpacity>
+                </View>
                 <TouchableOpacity
-                  onPress={() => setModalOpen(false)}
-                  style={{position: 'absolute', right: 10}}>
+                  onPress={() => {
+                    openLibrary();
+                  }}
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 60,
+                    alignSelf: 'center',
+                    borderWidth: 3,
+                    padding: 2,
+                    borderColor: Color.BROWN2,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    // backgroundColor: Color.BROWN2,
+                  }}>
                   <Image
-                    source={IconData.CANCEL}
-                    style={{width: 35, height: 35}}
+                    source={
+                      image?.base64
+                        ? {uri: `data:${image.type};base64,${image.base64}`}
+                        : image?.uri
+                        ? {uri: image.uri}
+                        : ImageData.NOIMAGE
+                    }
+                    style={{
+                      width: 110,
+                      height: 110,
+                      borderRadius: 55,
+                      alignSelf: 'center',
+
+                      // backgroundColor: Color.BROWN2,
+                    }}
                   />
                 </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  openLibrary();
-                }}
-                style={{
-                  width: 120,
-                  height: 120,
-                  borderRadius: 60,
-                  alignSelf: 'center',
-                  borderWidth: 3,
-                  padding: 2,
-                  borderColor: Color.BROWN2,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  // backgroundColor: Color.BROWN2,
-                }}>
-                <Image
-                  source={
-                    image?.base64
-                      ? {uri: `data:${image.type};base64,${image.base64}`}
-                      : image?.uri
-                      ? {uri: image.uri}
-                      : ImageData.NOIMAGE
-                  }
-                  style={{
-                    width: 110,
-                    height: 110,
-                    borderRadius: 55,
-                    alignSelf: 'center',
-
-                    // backgroundColor: Color.BROWN2,
-                  }}
-                />
-              </TouchableOpacity>
-              <View
-                style={{
-                  width: '90%',
-                  height: 52,
-                  borderRadius: 12,
-                  borderWidth: 2,
-                  borderColor: Color.BROWN2,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginVertical: height * 0.02,
-                  marginHorizontal: width * 0.03,
-                  backgroundColor: Color.BROWN3,
-                }}>
-                <TextInput
-                  value={name}
-                  onChangeText={text => setName(text)}
-                  placeholder="Enter your name"
-                  placeholderTextColor={Color.GREEN}
+                <View
                   style={{
                     width: '90%',
-                    height: '100%',
-                    color: Color.LIGHTGREEN,
-                    fontSize: 16,
-                    fontFamily: Font.EBGaramond_Regular,
-                  }}
-                  selectionColor={Color.LIGHTGREEN}
-                />
-              </View>
-            </ImageBackground>
-          </View>
+                    height: 52,
+                    borderRadius: 12,
+                    borderWidth: 2,
+                    borderColor: Color.BROWN2,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginVertical: height * 0.02,
+                    marginHorizontal: width * 0.03,
+                    backgroundColor: Color.BROWN3,
+                  }}>
+                  <TextInput
+                    value={name}
+                    onChangeText={text => setName(text)}
+                    placeholder="Enter your name"
+                    placeholderTextColor={Color.GREEN}
+                    style={{
+                      width: '90%',
+                      height: '100%',
+                      color: Color.LIGHTGREEN,
+                      fontSize: 16,
+                      fontFamily: Font.EBGaramond_Regular,
+                    }}
+                    selectionColor={Color.LIGHTGREEN}
+                  />
+                </View>
+              </ImageBackground>
+              {/* </ScrollView> */}
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
         )}
       </ImageBackground>
     </View>
@@ -653,7 +675,7 @@ const styles = StyleSheet.create({
   },
   secondaryContainer: {
     width: '90%',
-    height: '90%',
+    height: '85%',
   },
   secondaryBackground: {
     width: '100%', // Fills the parent container
