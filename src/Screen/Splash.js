@@ -10,9 +10,13 @@ import {
 import React, {useEffect, useRef} from 'react';
 import {ImageData} from '../../assets/Image';
 import {storage} from '../Component/Storage';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import {Api} from '../Api';
+import {callApi} from '../Component/ApiCall';
+import {setMeditationData} from '../redux/actions';
 
 const Splash = ({navigation}) => {
+  const dispatch = useDispatch();
   const scaleAnim = useRef(new Animated.Value(0.72)).current; // Start invisible (scale 0)
   const opacityAnim = useRef(new Animated.Value(0)).current; // Start transparent
   // const storedUserString = storage.getString('userInfo');
@@ -34,13 +38,27 @@ const Splash = ({navigation}) => {
       ]).start(() => {
         if (storedUserString) {
           navigation.replace('MainPage');
+          fetchData();
         } else navigation.replace('Intro');
       });
     }, 500); // Optional: 0.5s delay before animation starts
 
     return () => clearTimeout(timeout);
   }, [scaleAnim, opacityAnim]);
+  const fetchData = async () => {
+    try {
+      const data = await callApi(Api.MEDITATIONS);
 
+      dispatch(setMeditationData(data));
+      // if (data?.success == true) {
+
+      //
+      // } else {
+      // }
+    } catch (error) {
+      console.error('Error:', error.message);
+    }
+  };
   return (
     <View style={styles.container}>
       <StatusBar

@@ -6,7 +6,7 @@ const Button2 = ({width, height, onPress, buttonTitle, img, left, size}) => {
   return (
     <View style={[styles.shadowWrapper, {width: width, height: height}]}>
       <TouchableOpacity
-        style={[styles.button]}
+        style={[styles.button,{width: width, height: height}]}
         activeOpacity={0.8}
         onPress={() => onPress()}>
         {left && (
@@ -29,8 +29,10 @@ const styles = StyleSheet.create({
   shadowWrapper: {
     borderRadius: 30,
     backgroundColor: Color.LIGHTGREEN,
-    paddingBottom: 5,
+    // paddingBottom: 5,
     paddingLeft: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   button: {
     flexDirection: 'row',

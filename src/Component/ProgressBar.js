@@ -6,38 +6,82 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {use, useEffect, useRef, useState} from 'react';
 import {Color, IconData, PLATFORM_IOS} from '../../assets/Image';
 import * as Progress from 'react-native-progress';
 import LinearGradient from 'react-native-linear-gradient';
+import useNativeMusicPlayer from './NativeusicPlayer';
 
 const {width} = Dimensions.get('window');
-const ProgressBar = ({duration, type}) => {
+const ProgressBar = ({
+  type,
+  data,
+  defaultMusic,
+  setDefaultMusic,
+  onUpdateTime,
+  pauseSound,
+}) => {
   const [position, setPosition] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const intervalRef = useRef(null);
+  const scrollRef = useRef();
+  const plainText = data?.description;
+  console.log('XCvcxvcxvcvxcvxcvcx', defaultMusic);
+  useEffect(() => {
+    return () => clearInterval(intervalRef.current);
+  }, []);
+  const {
+    pauseMusic,
+    playMusic,
+    releaseMusic,
+    stopMusic,
+    seekTo,
+    duration,
+    currentTime,
+  } = useNativeMusicPlayer({
+    song: defaultMusic ? data?.lyrics_path : data?.music_path,
+    pause: isPlaying,
+    getSoundOffOn: true,
+    restStart: false,
+  });
+
+  // useEffect(() => {
+  //   if (onUpdateTime) {
+  //     onUpdateTime(currentTime);
+  //   }
+  //   setPosition(currentTime);
+  // }, [currentTime, onUpdateTime]);
+  useEffect(() => {
+  if (defaultMusic) {
+    if (onUpdateTime) {
+      onUpdateTime(currentTime);
+    }
+    setPosition(currentTime);
+  }
+}, [currentTime, onUpdateTime, defaultMusic]);
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearInterval(intervalRef.current);
+      releaseMusic(); // Clean up the music player
+    };
+  }, [defaultMusic]);
   const formatTime = sec => {
     const mins = Math.floor(sec / 60);
     const secs = Math.floor(sec % 60);
     return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
   const progressWidth = (position / duration) * 300;
-
-  useEffect(() => {
-    return () => clearInterval(intervalRef.current);
-  }, []);
-
-
   const handlePlayPause = () => {
     if (isPlaying) {
-      // Pause
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     } else {
-      // Play
       intervalRef.current = setInterval(() => {
         setPosition(prev => {
-          if (prev < duration) return prev + 1;
+          const next = prev + 1;
+          // if (onUpdateTime) onUpdateTime(next); // ✅ update parent
+          if (next < duration) return next;
           clearInterval(intervalRef.current);
           return duration;
         });
@@ -45,6 +89,19 @@ const ProgressBar = ({duration, type}) => {
     }
     setIsPlaying(!isPlaying);
   };
+  const lines = plainText.trim().split('\n');
+
+  const lineDuration = duration / lines?.length;
+
+  const lyrics = lines.map((text, i) => ({
+    time: Math.floor(i * lineDuration),
+    text,
+  }));
+  useEffect(() => {
+    if (pauseSound) {
+      pauseMusic();
+    }
+  }, [pauseSound, pauseMusic]);
   return (
     <View style={styles.container}>
       {/* Time Row */}
@@ -77,25 +134,18 @@ const ProgressBar = ({duration, type}) => {
       </View>
       {/* Controls */}
       <View style={styles.controls}>
-        {type == 'Custom' ? (
-          <>
-            <View style={styles.iconCircle} >
-              {/* <Image
-                resizeMode="contain"
-                source={IconData.SPEAK}
-                style={styles.icon}
-              /> */}
-            </View>
-          </>
-        ) : (
-          <TouchableOpacity style={styles.iconCircle} activeOpacity={0.7}>
-            <Image
-              resizeMode="contain"
-              source={IconData.SPEAK}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={styles.iconCircle}
+          activeOpacity={0.7}
+          onPress={() => {
+            setDefaultMusic(true);
+          }}>
+          <Image
+            resizeMode="contain"
+            source={defaultMusic ? IconData.SPEAK : IconData.SPEAKCLOSE}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.mainCircle}
@@ -108,9 +158,14 @@ const ProgressBar = ({duration, type}) => {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.iconCircle} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.iconCircle}
+          activeOpacity={0.7}
+          onPress={() => {
+            setDefaultMusic(false);
+          }}>
           <Image
-            source={IconData.MUSIC}
+            source={defaultMusic ? IconData.MUSICCLOSE : IconData.MUSIC}
             style={styles.icon}
             resizeMode="contain"
           />

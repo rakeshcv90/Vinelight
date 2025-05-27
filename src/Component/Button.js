@@ -26,7 +26,7 @@ const Button = ({
         {left && (
           <Image
             source={img}
-            style={{width: 24, height: 24, right: 8, tintColor: tintColor}}
+            style={{width: 20, height: 20, right: 8, tintColor: tintColor}}
             resizeMode="contain"
           />
         )}
@@ -58,24 +58,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#CBBB92', // Shadow color
     paddingBottom: 5, // Height of bottom shadow
     paddingLeft: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   button: {
     flexDirection: 'row',
     backgroundColor: '#D5C69C', // Beige background
     borderRadius: 30,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    // paddingVertical: 11,
+    // paddingHorizontal: 20,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
 
-    // iOS Shadow
-    // shadowColor: '#000',
-    shadowOffset: {width: 2, height: 3},
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-
-    // Android Shadow
-    elevation:0,
   },
   text: {
     color: Color.GREEN,

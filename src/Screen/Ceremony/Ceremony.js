@@ -14,7 +14,7 @@ import {
   Keyboard,
   FlatList,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import {useDispatch, useSelector} from 'react-redux';
@@ -24,6 +24,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import ActivityLoader from '../../Component/ActivityLoader';
 import {setCeremonyInfo} from '../../redux/actions';
+import FastImage from 'react-native-fast-image';
 const {width, height} = Dimensions.get('window');
 const Ceremony = () => {
   const [modalopen, setModalOpen] = useState(false);
@@ -372,16 +373,17 @@ const Ceremony = () => {
       </View>
     );
   };
+    const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
     <View style={styles.secondaryContainer}>
-      <ImageBackground
-        source={ImageData.MAINBACKGROUND}
+     <FastImage
+        source={memoizedBackground}
         style={styles.secondaryBackground}
-        resizeMode="stretch">
+        resizeMode={FastImage.resizeMode.stretch}>
         <View
           style={{
             width: '100%',
-            height: '76%',
+            // height: '76%',
             justifyContent: 'center',
             alignItems: 'center',
             marginVertical: '30%',
@@ -404,12 +406,12 @@ const Ceremony = () => {
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
               }}>
-              <Image
+              <FastImage
                 source={ImageData.LEFT}
                 resizeMode="contain"
                 style={{width: 31, height: 31}}
               />
-              <Image
+              <FastImage
                 source={ImageData.RIGHT}
                 resizeMode="contain"
                 style={{
@@ -425,7 +427,7 @@ const Ceremony = () => {
                 height: '7%',
 
                 flexDirection: 'row',
-                top: -height * 0.065,
+                top: -height * 0.055,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
@@ -461,7 +463,7 @@ const Ceremony = () => {
                 flexDirection: 'row',
               }}>
               <Button2
-                width={300}
+                width={250}
                 height={50}
                 buttonTitle={'Add New Ceremony'}
                 img={IconData.PLUS}
@@ -480,7 +482,7 @@ const Ceremony = () => {
                 alignItems: 'flex-end',
                 justifyContent: 'space-between',
               }}>
-              <Image
+              <FastImage
                 source={ImageData.BACKLEFT}
                 resizeMode="contain"
                 style={{
@@ -489,7 +491,7 @@ const Ceremony = () => {
                 }}
               />
 
-              <Image
+              <FastImage
                 source={ImageData.BACKRIGHT}
                 resizeMode="contain"
                 style={{
@@ -506,7 +508,7 @@ const Ceremony = () => {
             setModalOpen(false);
           }}
         />
-      </ImageBackground>
+      </FastImage>
     </View>
   );
 };

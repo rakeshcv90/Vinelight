@@ -15,7 +15,7 @@ import {
   Keyboard,
   TouchableOpacity,
 } from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import ActivityLoader from '../../Component/ActivityLoader';
@@ -34,6 +34,7 @@ import {
 import uuid from 'react-native-uuid';
 import {getDatesForMultipleDaysOverMonths} from '../utils';
 import Toast from 'react-native-toast-message';
+import FastImage from 'react-native-fast-image';
 
 const {width, height} = Dimensions.get('window');
 
@@ -90,13 +91,58 @@ const Goal = () => {
     };
     const [tooltipVisible, setTooltipVisible] = useState(false);
     const [selectedMoods, setSelectedMoods] = useState([]);
-    const dayOptions = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayOptions = [
+      'Daily',
+      'Sun',
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+    ];
 
+    // const toggleMood = mood => {
+    //   console.log("XZxcxxxcxzc",mood)
+    //   // setSelectedMoods(prev =>
+    //   //   prev.includes(mood) ? prev.filter(m => m !== mood) : [...prev, mood],
+    //   // );
+    // };
     const toggleMood = mood => {
-      setSelectedMoods(prev =>
-        prev.includes(mood) ? prev.filter(m => m !== mood) : [...prev, mood],
-      );
+      if (mood === 'Daily') {
+        const allSelected = selectedMoods.length === dayOptions.length;
+        setSelectedMoods(allSelected ? [] : [...dayOptions]);
+      } else {
+        let newSelection;
+        if (selectedMoods.includes(mood)) {
+          newSelection = selectedMoods.filter(m => m !== mood);
+        } else {
+          newSelection = [...selectedMoods, mood];
+        }
+
+        // Auto-add "Daily" if all others are selected
+        const withoutDaily = dayOptions.filter(d => d !== 'Daily');
+        const selectedWithoutDaily = newSelection.filter(d => d !== 'Daily');
+
+        if (
+          selectedWithoutDaily.length === withoutDaily.length &&
+          !newSelection.includes('Daily')
+        ) {
+          newSelection.push('Daily');
+        }
+
+        // Remove "Daily" if not all selected
+        if (
+          selectedWithoutDaily.length < withoutDaily.length &&
+          newSelection.includes('Daily')
+        ) {
+          newSelection = newSelection.filter(d => d !== 'Daily');
+        }
+
+        setSelectedMoods(newSelection);
+      }
     };
+
     const saveGoalData = () => {
       if (goalName) {
         const date = selectedDate;
@@ -244,6 +290,7 @@ const Goal = () => {
                       }}>
                       <TextInput
                         value={goalName}
+                        autoFocus={true}
                         onChangeText={text => setGoalName(text)}
                         placeholder=" Name"
                         placeholderTextColor={Color.GREEN}
@@ -490,19 +537,20 @@ const Goal = () => {
     dispatch(deleteTaskById(data?.id));
   };
   const clearAllTasksForDate = data => {
-    dispatch(updateAllGoalData(data?.date))
+    dispatch(updateAllGoalData(data?.date));
     // console.log('SDfdsfdsfdfds', data);
   };
+  const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
     <View style={styles.secondaryContainer}>
-      <ImageBackground
-        source={ImageData.MAINBACKGROUND}
+      <FastImage
+        source={memoizedBackground}
         style={styles.secondaryBackground}
-        resizeMode="stretch">
+        resizeMode={FastImage.resizeMode.stretch}>
         <View
           style={{
             width: '100%',
-            height: '76%',
+            // height: '76%',
             justifyContent: 'center',
             alignItems: 'center',
             marginVertical: '30%',
@@ -525,12 +573,12 @@ const Goal = () => {
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
               }}>
-              <Image
+              <FastImage
                 source={ImageData.LEFT}
                 resizeMode="contain"
                 style={{width: 31, height: 31}}
               />
-              <Image
+              <FastImage
                 source={ImageData.RIGHT}
                 resizeMode="contain"
                 style={{
@@ -546,7 +594,8 @@ const Goal = () => {
                 height: '7%',
 
                 flexDirection: 'row',
-                top: -height * 0.065,
+
+                top: -height * 0.055,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
@@ -561,7 +610,7 @@ const Goal = () => {
                 alignSelf: 'center',
                 top: -height * 0.03,
               }}>
-              {console.log("Ddddddd",goalData)}
+              {console.log('Ddddddd', goalData)}
               <FlatList
                 data={flattenGoalData(goalData)}
                 contentContainerStyle={{paddingBottom: 20}}
@@ -629,7 +678,7 @@ const Goal = () => {
                           source={
                             task?.completed ? IconData.CHECK : IconData.UNCHECK
                           }
-                          style={{width: 24, height:24, marginRight: 20}}
+                          style={{width: 24, height: 24, marginRight: 20}}
                           resizeMode="contain"
                         />
                       </TouchableOpacity>
@@ -667,7 +716,7 @@ const Goal = () => {
                 flexDirection: 'row',
               }}>
               <Button2
-                width={300}
+                width={200}
                 height={50}
                 buttonTitle={'New Goal'}
                 img={IconData.PLUS}
@@ -686,7 +735,7 @@ const Goal = () => {
                 alignItems: 'flex-end',
                 justifyContent: 'space-between',
               }}>
-              <Image
+              <FastImage
                 source={ImageData.BACKLEFT}
                 resizeMode="contain"
                 style={{
@@ -695,7 +744,7 @@ const Goal = () => {
                 }}
               />
 
-              <Image
+              <FastImage
                 source={ImageData.BACKRIGHT}
                 resizeMode="contain"
                 style={{
@@ -736,7 +785,7 @@ const Goal = () => {
                 position: 'absolute',
                 top: tooltipPosition.y - 50,
                 left: tooltipPosition.x - 230,
-                width: 220,
+                width: 250,
                 backgroundColor: Color.LIGHTGREEN,
                 padding: 5,
                 borderRadius: 10,
@@ -798,7 +847,7 @@ const Goal = () => {
             </View>
           </View>
         )}
-      </ImageBackground>
+      </FastImage>
     </View>
   );
 };

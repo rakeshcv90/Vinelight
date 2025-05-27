@@ -8,13 +8,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button from '../../Component/Button';
 import Button2 from '../../Component/Button2';
 import {storage} from '../../Component/Storage';
 import {Calendar} from 'react-native-calendars';
 import {LocaleConfig} from 'react-native-calendars';
+import {callApi} from '../../Component/ApiCall';
+import {Api} from '../../Api';
+import Toast from 'react-native-toast-message';
+import FastImage from 'react-native-fast-image';
 
 const {width, height} = Dimensions.get('window');
 
@@ -66,14 +70,39 @@ LocaleConfig.defaultLocale = 'custom';
 
 const Home = () => {
   const [selectedDate, setSelectedDate] = useState(today);
+  const [prompt, setprompt] = useState(false);
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const data = await callApi(Api.PROMPT_DAY);
+      if (data?.success == true) {
+        setprompt(data?.data);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Prompt Error',
+          text2: 'Failed to fetch the prompt for the day',
+          visibilityTime: 3000,
+          position: 'top',
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error.message);
+    }
+  };
+  const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
 
   return (
     <View style={styles.secondaryContainer}>
-      <ImageBackground
-        source={ImageData.MAINBACKGROUND}
+      <FastImage
+        // source={ImageData.MAINBACKGROUND}
+        source={memoizedBackground}
         style={styles.secondaryBackground}
-        resizeMode="stretch">
-    
+        // resizeMode="stretch",
+        resizeMode={FastImage.resizeMode.stretch}>
         <View
           style={{
             width: '100%',
@@ -83,7 +112,9 @@ const Home = () => {
           }}>
           <Text style={styles.title2}>VineLight</Text>
         </View>
-        <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 50}} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}
+          showsVerticalScrollIndicator={false}>
           <View
             style={{
               width: '95%',
@@ -105,14 +136,14 @@ const Home = () => {
                 justifyContent: 'space-between',
               }}>
               <>
-                <Image
+                <FastImage
                   source={ImageData.LEFT}
-                  resizeMode="contain"
+                 resizeMode={FastImage.resizeMode.contain}
                   style={{width: 31, height: 31}}
                 />
-                <Image
+                <FastImage
                   source={ImageData.RIGHT}
-                  resizeMode="contain"
+                   resizeMode={FastImage.resizeMode.contain}
                   style={{
                     width: 31,
                     height: 31,
@@ -185,18 +216,18 @@ const Home = () => {
                 justifyContent: 'space-between',
               }}>
               <>
-                <Image
+                <FastImage
                   source={ImageData.BACKLEFT}
-                  resizeMode="contain"
+                  resizeMode={FastImage.resizeMode.contain}
                   style={{
                     width: 31,
                     height: 31,
                   }}
                 />
 
-                <Image
+                <FastImage
                   source={ImageData.BACKRIGHT}
-                  resizeMode="contain"
+                  resizeMode={FastImage.resizeMode.contain}
                   style={{
                     width: 31,
                     height: 31,
@@ -217,12 +248,14 @@ const Home = () => {
               justifyContent: 'center',
               alignItems: 'center',
               borderColor: Color.BROWN2,
-              backgroundColor:Color.BROWN3
+              backgroundColor: Color.BROWN3,
             }}>
-            <Text style={styles.text}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut et
-              massa mi?
-            </Text>
+            <ScrollView
+              style={styles.scrollView}
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={false}>
+              <Text style={styles.text}>{prompt?.description}</Text>
+            </ScrollView>
           </View>
           <View
             style={{
@@ -236,7 +269,7 @@ const Home = () => {
               zIndex: 1,
             }}>
             <Button2
-              width={300}
+              width={250}
               height={50}
               buttonTitle={'Add Journal Entry'}
               img={IconData.PLUS}
@@ -246,7 +279,7 @@ const Home = () => {
             />
           </View>
         </ScrollView>
-      </ImageBackground>
+      </FastImage>
     </View>
   );
 };
@@ -280,7 +313,7 @@ const styles = StyleSheet.create({
     fontFamily: Font.EBGaramond_SemiBold,
   },
   text: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '500',
     color: Color.LIGHTGREEN,
     textAlign: 'center',
@@ -290,18 +323,17 @@ const styles = StyleSheet.create({
 
   calendarWrapper: {
     width: '100%',
-    height: height * 0.35, // 77% of screen height
+    height: height * 0.32, // 77% of screen height
     overflow: 'hidden',
     backgroundColor: 'transparent',
-        padding:0,
+    padding: 0,
   },
   calendar: {
     width: '100%',
     height: height * 0.35, // 77% of screen height
     overflow: 'hidden',
+    marginTop: -height * 0.03,
     backgroundColor: 'transparent',
-
-
   },
   arrow: {
     fontSize: 20,
@@ -332,5 +364,8 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     color: '#f3e7c1',
+  },
+  scrollView: {
+    flexGrow: 0,
   },
 });

@@ -8,21 +8,27 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
+import FastImage from 'react-native-fast-image';
 const {width, height} = Dimensions.get('window');
 const Journal = () => {
+  const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
     <View style={styles.secondaryContainer}>
-      <ImageBackground
+      {/* <ImageBackground
         source={ImageData.MAINBACKGROUND}
         style={styles.secondaryBackground}
-        resizeMode="stretch">
+        resizeMode="stretch"> */}
+      <FastImage
+        source={memoizedBackground}
+        style={styles.secondaryBackground}
+        resizeMode={FastImage.resizeMode.stretch}>
         <View
           style={{
             width: '100%',
-            height: '76%',
+            // height: '76%',
             justifyContent: 'center',
             alignItems: 'center',
             marginVertical: '30%',
@@ -45,14 +51,14 @@ const Journal = () => {
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
               }}>
-              <Image
+              <FastImage
                 source={ImageData.LEFT}
-                resizeMode="contain"
+                resizeMode={FastImage.resizeMode.contain}
                 style={{width: 31, height: 31}}
               />
-              <Image
+              <FastImage
                 source={ImageData.RIGHT}
-                resizeMode="contain"
+                resizeMode={FastImage.resizeMode.contain}
                 style={{
                   width: 31,
                   height: 31,
@@ -66,7 +72,7 @@ const Journal = () => {
                 height: '7%',
 
                 flexDirection: 'row',
-                top: -height * 0.065,
+                top: -height * 0.055,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
@@ -77,10 +83,10 @@ const Journal = () => {
               style={{
                 width: '96%',
                 height: '63%',
-              
+
                 alignItems: 'center',
                 alignSelf: 'center',
-                  top: -height * 0.055,
+                top: -height * 0.055,
               }}></View>
             <View
               style={{
@@ -94,7 +100,7 @@ const Journal = () => {
                 flexDirection: 'row',
               }}>
               <Button2
-                width={300}
+                width={250}
                 height={50}
                 buttonTitle={'New Journal Entry'}
                 img={IconData.PLUS}
@@ -113,18 +119,18 @@ const Journal = () => {
                 alignItems: 'flex-end',
                 justifyContent: 'space-between',
               }}>
-              <Image
+              <FastImage
                 source={ImageData.BACKLEFT}
-                resizeMode="contain"
+                resizeMode={FastImage.resizeMode.contain}
                 style={{
                   width: 31,
                   height: 31,
                 }}
               />
 
-              <Image
+              <FastImage
                 source={ImageData.BACKRIGHT}
-                resizeMode="contain"
+                resizeMode={FastImage.resizeMode.contain}
                 style={{
                   width: 31,
                   height: 31,
@@ -133,7 +139,7 @@ const Journal = () => {
             </View>
           </View>
         </View>
-      </ImageBackground>
+      </FastImage>
     </View>
   );
 };

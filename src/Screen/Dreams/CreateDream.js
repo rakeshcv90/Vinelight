@@ -14,7 +14,7 @@ import {
   UIManager,
   findNodeHandle,
 } from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import CustomeHeader from '../../Component/CustomeHeader';
 import moment from 'moment';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
@@ -23,55 +23,63 @@ import {RichEditor, RichToolbar, actions} from 'react-native-pell-rich-editor';
 const {width, height} = Dimensions.get('window');
 
 const fonts = [
-  {label: 'EB_Garamond', value: 'EBGaramond-Variable'},
-  {label: 'EB_Garamond_Bold', value: 'EBGaramond-Bold'},
-  {label: 'EB_Garamond_Italic', value: 'EBGaramond-Italic'},
-  {label: 'EBGaramond_BoldItalic', value: 'EBGaramond-BoldItalic'},
-  {label: 'EBGaramond_ExtraBoldItalic', value: 'EBGaramond-ExtraBoldItalic'},
-  {label: 'EBGaramond_ExtraBold', value: 'EBGaramond-ExtraBold'},
-  {label: 'EBGaramond_Medium', value: 'EBGaramond-Medium'},
-  {label: 'BGaramond_MediumItalic', value: 'EBGaramond-MediumItalic'},
-  {label: 'EBGaramond_Regular', value: 'EBGaramond-Regular'},
-  {label: 'EBGaramond_SemiBold', value: 'EBGaramond-SemiBold'},
-  {label: 'EBGaramond_SemiBoldItalic', value: 'EBGaramond-SemiBoldItalic'},
+  {label: 'Georgia', value: 'Georgia'},
+  {label: 'Courier New', value: 'Courier New'},
 ];
-const customActions = [
-  'customFontFamily',
-  'customFontSizeUp',
-  'customFontSizeDown',
-  'customTextColor',
-];
+
 const CreateDream = () => {
   const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
   const editorRef = useRef(null);
-  const fontTriggerRef = useRef();
-
-  const [htmlContent, setHtmlContent] = useState('');
   const [selectedFont, setSelectedFont] = useState(fonts[0]);
+
+  const [style, setStyle] = useState({
+    font: 'EB Garamond',
+    size: 16,
+    color: '#000000',
+  });
   const [showFontDropdown, setShowFontDropdown] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState({top: 0, left: 0});
-  const handleCustomAction = action => {
-    if (action === 'customFontSizeUp') {
-      editorRef.current?.commandDOM(
-        `document.execCommand("fontSize", false, "5")`,
+
+  // const applyStyle = () => {
+  //   const {font, size, color} = style;
+  //   editorRef.current?.insertHTML(
+  //     `<span style="font-family:'${font}'; font-size:${size}px; color:${color};">&#8203;</span>`,
+  //   );
+  // };
+  useEffect(() => {
+    applyStyle();
+  }, [style.font, style.size, style.color]);
+  const applyStyle = (customStyle = style) => {
+    const {font, size, color, extra} = customStyle;
+    const combinedStyle = `font-family:'${font}'; font-size:${size}px; color:${color}; ${
+      extra || ''
+    }`;
+
+    editorRef.current?.blurContentEditor();
+    setTimeout(() => {
+      editorRef.current?.focusContentEditor();
+      editorRef.current?.insertHTML(
+        `<span style="${combinedStyle}">&#8203;</span>`,
       );
-    } else if (action === 'customFontSizeDown') {
-      editorRef.current?.commandDOM(
-        `document.execCommand("fontSize", false, "2")`,
-      );
-    } else if (action === 'customTextColor') {
-      editorRef.current?.commandDOM(
-        `document.execCommand("foreColor", false, "#007AFF")`,
-      );
-    }
+    }, 100);
   };
-  const measureFontDropdown = () => {
-    console.log('xdfdsfdsfds');
-    const handle = findNodeHandle(fontTriggerRef.current);
-    UIManager.measure(handle, (x, y, w, h, px, py) => {
-      setDropdownPos({top: py + h, left: px});
-      setShowFontDropdown(true);
-    });
+
+  const onFontSelect = fontLabel => {
+    const newStyle = {...style, font: fontLabel};
+    setStyle(newStyle);
+    setShowFontDropdown(false);
+    applyStyle(newStyle);
+  };
+
+  const onSizeSelect = px => {
+    const newStyle = {...style, size: px};
+    setStyle(newStyle);
+    applyStyle(newStyle);
+  };
+
+  const onColorSelect = hex => {
+    const newStyle = {...style, color: hex};
+    setStyle(newStyle);
+    applyStyle(newStyle);
   };
   return (
     <View style={styles.container}>
@@ -102,7 +110,12 @@ const CreateDream = () => {
             />
           </View>
           <View
-            style={{flex: 0.8, alignItems: 'center', justifyContent: 'center'}}>
+            style={{
+              flex: 0.8,
+              alignItems: 'center',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
             <ImageBackground
               source={ImageData.DREAMBACKGROUND}
               resizeMode="stretch"
@@ -154,23 +167,21 @@ const CreateDream = () => {
                   </>
                 </View>
 
-                {/* Editor */}
                 <ScrollView style={styles.editorContainer}>
+                  {console.log('Sdfsdfsdsdf', selectedFont.value)}
                   <RichEditor
                     ref={editorRef}
                     initialContentHTML=""
                     placeholder="Start writing here..."
                     androidHardwareAccelerationDisabled
-                      androidLayerType="software"
+                    androidLayerType="software"
                     // onChange={richTextHandle}
                     editorStyle={{
-                      contentCSSText: `font-family: ${selectedFont.value}; font-size: 36px;`,
+                      contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
                     }}
                     style={styles.richEditor}
                   />
                 </ScrollView>
-
-                {/* Toolbar */}
 
                 <View
                   style={{
@@ -204,93 +215,88 @@ const CreateDream = () => {
 
               <View
                 style={{
-                  width: '90%',
+                  width: '95%',
                   height: 40,
                   marginTop: '2%',
-
-                  right: 5,
-                  paddingHorizontal: 0,
                 }}>
-                {/* <RichToolbar
+                <RichToolbar
                   editor={editorRef}
-                  selectedIconTint="#873c1e"
-                  iconTint="#312921"
                   actions={[
-                    ...customActions,
-
-                    actions.setUnderline,
-
+                    'customFontFamily',
+                    'customFontSizeUp',
+                    'customFontSizeDown',
+                    'customTextColor',
                     actions.setBold,
-
                     actions.setItalic,
+                    actions.setUnderline,
                   ]}
                   iconMap={{
                     customFontFamily: () => (
                       <TouchableOpacity
-                        ref={fontTriggerRef}
-                        onPress={measureFontDropdown}
-                        style={styles.fontFamilyIconGroup}>
+                        onPress={() => setShowFontDropdown(true)}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingHorizontal: 8,
+                          height: 36,
+
+                          borderRadius: 6,
+                        }}>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 12,
+                            maxWidth: 60,
+                            color: Color.LIGHTGREEN,
+                          }}>
+                          {selectedFont?.label || 'Font'}
+                        </Text>
                         <Image
-                          source={IconData.FONTITEM}
-                          style={styles.fontIcon}
-                          tintColor={Color.LIGHTGREEN}
-                          resizeMode="contain"
-                        />
-                        <View style={{width: 100, marginLeft: 20}}>
-                          <Text
-                            // numberOfLines={1}
-                            style={[
-                              styles.fontLabel,
-                              {fontFamily: selectedFont.value},
-                            ]}>
-                            {selectedFont.label}
-                          </Text>
-                        </View>
-                        
-                       <Image
                           source={IconData.DROP}
-                          style={styles.dropdownIcon}
-                          tintColor={Color.LIGHTGREEN}
                           resizeMode="contain"
+                          style={{width: 12, height: 12, marginLeft: 4}}
+                          tintColor={Color.LIGHTGREEN}
                         />
                       </TouchableOpacity>
                     ),
                     customFontSizeUp: () => (
-                      <Image
-                        style={[styles.toolbarIcon, {marginLeft: 100}]}
-                        tintColor={Color.LIGHTGREEN}
-                        source={IconData.FONTPLUS}
-                      />
+                      <TouchableOpacity
+                        onPress={() => onSizeSelect(style.size + 4)}>
+                        <Image
+                          source={IconData.FONTPLUS}
+                          style={{width: 24, height: 24}}
+                          tintColor={Color.LIGHTGREEN}
+                        />
+                      </TouchableOpacity>
                     ),
                     customFontSizeDown: () => (
-                      <Image
-                        style={[styles.toolbarIcon, {marginLeft: 100}]}
-                        tintColor={Color.LIGHTGREEN}
-                        source={IconData.FONTMINUS}
-                      />
+                      <TouchableOpacity
+                        onPress={() => onSizeSelect(style.size - 4)}>
+                        <Image
+                          source={IconData.FONTMINUS}
+                          style={{width: 24, height: 24}}
+                          tintColor={Color.LIGHTGREEN}
+                        />
+                      </TouchableOpacity>
                     ),
                     customTextColor: () => (
-                      <Image
-                        style={[styles.toolbarIcon, {marginLeft: 100}]}
-                        tintColor={Color.LIGHTGREEN}
-                        source={IconData.FONTCOLOR}
-                      />
+                      <TouchableOpacity
+                        onPress={() => onColorSelect('#ff5733')}>
+                        <Image
+                          source={IconData.FONTCOLOR}
+                          style={{width: 24, height: 24}}
+                          tintColor={Color.LIGHTGREEN}
+                        />
+                      </TouchableOpacity>
                     ),
                   }}
-                  onPress={handleCustomAction}
-                  style={styles.toolbar}
-                /> */}
-                <RichToolbar
-                  editor={editorRef}
-                  actions={[
-                    actions.setBold,
-                    actions.setItalic,
-                    actions.setUnderline,
-                    // actions.insertBulletsList,
-                    // actions.insertOrderedList,
-                    // actions.insertLink,
-                  ]}
-                  style={styles.toolbar}
+                  style={{
+                    alignSelf: 'stretch',
+
+                    height: 40,
+                    width: '100%',
+                    backgroundColor: 'transparent',
+                  }}
                 />
               </View>
 
@@ -303,23 +309,27 @@ const CreateDream = () => {
                   style={styles.modalOverlay}
                   activeOpacity={1}
                   onPressOut={() => setShowFontDropdown(false)}>
-                  <View style={styles.fontDropdown}>
-                    {fonts.map((font, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        onPress={() => {
-                          setSelectedFont(font);
-                          setShowFontDropdown(false);
-                          editorRef.current?.setContentStyle({
-                            fontFamily: font.value,
-                          });
-                        }}
-                        style={styles.fontOption}>
-                        <Text style={{fontFamily: font.value, fontSize: 16}}>
-                          {font.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                  <View style={styles.centeredDropdownWrapper}>
+                    <TouchableOpacity activeOpacity={1}>
+                      <View style={styles.fontDropdown}>
+                        {fonts.map((font, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => {
+                              onFontSelect(font.value);
+                              // setSelectedFont(font);
+                              // setShowFontDropdown(false);
+                              // applyFontFamily(font.value);
+                            }}
+                            style={styles.fontOption}>
+                            <Text
+                              style={{fontFamily: font.value, fontSize: 16}}>
+                              {font.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
               </Modal>
@@ -346,8 +356,9 @@ const CreateDream = () => {
                 height={47}
                 size={16}
                 font={Font.EBGaramond_SemiBold}
-                onPress={() => {
-                  updateProfile();
+                onPress={async () => {
+                  const html = await editorRef.current?.getContentHtml();
+                  console.log('💾 Saved HTML:', html);
                 }}
                 style={{width: '50%', zIndex: -1}}
                 // disabled={currentPage === subTitleText?.length - 1}
@@ -384,19 +395,23 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
     justifyContent: 'center',
-    backgroundColor: 'rgba(19, 14, 14, 0.2)',
+    alignItems: 'center',
+  },
+  centeredDropdownWrapper: {
+    width: 250, // or '90%' for full width on mobile
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    overflow: 'hidden',
+    elevation: 5,
   },
   fontDropdown: {
-    marginHorizontal: 30,
-    padding: 10,
-    borderRadius: 10,
-    elevation: 5,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   fontOption: {
     paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#ccc',
   },
 });
 export default CreateDream;

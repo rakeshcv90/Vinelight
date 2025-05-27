@@ -161,7 +161,7 @@ const CustomMeditationPlayer = ({navigation,route}) => {
                     alignSelf: 'center',
                     top: height * 0.035,
                   }}>
-                  <ProgressBar duration={timer} type={'Custom'}/>
+                  {/* <ProgressBar duration={timer} type={'Custom'}/> */}
                 </View>
 
                 <View

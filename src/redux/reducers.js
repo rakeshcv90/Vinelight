@@ -3,6 +3,7 @@ const initialState = {
   userInfo: null,
   ceremonyinfo: [],
   goalByDate: {},
+  meditationdata: [],
 };
 export const userReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -113,6 +114,12 @@ export const userReducer = (state = initialState, action) => {
         goalByDate: updatedGoalByDate,
       };
     }
+    case types.MEDITATION_DATA:
+      return {
+        ...state,
+        meditationdata: action.payload,
+      };
+
     default:
       return state;
   }

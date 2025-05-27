@@ -1,0 +1,130 @@
+import Foundation
+import AVFoundation
+import React
+
+@objc(MusicPlayer)
+class MusicPlayer: NSObject {
+  private var audioPlayer: AVPlayer?
+  private var isInitialized: Bool = false
+
+  @objc(setupPlayer:resolver:rejecter:)
+  func setupPlayer(audioSource: String, resolver: @escaping RCTPromiseResolveBlock, rejecter: @escaping RCTPromiseRejectBlock) {
+    // Check if the audioSource is a valid URL
+    if let audioURL = URL(string: audioSource), audioURL.scheme?.hasPrefix("http") == true {
+      // Remote URL case
+      audioPlayer = AVPlayer(url: audioURL)
+    } else {
+      // Local file case
+      guard let localFileURL = Bundle.main.url(forResource: audioSource, withExtension: nil) else {
+        rejecter("Error", "Invalid file path or URL: \(audioSource)", nil)
+        return
+      }
+      audioPlayer = AVPlayer(url: localFileURL)
+    }
+    
+    audioPlayer?.automaticallyWaitsToMinimizeStalling = false
+    isInitialized = true
+    // Pause the player immediately after setting it up
+    audioPlayer?.pause()
+    resolver(isInitialized)
+  }
+
+
+@objc(play:)
+func play(_ loop: Bool = false) {
+  // ✅ Set up audio session to allow playback
+  do {
+    try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+    try AVAudioSession.sharedInstance().setActive(true)
+  } catch {
+    print("❌ Failed to activate AVAudioSession:", error)
+  }
+
+  // ✅ Play audio
+  audioPlayer?.play()
+  print("🎧 Audio playback started") // ← this line confirms execution
+
+
+  // ✅ Handle looping
+  if loop {
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(restartMusic),
+      name: .AVPlayerItemDidPlayToEndTime,
+      object: audioPlayer?.currentItem
+    )
+  }
+}
+
+  @objc private func restartMusic() {
+    audioPlayer?.seek(to: CMTime.zero)
+    audioPlayer?.play()
+  }
+
+  @objc(pause)
+  func pause() {
+    audioPlayer?.pause()
+  }
+
+  @objc(stopMusic)
+  func stopMusic() {
+    audioPlayer?.pause()
+    audioPlayer?.seek(to: CMTime.zero)
+  }
+  
+  @objc(stopMusicandReset)
+  func stopMusicandReset() {
+    if let player = audioPlayer, player.timeControlStatus == .playing || player.rate == 0 {
+      player.pause()
+      player.seek(to: CMTime.zero)
+      print("Audio playback stopped and reset.")
+    }
+  }
+  
+  @objc(getMusicDuration:rejecter:)
+  func getMusicDuration(resolver: @escaping RCTPromiseResolveBlock, rejecter: @escaping RCTPromiseRejectBlock) {
+      if let currentItem = audioPlayer?.currentItem {
+          let duration = CMTimeGetSeconds(currentItem.duration)
+          
+          // Check if the duration is a valid finite number
+          if duration.isFinite {
+              resolver(Int(duration))
+          } else {
+              // If duration is not valid, return 0 or an appropriate error
+              resolver(0)
+          }
+      } else {
+          resolver(0)  // Return 0 if there is no current item
+      }
+  }
+  
+  // Function to get Current Music Position
+  @objc(getCurrentPosition:rejecter:)
+    func getCurrentPosition(resolver: @escaping RCTPromiseResolveBlock, rejecter: @escaping RCTPromiseRejectBlock) {
+      if let currentItem = audioPlayer?.currentItem {
+        let currentTime = CMTimeGetSeconds(currentItem.currentTime())
+        resolver(Int(currentTime))
+      } else {
+        resolver(0)
+      }
+    }
+
+    // function to seek to a specific position in seconds
+    @objc(seekTo:resolver:rejecter:)
+    func seekTo(position: Int, resolver: @escaping RCTPromiseResolveBlock, rejecter: @escaping RCTPromiseRejectBlock) {
+      let seekTime = CMTimeMake(value: Int64(position), timescale: 1000)
+      audioPlayer?.seek(to: seekTime, completionHandler: { completed in
+        if completed {
+          resolver(true)
+        } else {
+          rejecter("SeekError", "Failed to seek to position \(position)", nil)
+        }
+      })
+    }
+  
+  @objc(releaseMediaPlayer)
+  func releaseMediaPlayer() {
+    audioPlayer = nil
+    isInitialized = false
+  }
+}

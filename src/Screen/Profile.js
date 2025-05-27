@@ -13,8 +13,10 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
+  Linking,
+  Alert,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../assets/Image';
 import {storage} from '../Component/Storage';
 import {Background} from '@react-navigation/elements';
@@ -37,7 +39,7 @@ const Profile = ({navigation}) => {
   const [image, setImage] = useState(null);
   const [modalopen, setModalOpen] = useState(false);
   const userInfo = useSelector(state => state?.user?.userInfo);
-
+  const url = 'https://www.instagram.com/vinelightapp/';
   useEffect(() => {
     setName(userInfo?.name);
     setImage(userInfo?.photo);
@@ -101,6 +103,16 @@ const Profile = ({navigation}) => {
       console.log('LibimageError', error);
     }
   };
+
+  const handlePress = useCallback(async () => {
+    const supported = await Linking.canOpenURL(url);
+
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      await Linking.openURL(url);
+    }
+  }, [url]);
   return (
     <View style={styles.container}>
       <StatusBar
@@ -255,7 +267,7 @@ const Profile = ({navigation}) => {
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
-              <Text style={styles.title}>{name}</Text>
+              <Text style={styles.title}>{name ? name : 'Guest'}</Text>
             </View>
             <ScrollView
               contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}>
@@ -266,7 +278,7 @@ const Profile = ({navigation}) => {
                   alignSelf: 'center',
                   alignItems: 'center',
                   gap: 10,
-                    marginTop:10,
+                  marginTop: 10,
                   flexDirection: 'row',
                 }}>
                 <ProfileGoalComponent
@@ -287,8 +299,8 @@ const Profile = ({navigation}) => {
                   alignSelf: 'center',
                   alignItems: 'center',
                   gap: 10,
-                  marginTop:10,
-                  marginBottom:10,
+                  marginTop: 10,
+                  marginBottom: 10,
                   flexDirection: 'row',
                 }}>
                 <ProfileGoalComponent
@@ -376,7 +388,7 @@ const Profile = ({navigation}) => {
                         marginLeft: 20,
                         fontFamily: Font.EB_Garamond_Bold,
                       }}>
-                      276 Journal Prompts (21 Category)
+                      250+ Journal Prompts (21 Category)
                     </Text>
                   </View>
                   <View
@@ -499,32 +511,10 @@ const Profile = ({navigation}) => {
 
                     justifyContent: 'space-between',
                   }}>
-                  <Pressable
-                    onPress={() => {
-                      console.log('Image clicked');
-                    }}>
-                    <Image
-                      source={IconData.FACEBOOK}
-                      style={{width: 24, height: 24, left: 10}}
-                    />
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => {
-                      console.log('Image clicked');
-                    }}>
+                  <Pressable onPress={handlePress}>
                     <Image
                       source={IconData.INSTA}
-                      style={{width: 24, height: 24}}
-                    />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => {
-                      console.log('Image clicked');
-                    }}>
-                    <Image
-                      source={IconData.YOUTOUB}
-                      style={{width: 24, height: 24}}
+                      style={{width: 24, height: 24, left: 10}}
                     />
                   </Pressable>
                 </View>
@@ -533,8 +523,8 @@ const Profile = ({navigation}) => {
                   text="Contact Us"
                   left={true}
                   width={140}
-                  height={47}
-                  size={16}
+                  height={40}
+                  size={15}
                   font={Font.EBGaramond_SemiBold}
                   onPress={() => {
                     console.log('xdsddddddd');

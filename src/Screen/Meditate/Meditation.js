@@ -8,13 +8,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import {useNavigation} from '@react-navigation/native';
+import {useSelector} from 'react-redux';
+import FastImage from 'react-native-fast-image';
 const {width, height} = Dimensions.get('window');
 const Meditation = () => {
-  const navigation = useNavigation(); // ✅ Fix here
+  const navigation = useNavigation();
+
+  const meditationData = useSelector(state => state?.user?.meditationdata);
+;
   const data = [
     {
       id: 1,
@@ -46,11 +51,16 @@ const Meditation = () => {
     },
   ];
   const renderItem = ({item, index}) => {
+  const formatDuration = totalSeconds => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
     return (
       <View style={styles.card}>
         <View style={styles.content}>
-          <Text style={styles.title}>{item?.title}</Text>
-          <Text style={styles.description}>{item?.description}</Text>
+          <Text style={styles.title}>{item?.name}</Text>
+          <Text style={styles.description} numberOfLines={3}>{item?.description}</Text>
         </View>
         <View style={styles.rightSide}>
           <TouchableOpacity
@@ -61,13 +71,14 @@ const Meditation = () => {
             <Text style={styles.icon}>▶</Text>
           </TouchableOpacity>
           <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>{item?.timer}</Text>
+            <Text style={styles.durationText}>{formatDuration(item?.time)}</Text>
+            
           </View>
         </View>
       </View>
     );
   };
-    const emptyComponent = () => {
+  const emptyComponent = () => {
     return (
       <View
         style={{
@@ -75,7 +86,6 @@ const Meditation = () => {
         }}>
         <Image
           source={IconData.CALENDER}
-    
           resizeMode="contain"
           style={{
             width: width * 0.3,
@@ -85,16 +95,17 @@ const Meditation = () => {
       </View>
     );
   };
+  const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
     <View style={styles.secondaryContainer}>
-      <ImageBackground
-        source={ImageData.MAINBACKGROUND}
+      <FastImage
+        source={memoizedBackground}
         style={styles.secondaryBackground}
-        resizeMode="stretch">
+        resizeMode={FastImage.resizeMode.stretch}>
         <View
           style={{
             width: '100%',
-            height: '76%',
+            // height: '76%',
             justifyContent: 'center',
             alignItems: 'center',
             marginVertical: '35%',
@@ -102,7 +113,8 @@ const Meditation = () => {
           <View
             style={{
               width: '90%',
-              height: '100%',
+              // height: '100%',
+              marginTop: '5%',
               alignItems: 'center',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
@@ -111,19 +123,19 @@ const Meditation = () => {
             <View
               style={{
                 width: '100%',
-                height: '10%',
+                // height: '10%',
                 flexDirection: 'row',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
               }}>
-              <Image
+              <FastImage
                 source={ImageData.LEFT}
-                resizeMode="contain"
+                resizeMode={FastImage.resizeMode.contain}
                 style={{width: 31, height: 31}}
               />
-              <Image
+              <FastImage
                 source={ImageData.RIGHT}
-                resizeMode="contain"
+                resizeMode={FastImage.resizeMode.contain}
                 style={{
                   width: 31,
                   height: 31,
@@ -136,7 +148,7 @@ const Meditation = () => {
                 width: '100%',
                 height: '7%',
 
-                top: -35,
+                 top: -height * 0.035,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
@@ -146,29 +158,30 @@ const Meditation = () => {
             <View
               style={{
                 width: '96%',
-                height: '63%',
+                height: '75%',
 
                 alignSelf: 'center',
-                top: -20,
+                // top: -20,
               }}>
               <FlatList
-                data={data}
+                data={meditationData}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{paddingBottom: 20}}
-                  ListEmptyComponent={emptyComponent}
+                ListEmptyComponent={emptyComponent}
                 renderItem={renderItem}
               />
             </View>
             <View
               style={{
                 width: '100%',
-                height: '10%',
+                // height: '10%',
                 justifyContent: 'center',
                 alignItems: 'center',
-                top: 10,
+                // paddingBottom: height * 0.01,
+                top: -15,
               }}>
               <Button2
-                width={300}
+                width={250}
                 height={50}
                 buttonTitle={'Meditation Timer'}
                 img={IconData.PLUS}
@@ -182,22 +195,23 @@ const Meditation = () => {
                 width: '100%',
                 height: '10%',
                 flexDirection: 'row',
+                paddingBottom: height * 0.075,
 
                 alignItems: 'flex-end',
                 justifyContent: 'space-between',
               }}>
-              <Image
+              <FastImage
                 source={ImageData.BACKLEFT}
-                resizeMode="contain"
+                resizeMode={FastImage.resizeMode.contain}
                 style={{
                   width: 31,
                   height: 31,
                 }}
               />
 
-              <Image
+              <FastImage
                 source={ImageData.BACKRIGHT}
-                resizeMode="contain"
+                resizeMode={FastImage.resizeMode.contain}
                 style={{
                   width: 31,
                   height: 31,
@@ -206,7 +220,7 @@ const Meditation = () => {
             </View>
           </View>
         </View>
-      </ImageBackground>
+      </FastImage>
     </View>
   );
 };
@@ -245,7 +259,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingRight: 12,
-   
   },
   title: {
     fontSize: 18,

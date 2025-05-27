@@ -7,15 +7,106 @@ import {
   ImageBackground,
   Image,
   Dimensions,
+  ScrollView,
 } from 'react-native';
-import React from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import ProgressBar from '../../Component/ProgressBar';
+import NativeusicPlayer from '../../Component/NativeusicPlayer';
 
 const {width, height} = Dimensions.get('window');
 
 const MeditationPlayer = ({route, navigation}) => {
+  const [defaultMusic, setDefaultMusic] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [pauseSound, setPauseSound] = useState(false);
+  const scrollRef = useRef();
 
+  const handleUpdateTime = useCallback(time => {
+    setCurrentTime(time);
+  }, []);
+
+  const description = route?.params?.itemData?.description || '';
+  const cleanDescription = description.replace(/\s+/g, ' ').trim();
+  const words = cleanDescription.split(' ');
+  const estimatedDuration = route?.params?.itemData?.time * 60 || 60;
+  const totalWeight = words.reduce((sum, word) => sum + word.length, 0);
+
+  let cumulativeTime = 0;
+  const timedWords = words.map(word => {
+    const wordTime = (word.length / totalWeight) * estimatedDuration;
+    const item = {word, time: cumulativeTime};
+    cumulativeTime += wordTime;
+    return item;
+  });
+
+  const activeWordIndex = timedWords.findIndex(
+    (item, i) =>
+      currentTime >= item.time &&
+      (i === timedWords.length - 1 || currentTime < timedWords[i + 1].time),
+  );
+
+  useEffect(() => {
+    if (scrollRef.current && activeWordIndex !== -1) {
+      scrollRef.current.scrollTo({
+        y: Math.floor(activeWordIndex / 5) * 40,
+        animated: true,
+      });
+    }
+  }, [activeWordIndex]);
+
+  // const description = route?.params?.itemData?.description || '';
+  // const cleanDescription = description.replace(/\s+/g, ' ').trim();
+  // const words = cleanDescription.split(' ');
+  // const estimatedDuration = route?.params?.itemData?.time * 60 || 60;
+
+  // const timedCharacters = [];
+  // let charIndex = 0;
+  // let cumulativeTime = 0;
+  // const totalChars = cleanDescription.replace(/\s/g, '').length;
+
+  // words.forEach((word, wordIndex) => {
+  //   const wordDuration = (word.length / totalChars) * estimatedDuration;
+  //   const charDuration = wordDuration / word.length;
+  //   for (let i = 0; i < word.length; i++) {
+  //     timedCharacters.push({
+  //       char: word[i],
+  //       time: cumulativeTime + i * charDuration,
+  //       wordIndex,
+  //     });
+  //   }
+  //   // Add space as a character
+  //   timedCharacters.push({
+  //     char: ' ',
+  //     time: cumulativeTime + word.length * charDuration,
+  //     wordIndex,
+  //   });
+  //   cumulativeTime += wordDuration;
+  // });
+
+  // const activeCharIndex = timedCharacters.findIndex(
+  //   (item, i) =>
+  //     currentTime >= item.time &&
+  //     (i === timedCharacters.length - 1 ||
+  //       currentTime < timedCharacters[i + 1].time),
+  // );
+
+  // const activeWordIndex = timedCharacters[activeCharIndex]?.wordIndex || 0;
+
+  // useEffect(() => {
+  //   if (scrollRef.current && activeCharIndex !== -1) {
+  //     scrollRef.current.scrollTo({
+  //       y: Math.floor(activeCharIndex / 40) * 40,
+  //       animated: true,
+  //     });
+  //   }
+  // }, [activeCharIndex]);
+
+  const formatDuration = totalSeconds => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
   return (
     <View style={styles.container}>
       <StatusBar
@@ -42,7 +133,10 @@ const MeditationPlayer = ({route, navigation}) => {
           }}>
           <TouchableOpacity
             onPress={() => {
+              setPauseSound(true);
               navigation.goBack();
+              // setIsPlaying(false);
+              // pauseMusic();
             }}
             style={{
               width: 50,
@@ -136,11 +230,11 @@ const MeditationPlayer = ({route, navigation}) => {
                     alignItems: 'center',
                   }}>
                   <Text style={styles.subText}>
-                    {route?.params?.itemData?.title}
+                    {route?.params?.itemData?.name}
                   </Text>
                   <View style={styles.durationBadge}>
                     <Text style={styles.durationText}>
-                      {route?.params?.itemData?.timer}
+                      {formatDuration(route?.params?.itemData?.time)} Min
                     </Text>
                   </View>
                 </View>
@@ -149,10 +243,38 @@ const MeditationPlayer = ({route, navigation}) => {
                   style={{
                     width: '96%',
                     height: '58%',
-                  
+                    justifyContent: 'center',
+                    alignItems: 'center',
                     alignSelf: 'center',
                     top: -height * 0.04,
-                  }}></View>
+                    padding: 10,
+                  }}>
+                  <ScrollView
+                    ref={scrollRef}
+                    contentContainerStyle={{paddingBottom: 10}}
+                    showsVerticalScrollIndicator={false}>
+                    <Text style={styles.textBlock}>
+                      {timedWords.map((item, index) => (
+                        <Text
+                          key={index}
+                          style={{
+                            color:
+                              index === activeWordIndex
+                                ? Color.LIGHTGREEN
+                                : index < activeWordIndex
+                                ? Color.LIGHTGREEN
+                                : '#60723E',
+                            fontFamily:
+                              index === activeWordIndex
+                                ? Font.EBGaramond_SemiBold
+                                : Font.EBGaramond_Regular,
+                          }}>
+                          {item.word + ' '}
+                        </Text>
+                      ))}
+                    </Text>
+                  </ScrollView>
+                </View>
                 <View
                   style={{
                     width: '96%',
@@ -162,7 +284,14 @@ const MeditationPlayer = ({route, navigation}) => {
                     alignSelf: 'center',
                     top: height * 0.035,
                   }}>
-                       <ProgressBar duration={200} type={'Dynamic'}/>
+                  <ProgressBar
+                    type={'Dynamic'}
+                    data={route?.params?.itemData}
+                    defaultMusic={defaultMusic}
+                    setDefaultMusic={setDefaultMusic}
+                    onUpdateTime={handleUpdateTime}
+                    pauseSound={pauseSound}
+                  />
                 </View>
 
                 <View
@@ -239,5 +368,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Color.LIGHTGREEN,
     fontFamily: Font.EBGaramond_SemiBold,
+  },
+  lyricsBox: {
+    flex: 1,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  textBlock: {
+    fontSize: 32,
+    fontFamily: Font.EBGaramond_Regular,
+    color: Color.LIGHTGREEN,
+    textAlign: 'center',
+    flexWrap: 'wrap',
   },
 });

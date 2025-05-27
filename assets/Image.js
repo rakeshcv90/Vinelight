@@ -44,9 +44,11 @@ export const IconData = {
   YOUTOUB: require('../assets/Image/icon/youtoub.png'),
   CANCEL: require('../assets/Image/icon/cancel.png'),
   MUSIC: require('../assets/Image/icon/music.png'),
+  MUSICCLOSE: require('../assets/Image/icon/musicclose.png'),
   PAUSE: require('../assets/Image/icon/pause.png'),
   PLAY: require('../assets/Image/icon/Play.png'),
   SPEAK: require('../assets/Image/icon/speak.png'),
+    SPEAKCLOSE: require('../assets/Image/icon/speakclose.png'),
   PROGRESS: require('../assets/Image/icon/progress.png'),
   MED: require('../assets/Image/icon/med.png'),
   SETTING: require('../assets/Image/icon/setting.png'),
@@ -64,6 +66,9 @@ export const IconData = {
   FONTPLUS: require('../assets/Image/icon/sizeup.png'),
   FONTMINUS: require('../assets/Image/icon/sizedown.png'),
   FONTITEM: require('../assets/Image/icon/fontfamily.png'),
+  BOLD: require('../assets/Image/icon/bold.png'),
+  ITALIC: require('../assets/Image/icon/italic.png'),
+  UNDERLINE: require('../assets/Image/icon/underline.png'),
 };
 export const Font = {
   EB_Garamond: 'EBGaramond-Variable',

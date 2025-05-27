@@ -23,7 +23,7 @@ const TooltipModal = ({
       onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false}>
             {options.map((option, index) => {
               const checked = selectedOptions.includes(option);
               return (
@@ -63,8 +63,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#37412a',
     padding: 15,
     borderRadius: 10,
-    width: 240,
-    maxHeight: 320,
+    width: 250,
+    // maxHeight: 400,
     borderWidth: 2,
     borderColor: '#bfb68c',
   },
