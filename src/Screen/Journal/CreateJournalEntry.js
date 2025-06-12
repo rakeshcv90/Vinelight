@@ -28,7 +28,7 @@ import uuid from 'react-native-uuid';
 import TooltipModal2 from '../../Component/TooltipModal2';
 import PromptModal from '../../Component/PromptModal';
 import Toast from 'react-native-toast-message';
-import ColorPicker from 'react-native-wheel-color-picker';
+// import ColorPicker from 'react-native-wheel-color-picker';
 
 const {width, height} = Dimensions.get('window');
 
@@ -56,64 +56,7 @@ const fonts = [
   {label: 'Brush Script MT', value: 'Brush Script MT'},
 ];
 
-const ColorModal = ({visible, onClose, colorData, setColorData}) => {
-  const pickerRef = useRef(null);
 
-  const [swatchesOnly] = useState(false);
-  const [swatchesLast] = useState(true);
-  const [swatchesEnabled] = useState(true);
-  const [disc] = useState(false);
-
-  const handleColorChange = color => {
-    setColorData(color);
-  };
-
-  const handleColorChangeComplete = color => {};
-
-  return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.backdrop}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Select a Color</Text>
-
-          <ColorPicker
-            ref={pickerRef}
-            color={colorData}
-            swatchesOnly={swatchesOnly}
-            onColorChange={handleColorChange}
-            onColorChangeComplete={handleColorChangeComplete}
-            thumbSize={40}
-            sliderSize={40}
-            noSnap={true}
-            row={false}
-            swatchesLast={swatchesLast}
-            swatches={swatchesEnabled}
-            discrete={disc}
-            wheelLoadingIndicator={<ActivityIndicator size={40} />}
-            sliderLoadingIndicator={<ActivityIndicator size={20} />}
-            useNativeDriver={false}
-            useNativeLayout={false}
-            style={styles.colorPicker}
-          />
-
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              onPress={() => pickerRef.current?.revert()}
-              style={[styles.button, styles.revertButton]}>
-              <Text style={styles.buttonText}>Revert</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={onClose}
-              style={[styles.button, styles.closeButton]}>
-              <Text style={styles.buttonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
 
 const CreateJournalEntry = ({navigation, route}) => {
   const HomeData = route?.params?.prompttype;
@@ -596,7 +539,7 @@ const CreateJournalEntry = ({navigation, route}) => {
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setColorPicker(true)}>
+                  <TouchableOpacity onPress={() => onColorSelect('#00000')}>
                     <Image
                       source={IconData.FONTCOLOR}
                       style={{width: 30, height: 30}}
@@ -784,12 +727,7 @@ const CreateJournalEntry = ({navigation, route}) => {
           setPromptMOdalOpen(false);
         }}
       />
-      <ColorModal
-        visible={ColorPicjer}
-        onClose={setColorPicker(false)}
-        colorData={colorCode}
-        setColorData={(selectedColor) => onColorSelect(selectedColor)}
-      />
+   
     </View>
   );
 };

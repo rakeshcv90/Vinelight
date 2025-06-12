@@ -7,14 +7,14 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
-import {Color, Font, IconData, ImageData} from '../../../assets/Image';
+import React, { useState, useEffect } from 'react';
+import { Color, Font, IconData, ImageData } from '../../../assets/Image';
 import FastImage from 'react-native-fast-image';
 import Button2 from '../../Component/Button2';
 import useNativeMusicPlayer from '../../Component/NativeusicPlayer';
-import {useSelector} from 'react-redux';
-const {width, height} = Dimensions.get('window');
-const AdvanceMediaPlayer = ({navigation, route}) => {
+import { useSelector } from 'react-redux';
+const { width, height } = Dimensions.get('window');
+const AdvanceMediaPlayer = ({ navigation, route }) => {
   const [song, setsong] = useState(route.params?.itemData?.pre?.song);
   const [song2, setsong2] = useState(route.params?.itemData?.int?.song);
   const [song3, setsong3] = useState(route.params?.itemData?.res?.song);
@@ -68,13 +68,55 @@ const AdvanceMediaPlayer = ({navigation, route}) => {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
+  const [lastIntervalSecond, setLastIntervalSecond] = useState(null);
+
+  useEffect(() => {
+    const int = route.params?.itemData?.int;
+    const med = route.params?.itemData?.med;
+
+    const medDuration = (Number(med?.minute || 0) * 60) + Number(med?.second || 0);
+    const intTime = Number(int?.second || 0);
+    console.log('Time duration ', intTime, medDuration);
+
+    if (!int?.song || !intTime || !medDuration) return;
+
+    const timePassed = medDuration - timeLeft;
+    console.log('Time duration ......   ', timePassed);
+
+
+    // Repeating interval logic
+    if (
+      timeLeft > 0 &&
+      timePassed > 0 &&
+      timePassed % intTime === 0 &&
+      lastIntervalSecond !== timePassed
+    ) {
+      setLastIntervalSecond(timePassed);
+      playRepeatingInterval();
+    }
+  }, [timeLeft]);
+
   const startCountdown = durationInSec => {
     setTimeLeft(durationInSec);
     setTotalPhaseTime(durationInSec);
   };
 
+  const playRepeatingInterval = async () => {
+    try {
+      console.log('Interval SONG');
+      pauseMusic('player2'); // Pause main meditation
+      setsong(song2);        // Optional: update UI
+      playMusic('player1');  // Play interval
+      await new Promise(res => setTimeout(res, 3000)); // Play for 3 seconds
+      stopMusic('player1');  // Stop interval
+      playMusic('player2');  // Resume meditation
+    } catch (e) {
+      console.error('Interval play error:', e);
+    }
+  };
+
   const playMeditationFlow = async () => {
-    const {pre, med, int, res, end} = route.params?.itemData || {};
+    const { pre, med, int, res, end } = route.params?.itemData || {};
 
     const wait = seconds =>
       new Promise(resolve => setTimeout(resolve, seconds * 1000));
@@ -106,49 +148,45 @@ const AdvanceMediaPlayer = ({navigation, route}) => {
         startCountdown(medDuration);
 
         playMusic('player2');
-
-        if (intTime < medDuration) {
-          console.log('yess small time ', intTime, medDuration);
-          if (int?.song) {
-            console.log('yes have sone ', int?.song);
-            if (intTime === medDuration / 2) {
-              console.log('half on med hjhh ', formatTime(timeLeft));
-            } else {
-              console.log('not half');
-            }
-          }
-        }
-
-        // if (int?.song && intTime > 0 && intTime < medDuration) {
-        // await wait(intTime);
-        // console.log('INT SONG',);
-        // setsong(song2);
-        // playMusic('player1');
-        // await wait(intDuration);
-        // console.log('INT SONG 12',);
-        // stopMusic('player1');
-
-        // await wait(medDuration - intTime - intDuration);
-        // stopMusic('player2');
-        // } else {
         await wait(medDuration);
         stopMusic('player2');
         // }
       }
 
-      if (res?.song) {
+      // if (res?.song) {
+      //   console.log('RES SONG');
+      //   setsong(song3);
+      //   playMusic('player1');
+      //   await wait(Number(res.second || 0));
+      //   releaseMusic('player1');
+      // }
+
+      // if (end?.song) {
+      //   setsong(song4);
+      //   playMusic('player1', end.song);
+      //   await wait(Number(end.second || 0));
+      //   releaseMusic('player1');
+      // }
+
+      if (res?.song && timeLeft === 0) {
         console.log('RES SONG');
         setsong(song3);
         playMusic('player1');
-        await wait(Number(res.second || 0));
-        releaseMusic('player1');
+        const resTime = Number(res.second || 0);
+        startCountdown(resTime); // Optional: show rest countdown
+        await wait(resTime);
+        stopMusic('player1');
       }
 
-      if (end?.song) {
+      // ✅ Only start END after rest timer is 0
+      if (end?.song && timeLeft === 0) {
+          console.log('End SONG');
         setsong(song4);
-        playMusic('player1', end.song);
-        await wait(Number(end.second || 0));
-        releaseMusic('player1');
+        playMusic('player1');
+        const endTime = Number(end.second || 0);
+        startCountdown(endTime); // Optional: show end countdown
+        await wait(endTime);
+        stopMusic('player1');
       }
     } catch (error) {
       console.error('❌ Error in meditation flow:', error);
@@ -212,7 +250,7 @@ const AdvanceMediaPlayer = ({navigation, route}) => {
               <Image
                 source={IconData.BACK}
                 tintColor={Color?.LIGHTGREEN}
-                style={{width: 24, height: 24}}
+                style={{ width: 24, height: 24 }}
               />
             </View>
           </TouchableOpacity>
@@ -250,7 +288,7 @@ const AdvanceMediaPlayer = ({navigation, route}) => {
                   <FastImage
                     source={ImageData.LEFT}
                     resizeMode={FastImage.resizeMode.contain}
-                    style={{width: 31, height: 31}}
+                    style={{ width: 31, height: 31 }}
                   />
                   <FastImage
                     source={ImageData.RIGHT}
@@ -274,7 +312,7 @@ const AdvanceMediaPlayer = ({navigation, route}) => {
                   <FastImage
                     source={ImageData.MEDATATION}
                     resizeMode={FastImage.resizeMode.contain}
-                    style={{width: width * 0.5, height: height * 0.2}}
+                    style={{ width: width * 0.5, height: height * 0.2 }}
                   />
                   <Text style={styles.subText}>Meditations</Text>
                 </View>
@@ -304,7 +342,7 @@ const AdvanceMediaPlayer = ({navigation, route}) => {
                   }}>
                   <Image
                     source={IconData.PLAY}
-                    style={{width: 40, height: 40}}
+                    style={{ width: 40, height: 40 }}
                     resizeMode="contain"
                   />
                 </TouchableOpacity>
@@ -403,7 +441,7 @@ const styles = StyleSheet.create({
     width: width * 0.2,
     alignItems: 'center',
     shadowColor: Color.LIGHTGREEN,
-    shadowOffset: {width: 2, height: 3},
+    shadowOffset: { width: 2, height: 3 },
     shadowOpacity: 0.4,
     shadowRadius: 4,
 
