@@ -41,6 +41,8 @@
 	<string>We need access to save your images to the photo library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Vinelight needs library access for user's profile photo</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>This app uses speech synthesis</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>EBGaramond-Italic.ttf</string>
@@ -54,6 +56,25 @@
 		<string>EBGaramond-Regular.ttf</string>
 		<string>EBGaramond-SemiBold.ttf</string>
 		<string>EBGaramond-SemiBoldItalic.ttf</string>
+		<string>AntDesign.ttf</string>
+		<string>Entypo.ttf</string>
+		<string>EvilIcons.ttf</string>
+		<string>Feather.ttf</string>
+		<string>FontAwesome.ttf</string>
+		<string>FontAwesome5_Brands.ttf</string>
+		<string>FontAwesome5_Regular.ttf</string>
+		<string>FontAwesome5_Solid.ttf</string>
+		<string>FontAwesome6_Brands.ttf</string>
+		<string>FontAwesome6_Regular.ttf</string>
+		<string>FontAwesome6_Solid.ttf</string>
+		<string>Foundation.ttf</string>
+		<string>Ionicons.ttf</string>
+		<string>MaterialIcons.ttf</string>
+		<string>MaterialCommunityIcons.ttf</string>
+		<string>SimpleLineIcons.ttf</string>
+		<string>Octicons.ttf</string>
+		<string>Zocial.ttf</string>
+		<string>Fontisto.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

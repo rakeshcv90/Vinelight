@@ -1,9 +1,17 @@
+import Toast from 'react-native-toast-message';
 import types from './types';
 const initialState = {
   userInfo: null,
   ceremonyinfo: [],
   goalByDate: {},
   meditationdata: [],
+  advanceMeditationData: [],
+  customeMedidation: [],
+  subscription: [],
+  getProducts: [],
+  getDailyPrompt: {},
+  getDreamData: [],
+  getJournalData: [],
 };
 export const userReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -118,6 +126,161 @@ export const userReducer = (state = initialState, action) => {
       return {
         ...state,
         meditationdata: action.payload,
+      };
+    case types.ADVANCE_MEDITATION_DATA:
+      return {
+        ...state,
+        advanceMeditationData: action.payload,
+      };
+    case types.DELETE_CEREMONY:
+      return {
+        ...state,
+        ceremonyinfo: state.ceremonyinfo.filter(
+          item => item.id !== action.payload,
+        ),
+      };
+    case types.CUSTOME_MEDITATION:
+  
+      return {
+        ...state,
+        customeMedidation: Array.isArray(state.customeMedidation)
+          ? [...state.customeMedidation, action.payload]
+          : [action.payload],
+      };
+
+    case types.DELETE_CUSTOME_MEDITATION:
+      return {
+        ...state,
+        customeMedidation: state.customeMedidation.filter(
+          item => item.id !== action.payload,
+        ),
+      };
+    case types.SUBSCRIPTION_DETAILS:
+      return {
+        ...state,
+        subscription: action.payload,
+      };
+    case types.SUBSCRIPTION_PRODUCTS:
+      return {
+        ...state,
+        getProducts: action.payload,
+      };
+    case types.DAILY_PROPMPT:
+      return {
+        ...state,
+        getDailyPrompt: action.payload,
+      };
+
+    case types.DREAM_DATA:
+
+
+      const currentData = Array.isArray(state.getDreamData)
+        ? state.getDreamData
+        : [];
+
+      // Check if an entry with the same date already exists
+      const exists = currentData.some(
+        entry => entry.currentDat === action.payload.currentDat,
+      );
+
+      if (exists) {
+     
+        Toast.show({
+          type: 'error',
+          text1: 'Data Save Failed',
+          text2: 'Data for this date already exists.',
+          visibilityTime: 3000,
+          position: 'top', // 'top' or 'bottom'
+        });
+        return state;
+      }
+
+      return {
+        ...state,
+        getDreamData: [...currentData, action.payload],
+      };
+
+    case types.UPDATE_DREAM:
+  
+
+      const updatedData1 = Array.isArray(state.getDreamData)
+        ? state.getDreamData.map(entry =>
+            entry.currentDat === action.payload.currentDat
+              ? {...entry, ...action.payload} // merge update
+              : entry,
+          )
+        : [];
+
+      return {
+        ...state,
+        getDreamData: updatedData1,
+      };
+    case types.DELETE_DREAM:
+      const filteredData = state.getDreamData.filter(
+        dream => dream?.dream?.id !== action.payload,
+      );
+
+      return {
+        ...state,
+        getDreamData: filteredData,
+      };
+    case types.JOURNAL_DATA:
+   
+
+      const currentData1 = Array.isArray(state.getJournalData)
+        ? state.getJournalData
+        : [];
+
+      // Check if an entry with the same date already exists
+      const exists1 = currentData1.some(
+        entry => entry.currentDat === action.payload.currentDat,
+      );
+
+      if (exists1) {
+
+        Toast.show({
+          type: 'error',
+          text1: 'Data Save Failed',
+          text2: 'Data for this date already exists.',
+          visibilityTime: 3000,
+          position: 'top', // 'top' or 'bottom'
+        });
+        return state;
+      }
+
+      return {
+        ...state,
+        getJournalData: [...currentData1, action.payload],
+      };
+
+    case types.DELETE_JOURNAL:
+      const filteredData1 = state.getJournalData.filter(
+        dream => dream?.journal?.id !== action.payload,
+      );
+
+      return {
+        ...state,
+        getJournalData: filteredData1,
+      };
+
+    case types.UPDATE_JOURNAL:
+   
+
+      const updatedData = Array.isArray(state.getJournalData)
+        ? state.getJournalData.map(entry => {
+            if (entry.currentDat === action.payload.currentDat) {
+              return {
+                ...entry,
+                ...action.payload, // merge updated fields
+              };
+            }
+            return entry;
+          })
+        : [];
+
+      return {
+        ...state,
+        getJournalData: updatedData,
       };
 
     default:

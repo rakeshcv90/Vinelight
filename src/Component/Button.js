@@ -17,7 +17,7 @@ const Button = ({
   tintColor,
 }) => {
   return (
-    <View style={[styles.shadowWrapper, {width: width, height: height}]}>
+    <View style={[styles.shadowWrapper, {width: width, height: height,backgroundColor: backgroundColor}]}>
       <TouchableOpacity
         style={[styles.button, {backgroundColor: backgroundColor}]}
         activeOpacity={0.8}
@@ -26,7 +26,7 @@ const Button = ({
         {left && (
           <Image
             source={img}
-            style={{width: 20, height: 20, right: 8, tintColor: tintColor}}
+            style={{width: 20, height: 20, right: 8, tintColor: tintColor,top:3}}
             resizeMode="contain"
           />
         )}
@@ -41,7 +41,7 @@ const Button = ({
         {!left && (
           <Image
             source={img}
-            style={{width: 16, height: 14, left: 8, tintColor: tintColor}}
+            style={{width: 16, height: 14, left: 8, tintColor: tintColor,top:3}}
             resizeMode="contain"
           />
         )}
@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     // paddingVertical: 11,
     // paddingHorizontal: 20,
+    alignSelf:'center',
     alignItems: 'center',
     justifyContent: 'center',
 
@@ -74,5 +75,6 @@ const styles = StyleSheet.create({
   text: {
     color: Color.GREEN,
     fontSize: 16,
+    top:2
   },
 });

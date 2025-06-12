@@ -27,7 +27,13 @@ import Toast from 'react-native-toast-message';
 import {useGalleryPermission} from '../Component/PermissionHooks';
 import {useDispatch, useSelector} from 'react-redux';
 import ActivityLoader from '../Component/ActivityLoader';
-import {setUserInfo} from '../redux/actions';
+import {setSubscriptionProducts, setUserInfo} from '../redux/actions';
+import * as RNIap from 'react-native-iap';
+
+const products = Platform.select({
+  ios: ['plan_monthly', 'plan_yearly'],
+  android: ['plan_monthly', 'plan_yearly'],
+});
 
 const {width, height} = Dimensions.get('window');
 const Profile = ({navigation}) => {
@@ -39,11 +45,53 @@ const Profile = ({navigation}) => {
   const [image, setImage] = useState(null);
   const [modalopen, setModalOpen] = useState(false);
   const userInfo = useSelector(state => state?.user?.userInfo);
+  const subscription = useSelector(state => state?.user?.subscription);
+
   const url = 'https://www.instagram.com/vinelightapp/';
+  const url1 = 'https://arkanaapps.com/contact/';
   useEffect(() => {
     setName(userInfo?.name);
     setImage(userInfo?.photo);
   }, [modalopen]);
+  useEffect(() => {
+    RNIap.initConnection().then(() => {
+      getPlanData();
+    });
+
+    return () => {
+      RNIap.endConnection();
+    };
+  }, []);
+  const getPlanData = () => {
+    Platform.OS === 'ios'
+      ? RNIap.initConnection()
+          .catch(() => {
+            console.log('error connecting to store');
+          })
+          .then(() => {
+            RNIap.getProducts({skus: products})
+              .catch(() => {
+                console.log('error finding purchase');
+              })
+              .then(res => {
+                console.log("Cccccc",res)
+                dispatch(setSubscriptionProducts(res));
+              });
+          })
+      : RNIap.initConnection()
+          .catch(() => {
+            console.log('error connecting to store');
+          })
+          .then(() => {
+            RNIap.getSubscriptions({skus: products})
+              .catch(() => {
+                console.log('error finding purchase');
+              })
+              .then(res => {
+                dispatch(setSubscriptionProducts(res));
+              });
+          });
+  };
   const updateProfile = () => {
     if (name && image?.uri) {
       setLoader(true);
@@ -96,7 +144,6 @@ const Profile = ({navigation}) => {
       const resultLibrary = await launchLibrary();
 
       if (resultLibrary) {
-        console.log('dddddddd', resultLibrary.assets[0]);
         setImage(resultLibrary.assets[0]);
       }
     } catch (error) {
@@ -113,6 +160,16 @@ const Profile = ({navigation}) => {
       await Linking.openURL(url);
     }
   }, [url]);
+
+  const handlePress1 = useCallback(async () => {
+    const supported = await Linking.canOpenURL(url1);
+
+    if (supported) {
+      await Linking.openURL(url1);
+    } else {
+      await Linking.openURL(url1);
+    }
+  }, [url1]);
   return (
     <View style={styles.container}>
       <StatusBar
@@ -270,14 +327,15 @@ const Profile = ({navigation}) => {
               <Text style={styles.title}>{name ? name : 'Guest'}</Text>
             </View>
             <ScrollView
-              contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}>
+              contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}
+              showsVerticalScrollIndicator={false}>
               <View
                 style={{
-                  width: '95%',
+                  width: '100%',
                   justifyContent: 'center',
                   alignSelf: 'center',
                   alignItems: 'center',
-                  gap: 10,
+                  gap: height * 0.01,
                   marginTop: 10,
                   flexDirection: 'row',
                 }}>
@@ -298,8 +356,8 @@ const Profile = ({navigation}) => {
                   justifyContent: 'center',
                   alignSelf: 'center',
                   alignItems: 'center',
-                  gap: 10,
-                  marginTop: 10,
+                  gap: height * 0.01,
+                  marginTop: height * 0.03,
                   marginBottom: 10,
                   flexDirection: 'row',
                 }}>
@@ -359,9 +417,9 @@ const Profile = ({navigation}) => {
                     alignItems: 'center',
                   }}>
                   <Text style={styles.subtitle}>Unlock Extra Features</Text>
-                  <Text style={styles.subText}>
+                  {/* <Text style={styles.subText}>
                     Lorem ipsum dolor sit amet, consectetur.
-                  </Text>
+                  </Text> */}
                 </View>
                 <View
                   style={{
@@ -388,7 +446,7 @@ const Profile = ({navigation}) => {
                         marginLeft: 20,
                         fontFamily: Font.EB_Garamond_Bold,
                       }}>
-                      250+ Journal Prompts (21 Category)
+                      250+ Integration Journal Prompts
                     </Text>
                   </View>
                   <View
@@ -410,18 +468,75 @@ const Profile = ({navigation}) => {
                         marginLeft: 20,
                         fontFamily: Font.EB_Garamond_Bold,
                       }}>
-                      100+ Dream Journal Prompts (9 Category)
+                      100+ Dream Journal Prompts
                     </Text>
                   </View>
-                  <View style={{width: '100%', padding: 20}}></View>
+                  <View
+                    style={{
+                      width: '100%',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      top: 20,
+                    }}>
+                    <Image
+                      source={IconData.MEDITATIONA}
+                      style={{width: 24, height: 24}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: Color.LIGHTGREEN,
+                        marginLeft: 20,
+                        fontFamily: Font.EB_Garamond_Bold,
+                      }}>
+                      Guided Meditations
+                    </Text>
+                  </View>
+                  {subscription?.length > 0 ? (
+                    <View
+                      style={{
+                        width: '100%',
+                        marginVertical: height * 0.03,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        top: 10,
+                        flexDirection: 'row',
+                      }}>
+                      <Text
+                        style={{
+                          fontFamily: Font.EB_Garamond_Bold,
+                          fontSize: 16,
+                          color: Color.LIGHTGREEN,
+                        }}>
+                        Currently Active Plan :
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: Font.EB_Garamond_Bold,
+                          fontSize: 16,
+                          color: Color.LIGHTGREEN,
+                        }}>
+                        Monthly
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={{padding: 20}} />
+                  )}
                   <Button2
                     width={300}
                     height={50}
-                    buttonTitle={'Upgrade'}
+                    buttonTitle={
+                      subscription?.length > 0
+                        ? 'Manage Subscription'
+                        : 'Upgrade'
+                    }
                     img={IconData.UPGRADE}
                     left={true}
                     size={20}
-                    onPress={() => console.log('Pressed')}
+                    onPress={() => 
+                    navigation.navigate('Subscription')
+                    }
                   />
                 </View>
                 <View
@@ -469,7 +584,7 @@ const Profile = ({navigation}) => {
           <ImageBackground
             source={ImageData.TABBACKGROUND}
             style={styles.thirdBackground}
-            resizeMode="contain">
+            resizeMode="stretch">
             {modalopen ? (
               <View
                 style={{
@@ -485,7 +600,8 @@ const Profile = ({navigation}) => {
                   text="Save"
                   left={true}
                   width={91}
-                  height={47}
+                  height={40}
+                  backgroundColor={Color.BROWN4}
                   size={16}
                   font={Font.EBGaramond_SemiBold}
                   onPress={() => {
@@ -502,6 +618,7 @@ const Profile = ({navigation}) => {
                   height: '100%',
                   flexDirection: 'row',
                   justifyContent: 'space-between',
+
                   alignItems: 'center',
                 }}>
                 <View
@@ -518,16 +635,18 @@ const Profile = ({navigation}) => {
                     />
                   </Pressable>
                 </View>
+
                 <Button
-                  img={ImageData.ARROWNEXT}
+                  img={IconData.MAIL}
                   text="Contact Us"
                   left={true}
                   width={140}
                   height={40}
                   size={15}
+                  backgroundColor={Color.BROWN4}
                   font={Font.EBGaramond_SemiBold}
                   onPress={() => {
-                    console.log('xdsddddddd');
+                    handlePress1();
                   }}
                 />
               </View>

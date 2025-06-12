@@ -8,14 +8,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import ProgressBar from '../../Component/ProgressBar';
-
+import ProgressBar2 from '../../Component/ProgressBar2';
+import {useSelector} from 'react-redux';
+import FastImage from 'react-native-fast-image';
 const {width, height} = Dimensions.get('window');
-const CustomMeditationPlayer = ({navigation,route}) => {
-  const timer=(route?.params?.timer)*60
+const CustomMeditationPlayer = ({navigation, route}) => {
+  const [pauseSound, setPauseSound] = useState(false);
 
+  const memoizedBackground = useMemo(() => ImageData.BACKGROUND, []);
+  const memoizedBackground1 = useMemo(() => ImageData.MAINBACKGROUND, []);
+ 
   return (
     <View style={styles.container}>
       <StatusBar
@@ -24,10 +29,10 @@ const CustomMeditationPlayer = ({navigation,route}) => {
         barStyle="light-content"
       />
 
-      <ImageBackground
-        source={ImageData.BACKGROUND}
+      <FastImage
+        source={memoizedBackground}
         style={styles.primaryBackground}
-        resizeMode="cover">
+        resizeMode={FastImage.resizeMode.cover}>
         <View
           style={{
             width: '100%',
@@ -42,7 +47,10 @@ const CustomMeditationPlayer = ({navigation,route}) => {
           }}>
           <TouchableOpacity
             onPress={() => {
-              navigation.goBack();
+              setPauseSound(true);
+              setTimeout(() => {
+                navigation.goBack();
+              }, 100); // small delay to allow state to update
             }}
             style={{
               width: 50,
@@ -79,10 +87,10 @@ const CustomMeditationPlayer = ({navigation,route}) => {
           </TouchableOpacity>
         </View>
         <View style={styles.secondaryContainer}>
-          <ImageBackground
-            source={ImageData.MAINBACKGROUND}
+          <FastImage
+            source={memoizedBackground1}
             style={styles.secondaryBackground}
-            resizeMode="stretch">
+            resizeMode={FastImage.resizeMode.stretch}>
             <View
               style={{
                 width: '100%',
@@ -110,14 +118,14 @@ const CustomMeditationPlayer = ({navigation,route}) => {
                     alignItems: 'flex-start',
                     justifyContent: 'space-between',
                   }}>
-                  <Image
+                  <FastImage
                     source={ImageData.LEFT}
-                    resizeMode="contain"
+                    resizeMode={FastImage.resizeMode.contain}
                     style={{width: 31, height: 31}}
                   />
-                  <Image
+                  <FastImage
                     source={ImageData.RIGHT}
-                    resizeMode="contain"
+                    resizeMode={FastImage.resizeMode.contain}
                     style={{
                       width: 31,
                       height: 31,
@@ -146,9 +154,9 @@ const CustomMeditationPlayer = ({navigation,route}) => {
                     alignSelf: 'center',
                     top: -height * 0.04,
                   }}>
-                  <Image
+                  <FastImage
                     source={ImageData.MEDATATION}
-                    resizeMode='contain'
+                    resizeMode={FastImage.resizeMode.contain}
                     style={{width: '100%', height: '100%'}}
                   />
                 </View>
@@ -161,7 +169,10 @@ const CustomMeditationPlayer = ({navigation,route}) => {
                     alignSelf: 'center',
                     top: height * 0.035,
                   }}>
-                  {/* <ProgressBar duration={timer} type={'Custom'}/> */}
+                  <ProgressBar2
+                    musicTime={route?.params?.timer}
+                    pauseSound={pauseSound}
+                  />
                 </View>
 
                 <View
@@ -173,18 +184,18 @@ const CustomMeditationPlayer = ({navigation,route}) => {
                     alignItems: 'flex-end',
                     justifyContent: 'space-between',
                   }}>
-                  <Image
+                  <FastImage
                     source={ImageData.BACKLEFT}
-                    resizeMode="contain"
+                    resizeMode={FastImage.resizeMode.contain}
                     style={{
                       width: 31,
                       height: 31,
                     }}
                   />
 
-                  <Image
+                  <FastImage
                     source={ImageData.BACKRIGHT}
-                    resizeMode="contain"
+                    resizeMode={FastImage.resizeMode.contain}
                     style={{
                       width: 31,
                       height: 31,
@@ -193,9 +204,9 @@ const CustomMeditationPlayer = ({navigation,route}) => {
                 </View>
               </View>
             </View>
-          </ImageBackground>
+          </FastImage>
         </View>
-      </ImageBackground>
+      </FastImage>
     </View>
   );
 };
@@ -214,6 +225,7 @@ const styles = StyleSheet.create({
   secondaryContainer: {
     width: '90%',
     height: '90%',
+    marginTop: height * 0.03,
   },
   secondaryBackground: {
     width: '100%', // Fills the parent container

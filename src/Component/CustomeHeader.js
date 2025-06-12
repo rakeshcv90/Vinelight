@@ -3,11 +3,24 @@ import React, {useState} from 'react';
 import {Color, Font, IconData} from '../../assets/Image';
 import {useNavigation} from '@react-navigation/native';
 import moment from 'moment';
-
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 const {width, height} = Dimensions.get('window');
-const CustomeHeader = ({onClear, onDelete, selectedDate}) => {
+const CustomeHeader = ({
+  onClear,
+  onDelete,
+  selectedDate,
+  setCurrentDate,
+  disable,
+}) => {
   const navigation = useNavigation();
-
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
+  const handleConfirm = date => {
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    setCurrentDate(formattedDate);
+    hideDatePicker();
+  };
   const [toolVisible, setToolVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 50});
   return (
@@ -60,7 +73,9 @@ const CustomeHeader = ({onClear, onDelete, selectedDate}) => {
           />
         </View>
       </TouchableOpacity>
-      <View
+      <TouchableOpacity
+        onPress={() => setDatePickerVisibility(true)}
+        disabled={disable}
         style={{
           width: 228,
           height: 50,
@@ -81,7 +96,7 @@ const CustomeHeader = ({onClear, onDelete, selectedDate}) => {
           }}>
           {selectedDate ? moment(selectedDate).format('Do MMMM YYYY') : ''}
         </Text>
-      </View>
+      </TouchableOpacity>
       <TouchableOpacity
         onPress={event => {
           const {pageX, pageY} = event.nativeEvent;
@@ -200,13 +215,21 @@ const CustomeHeader = ({onClear, onDelete, selectedDate}) => {
                     fontSize: 16,
                     fontFamily: Font.EBGaramond_SemiBold,
                   }}>
-                  Delete
+                Undo
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       )}
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={hideDatePicker}
+        display={Platform.OS === 'ios' ? 'inline' : 'default'} // optional but nice
+        maximumDate={new Date()}
+      />
     </View>
   );
 };

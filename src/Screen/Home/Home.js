@@ -19,6 +19,9 @@ import {callApi} from '../../Component/ApiCall';
 import {Api} from '../../Api';
 import Toast from 'react-native-toast-message';
 import FastImage from 'react-native-fast-image';
+import {useSelector} from 'react-redux';
+import {useNavigation} from '@react-navigation/native';
+import {moodData} from '../../Component/Mood';
 
 const {width, height} = Dimensions.get('window');
 
@@ -70,31 +73,66 @@ LocaleConfig.defaultLocale = 'custom';
 
 const Home = () => {
   const [selectedDate, setSelectedDate] = useState(today);
-  const [prompt, setprompt] = useState(false);
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const data = await callApi(Api.PROMPT_DAY);
-      if (data?.success == true) {
-        setprompt(data?.data);
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Prompt Error',
-          text2: 'Failed to fetch the prompt for the day',
-          visibilityTime: 3000,
-          position: 'top',
-        });
-      }
-    } catch (error) {
-      console.error('Error:', error.message);
-    }
-  };
+  const navigation = useNavigation();
+  const prompt = useSelector(state => state?.user?.getDailyPrompt);
+  const getJournalData = useSelector(state => state?.user?.getJournalData);
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
 
+  const markedJournalDates = useMemo(() => {
+    const marks = {};
+    const todayDate = new Date();
+
+    getJournalData?.forEach(entry => {
+      const dateStr = entry.currentDat;
+      const entryDate = new Date(dateStr);
+
+      if (entryDate <= todayDate) {
+        marks[dateStr] = {
+          marked: true,
+          dotColor: Color.LIGHTGREEN,
+          selectedColor: 'transparent',
+          moodName: entry.mood?.name || '',
+        };
+      }
+    });
+
+    // Always highlight the selected date
+    marks[selectedDate] = {
+      ...(marks[selectedDate] || {}),
+      selected: true,
+      selectedColor: Color.LIGHTGREEN,
+    };
+
+    return marks;
+  }, [getJournalData, selectedDate]);
+
+  const getDayPresh = date => {
+    const mood = getJournalData?.filter(item => {
+      return item?.currentDat === date;
+    });
+
+    if (mood?.length > 0) {
+      navigation.navigate('DisplayJournalEntry', {
+        journal: mood[0],
+      });
+    } else {
+      Toast.show({
+        type: 'error', // 'info' or any type you want
+        text1: 'No data found',
+        text2: 'No journal entry data available for this selected date.',
+        visibilityTime: 3000,
+        position: 'top', // 'top' or 'bottom'
+      });
+    }
+  };
+
+  const getemojyItem = dataItem => {
+    const mood = moodData?.filter(item => {
+      return item?.name === dataItem;
+    });
+
+    return mood[0]?.Image;
+  };
   return (
     <View style={styles.secondaryContainer}>
       <FastImage
@@ -125,7 +163,7 @@ const Home = () => {
               borderWidth: 1,
               alignSelf: 'center',
               borderColor: Color.LIGHTGREEN,
-              backgroundColor: Color?.LIGHTBROWN,
+              // backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -138,12 +176,12 @@ const Home = () => {
               <>
                 <FastImage
                   source={ImageData.LEFT}
-                 resizeMode={FastImage.resizeMode.contain}
+                  resizeMode={FastImage.resizeMode.contain}
                   style={{width: 31, height: 31}}
                 />
                 <FastImage
                   source={ImageData.RIGHT}
-                   resizeMode={FastImage.resizeMode.contain}
+                  resizeMode={FastImage.resizeMode.contain}
                   style={{
                     width: 31,
                     height: 31,
@@ -162,45 +200,81 @@ const Home = () => {
               <View style={styles.calendarWrapper}>
                 <Calendar
                   current={today}
-                  onDayPress={day => setSelectedDate(day.dateString)}
+                  onDayPress={day => getDayPresh(date.dateString)}
                   hideExtraDays={true}
                   renderArrow={direction => (
-                    <Text style={styles.arrow}>
-                      {direction === 'left' ? '<' : '>'}
-                    </Text>
+                    <Image
+                      source={IconData.CALENDERDROP}
+                      style={{
+                        width: 15,
+                        height: 15,
+                        transform: [
+                          {rotate: direction === 'left' ? '180deg' : '0deg'},
+                        ],
+                      }}
+                      resizeMode="contain"
+                      tintColor={Color.LIGHTGREEN}
+                    />
                   )}
+                  markedDates={markedJournalDates}
                   style={styles.calendar}
                   theme={{
                     calendarBackground: 'translucent',
                     textSectionTitleColor: Color?.LIGHTGREEN,
-                    textMonthFontSize: 24,
+                    textMonthFontSize: 22,
                     textMonthFontFamily: Font?.EBGaramond_SemiBold,
                     textDayHeaderFontFamily: Font.EB_Garamond_Bold,
                     monthTextColor: '#2e2e1f',
-                    // arrowColor: '#4a4a2f',
+
                     textDayFontFamily: Font?.EBGaramond_SemiBold,
                   }}
                   dayComponent={({date}) => {
                     const isSelected = date.dateString === selectedDate;
+                    const marked = markedJournalDates?.[date.dateString];
 
-                    // const emoji = moodMap[date.dateString];
+                    const selectedStyle = marked?.selectedColor
+                      ? {backgroundColor: marked.selectedColor}
+                      : null;
+
+                    const dotStyle = marked?.dotColor
+                      ? {
+                          width: 6,
+                          height: 6,
+                          borderRadius: 3,
+                          backgroundColor: marked.dotColor,
+                          marginTop: 2,
+                          alignSelf: 'center',
+                        }
+                      : null;
+                    const moodEmoji = marked?.moodName
+                      ? getemojyItem(marked.moodName) || ''
+                      : '';
                     return (
                       <TouchableOpacity
-                        onPress={() => setSelectedDate(date.dateString)}
+                        onPress={() => getDayPresh(date.dateString)}
                         style={styles.dayContainer}>
-                        <View
-                          style={[
-                            styles.circle,
-                            isSelected && styles.selectedCircle,
-                          ]}>
-                          <Text
+                        {moodEmoji ? (
+                          <Image
+                            source={moodEmoji}
+                            style={{width: 24, height: 24}}
+                            tintColor={Color.LIGHTGREEN}
+                          />
+                        ) : (
+                          <View
                             style={[
-                              styles.dayText,
-                              isSelected && styles.selectedText,
+                              styles.circle,
+                              isSelected && styles.selectedCircle,
+                              selectedStyle,
                             ]}>
-                            {date.day}
-                          </Text>
-                        </View>
+                            <Text
+                              style={[
+                                styles.dayText,
+                                isSelected && styles.selectedText,
+                              ]}>
+                              {date.day}
+                            </Text>
+                          </View>
+                        )}
                       </TouchableOpacity>
                     );
                   }}
@@ -254,13 +328,16 @@ const Home = () => {
               style={styles.scrollView}
               nestedScrollEnabled={true}
               showsVerticalScrollIndicator={false}>
-              <Text style={styles.text}>{prompt?.description}</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('CreateJournalEntry', {prompttype: true})
+                }>
+                <Text style={styles.text}>{prompt?.description}</Text>
+              </TouchableOpacity>
             </ScrollView>
           </View>
           <View
             style={{
-              width: '95%',
-              height: 56,
               top: 20,
 
               alignSelf: 'center',
@@ -275,7 +352,9 @@ const Home = () => {
               img={IconData.PLUS}
               left={true}
               size={20}
-              onPress={() => console.log('Pressed')}
+              onPress={() =>
+                navigation.navigate('CreateJournalEntry', {prompttype: false})
+              }
             />
           </View>
         </ScrollView>
@@ -323,7 +402,7 @@ const styles = StyleSheet.create({
 
   calendarWrapper: {
     width: '100%',
-    height: height * 0.32, // 77% of screen height
+    height: height * 0.33, // 77% of screen height
     overflow: 'hidden',
     backgroundColor: 'transparent',
     padding: 0,
@@ -332,7 +411,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: height * 0.35, // 77% of screen height
     overflow: 'hidden',
-    marginTop: -height * 0.03,
+    marginTop: -height * 0.02,
     backgroundColor: 'transparent',
   },
   arrow: {

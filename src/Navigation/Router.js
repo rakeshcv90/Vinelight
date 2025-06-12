@@ -10,6 +10,14 @@ import CustomMeditationPlayer from '../Screen/Meditate/CustomMeditationPlayer';
 import CustomMeditation from '../Screen/Meditate/CustomMeditation';
 import AdvanceSetting from '../Screen/Meditate/AdvanceSetting';
 import CreateDream from '../Screen/Dreams/CreateDream';
+import AdvanceMediaPlayer from '../Screen/Meditate/AdvanceMediaPlayer';
+import AdvanceMusicPlayer from '../Screen/Meditate/AdvanceMusicPlayer';
+import Subscription from '../Screen/Subscription';
+import CreateJournalEntry from '../Screen/Journal/CreateJournalEntry';
+import DisplayJournalEntry from '../Screen/Journal/DisplayJournalEntry';
+import DreamView from '../Screen/Dreams/DreamView';
+import EditDream from '../Screen/Dreams/EditDream';
+import EditJournalEntry from '../Screen/Journal/EditJournalEntry';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +45,14 @@ const Router = () => {
       <Stack.Screen name="AdvanceSetting" component={AdvanceSetting} />
 
       <Stack.Screen name="CreateDream" component={CreateDream} />
+      <Stack.Screen name="AdvanceMediaPlayer" component={AdvanceMediaPlayer} />
+      <Stack.Screen name="AdvanceMusicPlayer" component={AdvanceMusicPlayer} />
+      <Stack.Screen name="Subscription" component={Subscription} />
+      <Stack.Screen name="CreateJournalEntry" component={CreateJournalEntry} />
+      <Stack.Screen name="DisplayJournalEntry" component={DisplayJournalEntry} />
+      <Stack.Screen name="DreamView" component={DreamView} />
+      <Stack.Screen name="EditDream" component={EditDream} />
+      <Stack.Screen name="EditJournalEntry" component={EditJournalEntry} />
     </Stack.Navigator>
   );
 };

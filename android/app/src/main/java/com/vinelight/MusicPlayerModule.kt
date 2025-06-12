@@ -6,168 +6,152 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import java.io.File
 import java.io.IOException
 
 class MusicPlayerModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
 
-    private var mediaPlayer: MediaPlayer? = null
-    private var isPaused: Boolean = false
-    private var isInitialized: Boolean = false
+    private val mediaPlayers: MutableMap<String, MediaPlayer> = mutableMapOf()
+    private val isPausedMap: MutableMap<String, Boolean> = mutableMapOf()
 
     override fun getName(): String {
         return "MusicPlayer"
     }
 
-    // Kill the App as a whole
     @ReactMethod
-    fun closeApp() {
-    val currentActivity = currentActivity ?: return
-    currentActivity.runOnUiThread {
-        currentActivity.finishAffinity()  // Closes all activities in the task
-    }
-}
+    fun setupPlayer(playerId: String, audioSource: String, promise: Promise) {
+        try {
+            mediaPlayers[playerId]?.release()
+            mediaPlayers.remove(playerId)
 
-    // Method to Setup Music Player
-    @ReactMethod
-    fun setupPlayer(audioSource: String, promise: Promise) {
-        Log.d("MusicPlayer", "CALLED")
-        if (mediaPlayer == null) {
-            try {
-//                mediaPlayer = MediaPlayer.create(reactApplicationContext, audioSource)
-                if (BuildConfig.DEBUG) {
-                    mediaPlayer = MediaPlayer().apply {
-                        setDataSource(audioSource)
-                        prepare()
-                    }
-                } else {
-                    // FOR LOCAL AUDIOS
-                    val resId = reactApplicationContext.resources.getIdentifier(
-                        audioSource, "raw", reactApplicationContext.packageName
-                    )
+            val mediaPlayer = MediaPlayer()
+            mediaPlayer.setDataSource(audioSource)
+            mediaPlayer.prepare()
+            mediaPlayers[playerId] = mediaPlayer
+            isPausedMap[playerId] = false
 
-                    if (resId != 0) {
-                        // Play the bundled resource by resource ID
-                        mediaPlayer = MediaPlayer.create(reactApplicationContext, resId)
-                        Log.d("MusicPlayer", "Playing audio from resource.")
-                    } else {
-//                        isInitialized = false
-//                        promise.reject("error", "Resource not found: $audioSource")
-
-                    mediaPlayer = MediaPlayer().apply {
-                        setDataSource(audioSource)  // Set URL directly
-                        prepareAsync()  // Use prepareAsync for URL streams
-                        setOnPreparedListener {
-                            isInitialized = true
-                            Log.d("MusicPlayer", "Audio is ready to play.")
-                            promise.resolve(isInitialized)
-                        }
-                    }
-                    }
-                }
-                isInitialized = true
-            } catch (e: IOException) {
-                isInitialized = false
-                e.printStackTrace()
-                promise.reject("MusicPlayer", "Failed to play audio.${e.message}")
-            }
-        }
-        Log.d("MusicPlayer", "$mediaPlayer")
-        promise.resolve(isInitialized)
-    }
-
-    // Method to play an audio file
-    @ReactMethod
-    fun play(loop: Boolean = false) {
-        mediaPlayer?.start()
-        mediaPlayer?.isLooping = loop
-        isPaused = false
-        Log.d(
-            "MusicPlayer",
-            "Playing audio. and $loop and $mediaPlayer Player Initialized $isInitialized"
-        )
-
-//        mediaPlayer?.setOnCompletionListener {
-//            releaseMediaPlayer()
-//            Log.d("MusicPlayer", "Audio playback completed.")
-//        }
-//       if (isPaused) {
-//            mediaPlayer?.start()
-//            isPaused = false
-//            Log.d("MusicPlayer", "Resuming audio playback.")
-//        } else
-//            if (mediaPlayer != null && mediaPlayer!!.isPlaying) {
-//            stopMusic()
-//        }
-    }
-
-    @ReactMethod
-    fun getMusicDuration(promise: Promise) {
-        if (mediaPlayer != null) {
-            val durationInMillis = mediaPlayer!!.duration
-            val duration = durationInMillis / 1000
-            promise.resolve(duration)
-        }
-        promise.resolve(0)
-    }
-
-    // Method to get Current Music Position
-    @ReactMethod
-    fun getCurrentPosition(promise: Promise) {
-        if (mediaPlayer != null) {
-            val durationInMillis = mediaPlayer!!.getCurrentPosition()
-            val duration = durationInMillis / 1000
-            promise.resolve(duration)
-        }
-        promise.resolve(0)
-    }
-
-    // Method to go to New Music Position 
-    @ReactMethod
-    fun seekTo(position: Int) {
-        mediaPlayer?.seekTo(position)
-    }
-    
-    // Method to pause audio playback
-    @ReactMethod
-    fun pause() {
-        if (mediaPlayer != null && mediaPlayer!!.isPlaying) {
-            mediaPlayer?.pause()
-            isPaused = true
-            Log.d("MusicPlayer", "Audio playback paused.")
+            promise.resolve(true)
+        } catch (e: IOException) {
+            Log.e("MusicPlayer", "Error setting up player: ${e.message}")
+            promise.reject("MusicPlayerError", e.message)
         }
     }
 
-    // Method to stop the audio playback
     @ReactMethod
-    fun stopMusic() {
-        mediaPlayer?.let {
-            if (it.isPlaying || isPaused) {
-                it.stop()
-                Log.d("MusicPlayer", "Audio playback stopped.")
-//                releaseMediaPlayer()
-            }
-        }
-    }
-    @ReactMethod
-    fun stopMusicandReset() {
-        mediaPlayer?.let {
-            if (it.isPlaying || isPaused) {
-            it.pause()  // Pause the playback instead of stopping it
-            it.seekTo(0)  // Reset to the beginning so it can be resumed
-                Log.d("MusicPlayer", "Audio playback stopped.")
-//                releaseMediaPlayer()
-            }
+    fun play(playerId: String, loop: Boolean = false, promise: Promise) {
+        val player = mediaPlayers[playerId]
+        if (player != null) {
+            player.isLooping = loop
+            player.start()
+            isPausedMap[playerId] = false
+            promise.resolve(true)
+        } else {
+            promise.reject("PlayerNotFound", "Player with id $playerId not found")
         }
     }
 
-    // Release media player resources
     @ReactMethod
-    private fun releaseMediaPlayer() {
-        Log.d("MusicPlayer....RELEASE", "$mediaPlayer")
-        mediaPlayer?.release()
-        mediaPlayer = null
-        isPaused = false
+    fun pause(playerId: String, promise: Promise) {
+        val player = mediaPlayers[playerId]
+        if (player != null && player.isPlaying) {
+            player.pause()
+            isPausedMap[playerId] = true
+            promise.resolve(true)
+        } else {
+            promise.reject("PlayerNotPlaying", "Player with id $playerId is not playing")
+        }
+    }
+
+    @ReactMethod
+    fun stop(playerId: String, promise: Promise) {
+        val player = mediaPlayers[playerId]
+        if (player != null) {
+            player.stop()
+            player.prepare()
+            isPausedMap[playerId] = false
+            promise.resolve(true)
+        } else {
+            promise.reject("PlayerNotFound", "Player with id $playerId not found")
+        }
+    }
+
+    @ReactMethod
+    fun stopMusicandReset(playerId: String, promise: Promise) {
+        val player = mediaPlayers[playerId]
+        if (player != null) {
+            player.stop()
+            player.prepare()
+            player.seekTo(0)
+            isPausedMap[playerId] = false
+            promise.resolve(true)
+        } else {
+            promise.reject("PlayerNotFound", "Player with id $playerId not found")
+        }
+    }
+
+    @ReactMethod
+    fun release(playerId: String, promise: Promise) {
+        val player = mediaPlayers[playerId]
+        if (player != null) {
+            player.release()
+            mediaPlayers.remove(playerId)
+            isPausedMap.remove(playerId)
+            promise.resolve(true)
+        } else {
+            promise.reject("PlayerNotFound", "Player with id $playerId not found")
+        }
+    }
+
+    @ReactMethod
+    fun releaseAll(promise: Promise) {
+        mediaPlayers.values.forEach { it.release() }
+        mediaPlayers.clear()
+        isPausedMap.clear()
+        promise.resolve(true)
+    }
+
+    @ReactMethod
+    fun getCurrentPosition(playerId: String, promise: Promise) {
+        val player = mediaPlayers[playerId]
+        if (player != null) {
+            val currentPositionMillis = player.currentPosition
+            promise.resolve(currentPositionMillis / 1000.0) // return in seconds
+        } else {
+            promise.reject("PlayerNotFound", "Player with id $playerId not found")
+        }
+    }
+
+    @ReactMethod
+    fun getMusicDuration(playerId: String, promise: Promise) {
+        val player = mediaPlayers[playerId]
+        if (player != null) {
+            val durationMillis = player.duration
+            promise.resolve(durationMillis / 1000.0) // return in seconds
+        } else {
+            promise.reject("PlayerNotFound", "Player with id $playerId not found")
+        }
+    }
+
+    @ReactMethod
+    fun seekTo(playerId: String, positionMillis: Int, promise: Promise) {
+        val player = mediaPlayers[playerId]
+        if (player != null) {
+            player.seekTo(positionMillis)
+            promise.resolve(true)
+        } else {
+            promise.reject("PlayerNotFound", "Player with id $playerId not found")
+        }
+    }
+
+    @ReactMethod
+    fun setVolume(playerId: String, volume: Double, promise: Promise) {
+        val player = mediaPlayers[playerId]
+        if (player != null) {
+            val vol = volume.toFloat().coerceIn(0f, 1f)
+            player.setVolume(vol, vol)
+            promise.resolve(true)
+        } else {
+            promise.reject("PlayerNotFound", "Player with id $playerId not found")
+        }
     }
 }

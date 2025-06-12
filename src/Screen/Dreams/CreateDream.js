@@ -11,8 +11,7 @@ import {
   Modal,
   TouchableOpacity,
   Keyboard,
-  UIManager,
-  findNodeHandle,
+  KeyboardAvoidingView,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import CustomeHeader from '../../Component/CustomeHeader';
@@ -20,47 +19,113 @@ import moment from 'moment';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button from '../../Component/Button';
 import {RichEditor, RichToolbar, actions} from 'react-native-pell-rich-editor';
+import {useDispatch, useSelector} from 'react-redux';
+import uuid from 'react-native-uuid';
+import {setDreamData} from '../../redux/actions';
+import ActivityLoader from '../../Component/ActivityLoader';
+import PromptDreamModal from '../../Component/PromptDreamModal';
+import Toast from 'react-native-toast-message';
 const {width, height} = Dimensions.get('window');
 
 const fonts = [
   {label: 'Georgia', value: 'Georgia'},
   {label: 'Courier New', value: 'Courier New'},
+  {label: 'Times New Roman', value: 'Times New Roman'},
+  {label: 'Arial', value: 'Arial'},
+  {label: 'Verdana', value: 'Verdana'},
+  {label: 'Trebuchet MS', value: 'Trebuchet MS'},
+  {label: 'Palatino', value: 'Palatino'},
+  {label: 'Garamond', value: 'Garamond'},
+  {label: 'Comic Sans MS', value: 'Comic Sans MS'},
+  {label: 'Impact', value: 'Impact'},
+  {label: 'Lucida Console', value: 'Lucida Console'},
+  {label: 'Tahoma', value: 'Tahoma'},
+  {label: 'Helvetica', value: 'Helvetica'},
+  {label: 'Optima', value: 'Optima'},
+  {label: 'Didot', value: 'Didot'},
+  {label: 'Monaco', value: 'Monaco'},
+  {label: 'Brush Script MT', value: 'Brush Script MT'},
 ];
 
-const CreateDream = () => {
+const CreateDream = ({navigation}) => {
   const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
+  const subscription = useSelector(state => state?.user?.subscription);
+  const [propmModalOpen, setPromptMOdalOpen] = useState(false);
+  const dispatch = useDispatch();
+  const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const editorRef = useRef(null);
+  const scrollRef = useRef();
+  const [loader, setLoader] = useState(false);
+  const handleCursorPosition = scrollY => {
+    scrollRef.current?.scrollTo({y: scrollY - 30, animated: true});
+  };
   const [selectedFont, setSelectedFont] = useState(fonts[0]);
 
   const [style, setStyle] = useState({
     font: 'EB Garamond',
     size: 16,
     color: '#000000',
+    bold: false,
+    italic: false,
+    underline: false,
   });
   const [showFontDropdown, setShowFontDropdown] = useState(false);
-
-  // const applyStyle = () => {
-  //   const {font, size, color} = style;
-  //   editorRef.current?.insertHTML(
-  //     `<span style="font-family:'${font}'; font-size:${size}px; color:${color};">&#8203;</span>`,
-  //   );
-  // };
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [promptData, setPromptData] = useState(null);
   useEffect(() => {
-    applyStyle();
-  }, [style.font, style.size, style.color]);
-  const applyStyle = (customStyle = style) => {
-    const {font, size, color, extra} = customStyle;
-    const combinedStyle = `font-family:'${font}'; font-size:${size}px; color:${color}; ${
-      extra || ''
-    }`;
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
 
-    editorRef.current?.blurContentEditor();
-    setTimeout(() => {
-      editorRef.current?.focusContentEditor();
-      editorRef.current?.insertHTML(
-        `<span style="${combinedStyle}">&#8203;</span>`,
-      );
-    }, 100);
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     applyStyle();
+  //   }, 50);
+
+  //   return () => clearTimeout(timer);
+  // }, [
+  //   style.font,
+  //   style.size,
+  //   style.color,
+  //   style.bold,
+  //   style.italic,
+  //   style.underline,
+  // ]);
+
+  const applyStyle = (customStyle = style) => {
+    // const {font, size, color, bold, italic, underline} = customStyle;
+
+    // let extra = '';
+    // if (bold) extra += 'font-weight: bold;';
+    // if (italic) extra += 'font-style: italic;';
+    // if (underline) extra += 'text-decoration: underline;';
+
+    // const combinedStyle = `font-family:'${font}'; font-size:${size}px; color:${color}; ${extra}`;
+    // editorRef.current?.insertHTML(
+    //   // `<span style="${combinedStyle}">&#8203;</span>`,
+    //    `<span class="style-marker" style="${combinedStyle}">&#8203;</span>`
+    // );
+  
+    const {font, size, color, bold, italic, underline} = customStyle;
+
+    let extra = '';
+    if (bold) extra += 'font-weight: bold;';
+    if (italic) extra += 'font-style: italic;';
+    if (underline) extra += 'text-decoration: underline;';
+
+    const combinedStyle = `font-family:'${font}'; font-size:${size}px; color:${color}; ${extra}`;
+    editorRef.current?.insertHTML(
+      `<span style="${combinedStyle}">&#8203;</span>`,
+    );
   };
 
   const onFontSelect = fontLabel => {
@@ -81,6 +146,103 @@ const CreateDream = () => {
     setStyle(newStyle);
     applyStyle(newStyle);
   };
+
+  const onUnderLine = hex => {
+    const newStyle = {...style, underline: !style.underline};
+    setStyle(newStyle);
+    applyStyle(newStyle);
+  };
+  const onBold = hex => {
+    const newStyle = {...style, bold: !style.bold};
+    setStyle(newStyle);
+    applyStyle(newStyle);
+  };
+  const onItalic = hex => {
+    const newStyle = {...style, italic: !style.italic};
+    setStyle(newStyle);
+    applyStyle(newStyle);
+  };
+
+  const clearEditorContent = () => {
+    editorRef.current?.setContentHTML('');
+  };
+
+  const saveDreamData = async () => {
+    try {
+      const html = await editorRef.current?.getContentHtml();
+      const normalizedHtml = html
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .replace(/&#8203;/g, '')
+        .replace(/\u200B/g, '')
+        .trim();
+
+      const plainText = normalizedHtml.replace(/<[^>]*>/g, '').trim();
+      const isEmptyHtml =
+        normalizedHtml === '<p><br></p>' ||
+        normalizedHtml === '<div><br></div>';
+      const isBlank = !plainText || isEmptyHtml;
+
+      if (isBlank) {
+        Toast.show({
+          type: 'error',
+          text1: 'Content cannot be empty',
+        });
+        return;
+      }
+      setLoader(true);
+
+      dispatch(
+        setDreamData({
+          currentDat, // double-check this variable is declared
+          dream: {
+            id: uuid.v4(), // e.g., using 'react-native-uuid'
+            dreamContent: normalizedHtml,
+          },
+        }),
+      );
+      setTimeout(() => {
+        setLoader(false);
+        navigation.goBack();
+      }, 900);
+      // if (isBlank) {
+      //   console.log('❗ Content is blank');
+      // } else {
+      //   setLoader(true);
+
+      //   dispatch(
+      //     setDreamData({
+      //       currentDat, // double-check this variable is declared
+      //       dream: {
+      //         id: uuid.v4(), // e.g., using 'react-native-uuid'
+      //         dreamContent: html,
+      //       },
+      //     }),
+      //   );
+      //   setTimeout(() => {
+      //     setLoader(false);
+      //     navigation.goBack();
+      //   }, 900);
+      // }
+    } catch (error) {
+      console.error('Error saving dream data:', error);
+    }
+  };
+
+  useEffect(() => {
+    const rawText = promptData;
+    const htmlContent = `<p>${rawText}</p>`;
+
+    editorRef.current.insertHTML(htmlContent);
+  }, [promptData]);
+
+  const hasActiveSubscription = () => {
+    if (subscription?.length > 0 || subscription.length == undefined) {
+      return true;
+    } else {
+      return false;
+    }
+  };
   return (
     <View style={styles.container}>
       <StatusBar
@@ -88,285 +250,356 @@ const CreateDream = () => {
         backgroundColor="transparent"
         barStyle="light-content"
       />
-      <TouchableWithoutFeedback
-        onPress={() => {
-          Keyboard.dismiss();
-          editorRef?.current?.blurContentEditor(); // <== Manually blur RichEditor
-        }}
-        accessible={false}>
-        <ImageBackground
-          source={ImageData.BACKGROUND}
-          style={styles.primaryBackground}
-          resizeMode="cover">
-          <View style={{flex: 0.15}}>
-            <CustomeHeader
-              onClear={() => {
-                console.log('XCvcxvcxvcxvcx');
-              }}
-              onDelete={() => {
-                console.log('Test Data Deletye');
-              }}
-              selectedDate={currentDat}
-            />
-          </View>
-          <View
-            style={{
-              flex: 0.8,
-              alignItems: 'center',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <ImageBackground
-              source={ImageData.DREAMBACKGROUND}
-              resizeMode="stretch"
-              imageStyle={{borderRadius: 10}}
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0} // adjust if your header overlaps
+      >
+        <TouchableWithoutFeedback
+          onPress={() => {
+            Keyboard.dismiss();
+            editorRef?.current?.blurContentEditor(); // <== Manually blur RichEditor
+          }}
+          accessible={false}>
+          <ImageBackground
+            source={ImageData.BACKGROUND}
+            style={styles.primaryBackground}
+            resizeMode="cover">
+            <View style={{flex: 0.13, marginTop: 5}}>
+              <CustomeHeader
+                onClear={() => {
+                  clearEditorContent();
+                }}
+                onDelete={() => {
+                  clearEditorContent();
+                  navigation.goBack();
+                }}
+                selectedDate={currentDat}
+                setCurrentDate={setCurrentDate}
+                disable={false}
+              />
+            </View>
+
+            <View
               style={{
-                width: '95%',
-                height: '100%',
-                alignSelf: 'center',
-
+                flex: 1,
                 alignItems: 'center',
-                borderRadius: 10,
-                marginLeft: 15,
+                justifyContent: 'center',
+                alignItems: 'center',
               }}>
-              <View
+              <ImageBackground
+                source={ImageData.DREAMBACKGROUND}
+                resizeMode="stretch"
+                imageStyle={{borderRadius: 10}}
                 style={{
-                  width: '90%',
-                  maxHeight: '80%',
-                  marginTop: '2%',
-
-                  borderWidth: 1,
-
-                  borderColor: Color.LIGHTGREEN,
-                  backgroundColor: 'white',
-                  right: 10,
+                  width: '95%',
+                  // height: isKeyboardVisible?100:'100%',
+                  alignSelf: 'center',
+                  marginTop: isKeyboardVisible ? 0 : -height * 0.035,
+                  alignItems: 'center',
+                  borderRadius: 10,
+                  marginLeft: 20,
                 }}>
                 <View
                   style={{
-                    width: '100%',
-                    // height: '10%',
-                    flexDirection: 'row',
+                    width: '90%',
+                    maxHeight: isKeyboardVisible ? '70%' : '82%',
+                    marginTop: '2%',
 
-                    justifyContent: 'space-between',
+                    borderWidth: 1,
+
+                    borderColor: Color.LIGHTGREEN,
+                    backgroundColor: 'white',
+                    right: 10,
                   }}>
-                  <>
-                    <Image
-                      source={ImageData.LEFT}
-                      resizeMode="contain"
-                      style={{width: 31, height: 31}}
-                    />
-                    <Image
-                      source={ImageData.RIGHT}
-                      resizeMode="contain"
-                      style={{
-                        width: 31,
-                        height: 31,
-                        backgroundColor: 'transparent',
-                      }}
-                    />
-                  </>
-                </View>
+                  <View
+                    style={{
+                      width: '100%',
+                      // height: '10%',
+                      flexDirection: 'row',
 
-                <ScrollView style={styles.editorContainer}>
-                  {console.log('Sdfsdfsdsdf', selectedFont.value)}
-                  <RichEditor
-                    ref={editorRef}
-                    initialContentHTML=""
-                    placeholder="Start writing here..."
-                    androidHardwareAccelerationDisabled
-                    androidLayerType="software"
-                    // onChange={richTextHandle}
-                    editorStyle={{
-                      contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
-                    }}
-                    style={styles.richEditor}
-                  />
-                </ScrollView>
+                      justifyContent: 'space-between',
+                    }}>
+                    <>
+                      <Image
+                        source={ImageData.LEFT}
+                        resizeMode="contain"
+                        style={{width: 31, height: 31}}
+                      />
+                      <Image
+                        source={ImageData.RIGHT}
+                        resizeMode="contain"
+                        style={{
+                          width: 31,
+                          height: 31,
+                          backgroundColor: 'transparent',
+                        }}
+                      />
+                    </>
+                  </View>
+                  <ActivityLoader visible={loader} />
+                  <ScrollView
+                    ref={scrollRef}
+                    style={styles.editorContainer}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={{flexGrow: 1}}>
+                    <View
+                      onStartShouldSetResponder={() => true}
+                      onResponderStart={() => {
+                        editorRef.current?.focusContentEditor();
+                      }}
+                      style={{flex: 1}}>
+                      <RichEditor
+                        ref={editorRef}
+                        initialContentHTML=""
+                        initialFocus={false}
+                        onCursorPosition={handleCursorPosition}
+                        placeholder="Start writing here..."
+                        androidHardwareAccelerationDisabled
+                        androidLayerType="software"
+                        // onChange={richTextHandle}
+                        editorStyle={{
+                          contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
+                        }}
+                        style={styles.richEditor}
+                      />
+                    </View>
+                  </ScrollView>
+
+                  <View
+                    style={{
+                      width: '100%',
+                      // height: '10%',
+                      flexDirection: 'row',
+
+                      justifyContent: 'space-between',
+                    }}>
+                    <>
+                      <Image
+                        source={ImageData.BACKLEFT}
+                        resizeMode="contain"
+                        style={{
+                          width: 31,
+                          height: 31,
+                        }}
+                      />
+
+                      <Image
+                        source={ImageData.BACKRIGHT}
+                        resizeMode="contain"
+                        style={{
+                          width: 31,
+                          height: 31,
+                        }}
+                      />
+                    </>
+                  </View>
+                </View>
 
                 <View
                   style={{
-                    width: '100%',
-                    // height: '10%',
+                    width: '90%',
+                    height: 40,
+                    marginTop: '2%',
+                    marginLeft: -20,
                     flexDirection: 'row',
-
                     justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}>
-                  <>
-                    <Image
-                      source={ImageData.BACKLEFT}
+                  <TouchableOpacity
+                    onPress={() => setShowFontDropdown(true)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: -10,
+                      // width: 150,
+                      height: 36,
+                      gap: 10,
+                      borderRadius: 6,
+                    }}>
+                    {/* <Image
+                      source={IconData.FONTITEM}
                       resizeMode="contain"
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    /> */}
+                    <Text
+                      numberOfLines={1}
                       style={{
-                        width: 31,
-                        height: 31,
-                      }}
-                    />
-
+                        fontSize: 16,
+                        maxWidth: 100,
+                        color: Color.LIGHTGREEN,
+                      }}>
+                      {selectedFont?.label || 'Font'}
+                    </Text>
                     <Image
-                      source={ImageData.BACKRIGHT}
+                      source={IconData.DROP}
                       resizeMode="contain"
-                      style={{
-                        width: 31,
-                        height: 31,
-                      }}
+                      style={{width: 12, height: 12, marginLeft: 4}}
+                      tintColor={Color.LIGHTGREEN}
                     />
-                  </>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => onSizeSelect(style.size + 1)}>
+                    <Image
+                      source={IconData.FONTPLUS}
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => onSizeSelect(style.size - 1)}>
+                    <Image
+                      source={IconData.FONTMINUS}
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => onColorSelect('#ff5733')}>
+                    <Image
+                      source={IconData.FONTCOLOR}
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={onUnderLine}  style={{
+                      backgroundColor: !style.underline
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      source={IconData.UNDERLINE}
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={onBold}
+                    style={{
+                      backgroundColor: !style.bold
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      source={IconData.BOLD}
+                      style={{width: 25, height: 25}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={onItalic}
+                    style={{
+                      backgroundColor: !style.italic
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      source={IconData.ITALIC}
+                      style={{width: 25, height: 25}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
                 </View>
-              </View>
 
+                <Modal
+                  visible={showFontDropdown}
+                  transparent
+                  animationType="fade">
+                  <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPressOut={() => setShowFontDropdown(false)}>
+                    <View style={styles.centeredDropdownWrapper}>
+                      <TouchableOpacity activeOpacity={1}>
+                        <View style={styles.fontDropdown}>
+                          {fonts.map((font, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              onPress={() => {
+                                onFontSelect(font.value);
+                                setSelectedFont(font);
+                              }}
+                              style={styles.fontOption}>
+                              <Text
+                                style={{fontFamily: font.value, fontSize: 16}}>
+                                {font.label}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                </Modal>
+              </ImageBackground>
+            </View>
+
+            <ImageBackground
+              source={ImageData.TABBACKGROUND}
+              style={styles.thirdBackground}
+              resizeMode="contain">
               <View
                 style={{
                   width: '95%',
-                  height: 40,
-                  marginTop: '2%',
+                  height: 70,
+                  flexDirection: 'row',
+                  justifyContent: hasActiveSubscription()
+                    ? 'space-between'
+                    : 'flex-end',
+
+                  alignItems: 'center',
+                  overflow: 'hidden',
                 }}>
-                <RichToolbar
-                  editor={editorRef}
-                  actions={[
-                    'customFontFamily',
-                    'customFontSizeUp',
-                    'customFontSizeDown',
-                    'customTextColor',
-                    actions.setBold,
-                    actions.setItalic,
-                    actions.setUnderline,
-                  ]}
-                  iconMap={{
-                    customFontFamily: () => (
-                      <TouchableOpacity
-                        onPress={() => setShowFontDropdown(true)}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          paddingHorizontal: 8,
-                          height: 36,
-
-                          borderRadius: 6,
-                        }}>
-                        <Text
-                          numberOfLines={1}
-                          style={{
-                            fontSize: 12,
-                            maxWidth: 60,
-                            color: Color.LIGHTGREEN,
-                          }}>
-                          {selectedFont?.label || 'Font'}
-                        </Text>
-                        <Image
-                          source={IconData.DROP}
-                          resizeMode="contain"
-                          style={{width: 12, height: 12, marginLeft: 4}}
-                          tintColor={Color.LIGHTGREEN}
-                        />
-                      </TouchableOpacity>
-                    ),
-                    customFontSizeUp: () => (
-                      <TouchableOpacity
-                        onPress={() => onSizeSelect(style.size + 4)}>
-                        <Image
-                          source={IconData.FONTPLUS}
-                          style={{width: 24, height: 24}}
-                          tintColor={Color.LIGHTGREEN}
-                        />
-                      </TouchableOpacity>
-                    ),
-                    customFontSizeDown: () => (
-                      <TouchableOpacity
-                        onPress={() => onSizeSelect(style.size - 4)}>
-                        <Image
-                          source={IconData.FONTMINUS}
-                          style={{width: 24, height: 24}}
-                          tintColor={Color.LIGHTGREEN}
-                        />
-                      </TouchableOpacity>
-                    ),
-                    customTextColor: () => (
-                      <TouchableOpacity
-                        onPress={() => onColorSelect('#ff5733')}>
-                        <Image
-                          source={IconData.FONTCOLOR}
-                          style={{width: 24, height: 24}}
-                          tintColor={Color.LIGHTGREEN}
-                        />
-                      </TouchableOpacity>
-                    ),
-                  }}
-                  style={{
-                    alignSelf: 'stretch',
-
-                    height: 40,
-                    width: '100%',
-                    backgroundColor: 'transparent',
-                  }}
-                />
+                {(subscription?.length > 0 ||
+                  subscription?.length == undefined) && (
+                  <Button
+                    img={IconData.PROMPT}
+                    text="Prompts"
+                    left={true}
+                    width={100}
+                    backgroundColor={Color.BROWN4}
+                    height={40}
+                    size={16}
+                    font={Font.EBGaramond_SemiBold}
+                    onPress={() => {
+                      setPromptMOdalOpen(true);
+                    }}
+                    style={{width: '50%', zIndex: -1}}
+                  />
+                )}
+                <View style={{right: subscription?.length > 0 ? 0 : 10}}>
+                  <Button
+                    img={IconData.SAVE}
+                    text="Save"
+                    left={true}
+                    width={91}
+                    backgroundColor={Color.BROWN4}
+                    height={40}
+                    size={16}
+                    font={Font.EBGaramond_SemiBold}
+                    onPress={saveDreamData}
+                    style={{width: '50%', zIndex: -1}}
+                  />
+                </View>
               </View>
-
-              {/* Font Dropdown Modal */}
-              <Modal
-                visible={showFontDropdown}
-                transparent
-                animationType="fade">
-                <TouchableOpacity
-                  style={styles.modalOverlay}
-                  activeOpacity={1}
-                  onPressOut={() => setShowFontDropdown(false)}>
-                  <View style={styles.centeredDropdownWrapper}>
-                    <TouchableOpacity activeOpacity={1}>
-                      <View style={styles.fontDropdown}>
-                        {fonts.map((font, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            onPress={() => {
-                              onFontSelect(font.value);
-                              // setSelectedFont(font);
-                              // setShowFontDropdown(false);
-                              // applyFontFamily(font.value);
-                            }}
-                            style={styles.fontOption}>
-                            <Text
-                              style={{fontFamily: font.value, fontSize: 16}}>
-                              {font.label}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                </TouchableOpacity>
-              </Modal>
             </ImageBackground>
-          </View>
-          <ImageBackground
-            source={ImageData.TABBACKGROUND}
-            style={styles.thirdBackground}
-            resizeMode="contain">
-            <View
-              style={{
-                width: '95%',
-                height: 70,
-
-                justifyContent: 'center',
-                alignItems: 'flex-end',
-                overflow: 'hidden',
-              }}>
-              <Button
-                img={IconData.SAVE}
-                text="Save"
-                left={true}
-                width={91}
-                height={47}
-                size={16}
-                font={Font.EBGaramond_SemiBold}
-                onPress={async () => {
-                  const html = await editorRef.current?.getContentHtml();
-                  console.log('💾 Saved HTML:', html);
-                }}
-                style={{width: '50%', zIndex: -1}}
-                // disabled={currentPage === subTitleText?.length - 1}
-              />
-            </View>
           </ImageBackground>
-        </ImageBackground>
-      </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+      <PromptDreamModal
+        visible={propmModalOpen}
+        promptData={promptData}
+        setPromptData={setPromptData}
+        onClose={() => {
+          setPromptMOdalOpen(false);
+        }}
+      />
     </View>
   );
 };
@@ -380,15 +613,16 @@ const styles = StyleSheet.create({
   },
   thirdBackground: {
     flex: 1,
-    width: '100%',
+    width: '97%',
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
     bottom: 10,
     position: 'absolute',
+    left: width * 0.03,
   },
   editorContainer: {
-    height: 500,
+    height: height * 0.7,
     width: '100%',
     backgroundColor: 'white',
   },

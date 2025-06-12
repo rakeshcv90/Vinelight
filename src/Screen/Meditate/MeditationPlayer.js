@@ -8,105 +8,198 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  Platform,
 } from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import ProgressBar from '../../Component/ProgressBar';
-import NativeusicPlayer from '../../Component/NativeusicPlayer';
-
+import Tts from 'react-native-tts';
+import {InteractionManager} from 'react-native';
 const {width, height} = Dimensions.get('window');
 
 const MeditationPlayer = ({route, navigation}) => {
   const [defaultMusic, setDefaultMusic] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [pauseSound, setPauseSound] = useState(false);
-  const scrollRef = useRef();
+  const scrollRef = useRef(null);
+  const [ttsOpen, setTtsOpen] = useState(false);
 
   const handleUpdateTime = useCallback(time => {
     setCurrentTime(time);
   }, []);
-
-  const description = route?.params?.itemData?.description || '';
-  const cleanDescription = description.replace(/\s+/g, ' ').trim();
-  const words = cleanDescription.split(' ');
-  const estimatedDuration = route?.params?.itemData?.time * 60 || 60;
-  const totalWeight = words.reduce((sum, word) => sum + word.length, 0);
-
-  let cumulativeTime = 0;
-  const timedWords = words.map(word => {
-    const wordTime = (word.length / totalWeight) * estimatedDuration;
-    const item = {word, time: cumulativeTime};
-    cumulativeTime += wordTime;
-    return item;
-  });
-
-  const activeWordIndex = timedWords.findIndex(
-    (item, i) =>
-      currentTime >= item.time &&
-      (i === timedWords.length - 1 || currentTime < timedWords[i + 1].time),
-  );
-
+  const [ttsInitialized, setTtsInitialized] = useState(false);
+  const TextSpeech = `${route?.params?.itemData?.description}`;
+  const cleanText = TextSpeech.replace(/<\/?[^>]+(>|$)/g, '');
+  const words = cleanText.match(/\S+/g);
+  const iosIntervalRef = useRef(null);
+  const [currentWordIndex, setCurrentWordIndex] = useState(-1);
+  const wordRefs = useRef([]);
   useEffect(() => {
-    if (scrollRef.current && activeWordIndex !== -1) {
-      scrollRef.current.scrollTo({
-        y: Math.floor(activeWordIndex / 5) * 40,
-        animated: true,
-      });
-    }
-  }, [activeWordIndex]);
-
-  // const description = route?.params?.itemData?.description || '';
-  // const cleanDescription = description.replace(/\s+/g, ' ').trim();
-  // const words = cleanDescription.split(' ');
-  // const estimatedDuration = route?.params?.itemData?.time * 60 || 60;
-
-  // const timedCharacters = [];
-  // let charIndex = 0;
-  // let cumulativeTime = 0;
-  // const totalChars = cleanDescription.replace(/\s/g, '').length;
-
-  // words.forEach((word, wordIndex) => {
-  //   const wordDuration = (word.length / totalChars) * estimatedDuration;
-  //   const charDuration = wordDuration / word.length;
-  //   for (let i = 0; i < word.length; i++) {
-  //     timedCharacters.push({
-  //       char: word[i],
-  //       time: cumulativeTime + i * charDuration,
-  //       wordIndex,
-  //     });
-  //   }
-  //   // Add space as a character
-  //   timedCharacters.push({
-  //     char: ' ',
-  //     time: cumulativeTime + word.length * charDuration,
-  //     wordIndex,
-  //   });
-  //   cumulativeTime += wordDuration;
-  // });
-
-  // const activeCharIndex = timedCharacters.findIndex(
-  //   (item, i) =>
-  //     currentTime >= item.time &&
-  //     (i === timedCharacters.length - 1 ||
-  //       currentTime < timedCharacters[i + 1].time),
-  // );
-
-  // const activeWordIndex = timedCharacters[activeCharIndex]?.wordIndex || 0;
+    wordRefs.current = words.map(
+      (_, i) => wordRefs.current[i] || React.createRef(),
+    );
+  }, [words]);
 
   // useEffect(() => {
-  //   if (scrollRef.current && activeCharIndex !== -1) {
-  //     scrollRef.current.scrollTo({
-  //       y: Math.floor(activeCharIndex / 40) * 40,
-  //       animated: true,
-  //     });
-  //   }
-  // }, [activeCharIndex]);
+  //   const initTts = async () => {
+  //     try {
+  //       await Tts.setDefaultLanguage('en-IN');
+  //       await Tts.setDucking(true);
+  //       await Tts.setIgnoreSilentSwitch('ignore');
+  //       setTtsInitialized(true);
 
+  //       // Event for tracking current word
+  //       Tts.addEventListener('tts-progress', event => {
+  //         const {start} = event;
+
+  //         if (typeof start !== 'number') {
+  //           console.log('❌ Invalid event:', event);
+  //           return;
+  //         }
+
+  //         const partial = cleanText.substring(0, start);
+  //         const index = partial.trim().split(/\s+/).filter(Boolean).length - 1;
+
+  //         console.log('📍 Word index:', index, '→', words[index]);
+  //         setCurrentWordIndex(index);
+
+  //         // Scroll to current word
+  //         InteractionManager.runAfterInteractions(() => {
+  //           const wordRef = wordRefs.current[index];
+  //           if (wordRef?.current && scrollRef.current) {
+  //             wordRef.current.measureLayout(
+  //               scrollRef.current,
+  //               (x, y) => {
+  //                 scrollRef.current.scrollTo({y: y - 50, animated: true});
+  //               },
+  //               err => console.log('📛 measureLayout error:', err),
+  //             );
+  //           }
+  //         });
+  //       });
+
+  //       Tts.addEventListener('tts-finish', () => {
+  //         setCurrentWordIndex(-1);
+  //       });
+  //     } catch (error) {
+  //       console.log('TTS Init Error:', error);
+  //     }
+  //   };
+
+  //   initTts();
+
+  //   return () => {
+  //     Tts.removeAllListeners('tts-progress');
+  //     Tts.removeAllListeners('tts-finish');
+  //   };
+  // }, []);
+
+  useEffect(() => {
+    const initTts = async () => {
+      try {
+        await Tts.setDefaultLanguage('en-IN');
+        await Tts.setDucking(true);
+        await Tts.setIgnoreSilentSwitch('ignore');
+        setTtsInitialized(true);
+
+        if (Platform.OS === 'android') {
+          Tts.addEventListener('tts-progress', event => {
+            const {start} = event;
+
+            if (typeof start !== 'number') {
+              console.log('❌ Invalid event:', event);
+              return;
+            }
+
+            const partial = cleanText.substring(0, start);
+            const index =
+              partial.trim().split(/\s+/).filter(Boolean).length - 1;
+
+            setCurrentWordIndex(index);
+            scrollToWord(index);
+          });
+
+          Tts.addEventListener('tts-finish', () => {
+            setCurrentWordIndex(-1);
+          });
+        }
+      } catch (error) {
+        console.log('TTS Init Error:', error);
+      }
+    };
+
+    initTts();
+
+    return () => {
+      Tts.removeAllListeners('tts-progress');
+      Tts.removeAllListeners('tts-finish');
+      if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
+    };
+  }, []);
+
+  const scrollToWord = index => {
+    InteractionManager.runAfterInteractions(() => {
+      const wordRef = wordRefs.current[index];
+      if (wordRef?.current && scrollRef.current) {
+        wordRef.current.measureLayout(
+          scrollRef.current,
+          (x, y) => {
+            scrollRef.current.scrollTo({y: y - 50, animated: true});
+          },
+          err => console.log('📛 measureLayout error:', err),
+        );
+      }
+    });
+  };
+
+  // useEffect(() => {
+  //   // if (ttsInitialized) {
+  //   if (ttsOpen) {
+  //     Tts.speak(cleanText);
+  //   } else {
+  //     // Tts.stop();
+  //     setCurrentWordIndex(-1);
+  //   }
+  //   // }
+  // }, [ttsOpen]);
+
+  useEffect(() => {
+    // if (!ttsInitialized) return;
+
+    if (ttsOpen) {
+      // Tts.stop();
+      setCurrentWordIndex(-1);
+      Tts.speak(cleanText);
+
+      if (Platform.OS === 'ios') {
+        let index = 0;
+        const wpm = 180;
+        const delay = 60000 / wpm; // milliseconds per word
+
+        iosIntervalRef.current = setInterval(() => {
+          if (index < words.length) {
+            setCurrentWordIndex(index);
+            scrollToWord(index);
+            index++;
+          } else {
+            clearInterval(iosIntervalRef.current);
+            setCurrentWordIndex(-1);
+          }
+        }, delay);
+      }
+    } else {
+      Platform.OS == 'android' && Tts.stop();
+      //
+      setCurrentWordIndex(-1);
+      if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
+    }
+  }, [ttsOpen]);
   const formatDuration = totalSeconds => {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -135,8 +228,6 @@ const MeditationPlayer = ({route, navigation}) => {
             onPress={() => {
               setPauseSound(true);
               navigation.goBack();
-              // setIsPlaying(false);
-              // pauseMusic();
             }}
             style={{
               width: 50,
@@ -232,11 +323,11 @@ const MeditationPlayer = ({route, navigation}) => {
                   <Text style={styles.subText}>
                     {route?.params?.itemData?.name}
                   </Text>
-                  <View style={styles.durationBadge}>
+                  {/* <View style={styles.durationBadge}>
                     <Text style={styles.durationText}>
                       {formatDuration(route?.params?.itemData?.time)} Min
                     </Text>
-                  </View>
+                  </View> */}
                 </View>
 
                 <View
@@ -251,26 +342,28 @@ const MeditationPlayer = ({route, navigation}) => {
                   }}>
                   <ScrollView
                     ref={scrollRef}
-                    contentContainerStyle={{paddingBottom: 10}}
+                    contentContainerStyle={{paddingBottom: 40}}
                     showsVerticalScrollIndicator={false}>
                     <Text style={styles.textBlock}>
-                      {timedWords.map((item, index) => (
-                        <Text
-                          key={index}
-                          style={{
-                            color:
-                              index === activeWordIndex
-                                ? Color.LIGHTGREEN
-                                : index < activeWordIndex
-                                ? Color.LIGHTGREEN
-                                : '#60723E',
-                            fontFamily:
-                              index === activeWordIndex
-                                ? Font.EBGaramond_SemiBold
-                                : Font.EBGaramond_Regular,
-                          }}>
-                          {item.word + ' '}
-                        </Text>
+                      {words.map((word, index) => (
+                        <View key={index} ref={wordRefs.current[index]}>
+                          <Text
+                            style={[
+                              styles.textBlock,
+                              {
+                                color:
+                                  index === currentWordIndex
+                                    ? Color.LIGHTGREEN
+                                    : '#60723E',
+                                fontWeight:
+                                  index === currentWordIndex
+                                    ? Font.EBGaramond_SemiBold
+                                    : Font.EB_Garamond,
+                              },
+                            ]}>
+                            {word + ' '}
+                          </Text>
+                        </View>
                       ))}
                     </Text>
                   </ScrollView>
@@ -291,6 +384,8 @@ const MeditationPlayer = ({route, navigation}) => {
                     setDefaultMusic={setDefaultMusic}
                     onUpdateTime={handleUpdateTime}
                     pauseSound={pauseSound}
+                    ttsOpen={ttsOpen}
+                    setTtsOpen={setTtsOpen}
                   />
                 </View>
 
@@ -380,5 +475,10 @@ const styles = StyleSheet.create({
     color: Color.LIGHTGREEN,
     textAlign: 'center',
     flexWrap: 'wrap',
+  },
+  highlightedWord: {
+    backgroundColor: '#fff200',
+    color: 'black',
+    borderRadius: 4,
   },
 });

@@ -23,6 +23,7 @@ import Button from '../../Component/Button';
 import TooltipModal from '../../Component/TooltipModal';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
+import { InteractionManager } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   deleteGoalByDate,
@@ -101,13 +102,13 @@ const Goal = () => {
       'Fri',
       'Sat',
     ];
-
-    // const toggleMood = mood => {
-    //   console.log("XZxcxxxcxzc",mood)
-    //   // setSelectedMoods(prev =>
-    //   //   prev.includes(mood) ? prev.filter(m => m !== mood) : [...prev, mood],
-    //   // );
-    // };
+    const safeAction = (action) => {
+      Keyboard.dismiss();
+      InteractionManager.runAfterInteractions(() => {
+        action();
+      });
+    };
+    
     const toggleMood = mood => {
       if (mood === 'Daily') {
         const allSelected = selectedMoods.length === dayOptions.length;
@@ -208,7 +209,7 @@ const Goal = () => {
             onPress={Keyboard.dismiss}
             accessible={false}>
             <ScrollView
-              contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-end'}}>
+              contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-end'}} keyboardShouldPersistTaps='handled'>
               <View style={styles.modalWrapper}>
                 <ImageBackground
                   source={ImageData.MODAL}
@@ -424,7 +425,7 @@ const Goal = () => {
                           paddingHorizontal: 10,
                           gap: 10,
                         }}>
-                        <TouchableOpacity onPress={showDatePicker}>
+                      <TouchableOpacity onPress={() => safeAction(showDatePicker)}>
                           <Image
                             source={IconData.CALENDER}
                             style={{width: 24, height: 24}}
@@ -432,18 +433,20 @@ const Goal = () => {
                             resizeMode="contain"
                           />
                         </TouchableOpacity>
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            fontFamily: Font.EBGaramond_SemiBold,
-                            color: Color.BROWN4,
-                          }}>
-                          {/* 8th April 2025 */}
-                          {selectedDate
-                            ? moment(selectedDate).format('Do MMMM YYYY')
-                            : ''}
-                        </Text>
-                        <TouchableOpacity onPress={showDatePicker}>
+                        <TouchableOpacity onPress={() => safeAction(showDatePicker)}>
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              fontFamily: Font.EBGaramond_SemiBold,
+                              color: Color.BROWN4,
+                            }}>
+                            {/* 8th April 2025 */}
+                            {selectedDate
+                              ? moment(selectedDate).format('Do MMMM YYYY')
+                              : ''}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => safeAction(showDatePicker)}>
                           <Image
                             source={IconData.DROP}
                             style={{width: 15, height: 15}}
@@ -451,8 +454,8 @@ const Goal = () => {
                             resizeMode="contain"
                           />
                         </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => setTooltipVisible(true)}>
+                        <TouchableOpacity onPress={() => safeAction(() => setTooltipVisible(true))}>
+
                           <Image
                             source={IconData.REPEAT}
                             style={{width: 24, height: 24}}
@@ -477,7 +480,8 @@ const Goal = () => {
                           text="Save"
                           left={true}
                           width={91}
-                          height={47}
+                          backgroundColor={Color.BROWN4}
+                          height={40}
                           size={16}
                           font={Font.EBGaramond_SemiBold}
                           onPress={() => {
@@ -527,7 +531,6 @@ const Goal = () => {
     });
   };
   const updateTask = data => {
-    console.log('Update', data?.id);
     dispatch(upDateGoalById(data?.id));
   };
   const deleteGoalDate = data => {
@@ -538,7 +541,6 @@ const Goal = () => {
   };
   const clearAllTasksForDate = data => {
     dispatch(updateAllGoalData(data?.date));
-    // console.log('SDfdsfdsfdfds', data);
   };
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
@@ -563,7 +565,7 @@ const Goal = () => {
               marginTop: '10%',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
-              backgroundColor: Color?.LIGHTBROWN,
+              // backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -610,7 +612,6 @@ const Goal = () => {
                 alignSelf: 'center',
                 top: -height * 0.03,
               }}>
-              {console.log('Ddddddd', goalData)}
               <FlatList
                 data={flattenGoalData(goalData)}
                 contentContainerStyle={{paddingBottom: 20}}
@@ -783,16 +784,16 @@ const Goal = () => {
             <View
               style={{
                 position: 'absolute',
-                top: tooltipPosition.y - 50,
+                top: tooltipPosition.y - 45,
                 left: tooltipPosition.x - 230,
-                width: 250,
+                width: 220,
                 backgroundColor: Color.LIGHTGREEN,
                 padding: 5,
                 borderRadius: 10,
               }}>
               <View
                 style={{
-                  width: 215,
+                  width: 210,
                   backgroundColor: Color.LIGHTGREEN,
                   padding: 5,
                   alignSelf: 'center',

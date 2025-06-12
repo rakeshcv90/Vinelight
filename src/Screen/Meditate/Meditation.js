@@ -12,68 +12,106 @@ import React, {useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import {useNavigation} from '@react-navigation/native';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import FastImage from 'react-native-fast-image';
+import {deleteCustomMeditation} from '../../redux/actions';
 const {width, height} = Dimensions.get('window');
 const Meditation = () => {
   const navigation = useNavigation();
-
+  const dispatch = useDispatch();
   const meditationData = useSelector(state => state?.user?.meditationdata);
-;
-  const data = [
-    {
-      id: 1,
-      title: 'Body Scan',
-      description:
-        'The body scan is a practice of noticing.We’re not trying to fix or change anything - just becoming aware.',
-      timer: '15 Min',
-    },
-    {
-      id: 2,
-      title: 'Meditation #2',
-      description:
-        'The body scan is a practice of noticing.We’re not trying to fix or change anything - just becoming aware.',
-      timer: '15 Min',
-    },
-    {
-      id: 3,
-      title: 'Meditation #3',
-      description:
-        'The body scan is a practice of noticing.We’re not trying to fix or change anything - just becoming aware.',
-      timer: '15 Min',
-    },
-    {
-      id: 4,
-      title: 'Meditation #4',
-      description:
-        'The body scan is a practice of noticing.We’re not trying to fix or change anything - just becoming aware.',
-      timer: '15 Min',
-    },
-  ];
+  const customMeditation = useSelector(state => state?.user?.customeMedidation);
+
+  const [selectedHeader, setSelectedHeader] = useState(0);
   const renderItem = ({item, index}) => {
-  const formatDuration = totalSeconds => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+    const formatDuration = totalSeconds => {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
     return (
       <View style={styles.card}>
         <View style={styles.content}>
           <Text style={styles.title}>{item?.name}</Text>
-          <Text style={styles.description} numberOfLines={3}>{item?.description}</Text>
+          <Text style={styles.description} numberOfLines={3}>
+            {item?.description}
+          </Text>
         </View>
         <View style={styles.rightSide}>
           <TouchableOpacity
             style={styles.playButton}
             onPress={() => {
               navigation.navigate('MeditationPlayer', {itemData: item});
+            }}
+            >
+            <Text style={styles.icon}>▶</Text>
+          </TouchableOpacity>
+          {/* <View style={styles.durationBadge}>
+            <Text style={styles.durationText}>
+              {formatDuration(item?.time)}
+            </Text>
+          </View> */}
+        </View>
+      </View>
+    );
+  };
+  const renderItem1 = ({item, index}) => {
+    console.log("dddddd",item)
+    // const timeKeys = ['pre', 'med', 'int', 'end', 'res'];
+    // let totalSeconds = 0;
+
+    // timeKeys.forEach(key => {
+    //   const section = item[key];
+    //   if (section) {
+    //     const min = parseInt(section.minute || '0', 10);
+    //     const sec = parseInt(section.second || '0', 10);
+    //     totalSeconds += min * 60 + sec;
+    //   }
+    // });
+   
+    // const formatDuration = totalSeconds => {
+    //   const minutes = Math.floor(totalSeconds / 60);
+    //   const seconds = totalSeconds % 60;
+    //   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    // };
+    return (
+      <View style={styles.card}>
+        <View style={styles.rightSide}>
+          <TouchableOpacity
+            style={styles.playButton}
+            onPress={() => {
+         
+              navigation.navigate('AdvanceMediaPlayer', {itemData: item?.timeData,});
             }}>
             <Text style={styles.icon}>▶</Text>
           </TouchableOpacity>
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>{formatDuration(item?.time)}</Text>
+          {/* <View style={styles.durationBadge}>
+            <Text style={styles.durationText}>
             
+            </Text>
+          </View> */}
+        </View>
+        <View style={styles.content}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <Text style={styles.title}> {item?.timeData?.user?.name}</Text>
+            <TouchableOpacity
+              onPress={() => dispatch(deleteCustomMeditation(item?.id))}>
+              <Image
+                source={IconData.DELETE}
+                style={{width: 20, height: 20}}
+                tintColor={Color.LIGHTGREEN}
+              />
+            </TouchableOpacity>
           </View>
+
+          <Text style={styles.description} numberOfLines={3}>
+           Medatation is created By user
+          </Text>
         </View>
       </View>
     );
@@ -83,9 +121,12 @@ const Meditation = () => {
       <View
         style={{
           flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: 100,
         }}>
         <Image
-          source={IconData.CALENDER}
+          source={IconData.NODATA}
           resizeMode="contain"
           style={{
             width: width * 0.3,
@@ -105,17 +146,16 @@ const Meditation = () => {
         <View
           style={{
             width: '100%',
-            // height: '76%',
             justifyContent: 'center',
             alignItems: 'center',
-            marginVertical: '35%',
+            marginVertical: '30%',
           }}>
           <View
             style={{
               width: '90%',
-              // height: '100%',
-              marginTop: '5%',
+              height: '100%',
               alignItems: 'center',
+              marginTop: '10%',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
               backgroundColor: Color?.LIGHTBROWN,
@@ -123,7 +163,7 @@ const Meditation = () => {
             <View
               style={{
                 width: '100%',
-                // height: '10%',
+                height: '10%',
                 flexDirection: 'row',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
@@ -147,38 +187,117 @@ const Meditation = () => {
               style={{
                 width: '100%',
                 height: '7%',
-
-                 top: -height * 0.035,
+                top: -height * 0.055,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
               <Text style={styles.subText}>Meditations</Text>
             </View>
-
+            <View
+              style={{
+                width: '75%',
+                height: '9%',
+                flexDirection: 'row',
+                top: -height * 0.045,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: Color.BROWN4,
+                borderRadius: 10,
+                borderWidth: 2,
+                borderColor: Color.BROWN2,
+                gap: 10,
+              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedHeader(0);
+                }}
+                activeOpacity={0.7}
+                style={{
+                  width: '47%',
+                  height: '85%',
+                  flexDirection: 'row',
+                  gap: 10,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor:
+                    selectedHeader == 0 ? Color.BROWN3 : 'transparent',
+                  borderRadius: selectedHeader == 0 ? 10 : 0,
+                  borderWidth: selectedHeader == 0 ? 2 : 0,
+                  borderColor:
+                    selectedHeader == 0 ? Color.BROWN2 : 'transparent',
+                }}>
+                <Image
+                  source={IconData.GLOVE}
+                  style={{width: 16, height: 16}}
+                />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontFamily: Font.EB_Garamond,
+                    lineHeight: 24,
+                    color: Color.LIGHTGREEN,
+                  }}>
+                  Guided
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedHeader(1);
+                }}
+                activeOpacity={0.7}
+                style={{
+                  width: '47%',
+                  height: '85%',
+                  flexDirection: 'row',
+                  gap: 10,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor:
+                    selectedHeader == 1 ? Color.BROWN3 : 'transparent',
+                  borderRadius: selectedHeader == 1 ? 10 : 0,
+                  borderWidth: selectedHeader == 1 ? 2 : 0,
+                  borderColor:
+                    selectedHeader == 1 ? Color.BROWN2 : 'transparent',
+                }}>
+                <Image
+                  source={IconData.DRIVE}
+                  style={{width: 16, height: 16}}
+                />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontFamily: Font.EB_Garamond,
+                    lineHeight: 24,
+                    color: Color.LIGHTGREEN,
+                  }}>
+                  Custom
+                </Text>
+              </TouchableOpacity>
+            </View>
             <View
               style={{
                 width: '96%',
-                height: '75%',
-
+                height: '63%',
                 alignSelf: 'center',
-                // top: -20,
+                top: -height * 0.04,
               }}>
               <FlatList
-                data={meditationData}
+                data={selectedHeader == 0 ? meditationData : customMeditation}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{paddingBottom: 20}}
                 ListEmptyComponent={emptyComponent}
-                renderItem={renderItem}
+                renderItem={selectedHeader == 0 ? renderItem : renderItem1}
               />
             </View>
             <View
               style={{
-                width: '100%',
-                // height: '10%',
+                width: '96%',
+                height: '1%',
                 justifyContent: 'center',
                 alignItems: 'center',
-                // paddingBottom: height * 0.01,
-                top: -15,
+                alignSelf: 'center',
+
+                flexDirection: 'row',
               }}>
               <Button2
                 width={250}
@@ -195,14 +314,13 @@ const Meditation = () => {
                 width: '100%',
                 height: '10%',
                 flexDirection: 'row',
-                paddingBottom: height * 0.075,
 
                 alignItems: 'flex-end',
                 justifyContent: 'space-between',
               }}>
               <FastImage
                 source={ImageData.BACKLEFT}
-                resizeMode={FastImage.resizeMode.contain}
+                resizeMode="contain"
                 style={{
                   width: 31,
                   height: 31,
@@ -211,7 +329,7 @@ const Meditation = () => {
 
               <FastImage
                 source={ImageData.BACKRIGHT}
-                resizeMode={FastImage.resizeMode.contain}
+                resizeMode="contain"
                 style={{
                   width: 31,
                   height: 31,
@@ -258,7 +376,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingRight: 12,
+    paddingLeft: 12,
   },
   title: {
     fontSize: 18,

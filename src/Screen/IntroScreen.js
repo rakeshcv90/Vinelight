@@ -57,7 +57,7 @@ const IntroScreen = ({navigation}) => {
     } else {
       if (name && image?.uri) {
         setLoader(true);
-    
+
         const user = {
           name: name,
           photo: {
@@ -95,8 +95,16 @@ const IntroScreen = ({navigation}) => {
       } else {
         setLoader(true);
         const user = {
-          name: null,
-          photo: null
+          name: name,
+          photo: {
+            uri: image?.uri,
+            base64: image?.base64 || null, // fallback safe
+            type: image?.type || 'image/jpeg',
+            fileName: image?.fileName || 'photo.jpg',
+            width: image?.width,
+            height: image?.height,
+            fileSize: image?.fileSize,
+          },
         };
         try {
           dispatch(setUserInfo(user));
@@ -107,7 +115,7 @@ const IntroScreen = ({navigation}) => {
               type: 'success',
               text1: 'Profile Created',
               text2: 'Your profile has been created successfully',
-              visibilityTime: 3000,
+              visibilityTime: 1500,
               position: 'top',
             });
 
@@ -143,8 +151,6 @@ const IntroScreen = ({navigation}) => {
     }
   };
   return (
-   
-  
     <View style={styles.container}>
       <StatusBar
         translucent
@@ -281,7 +287,13 @@ const IntroScreen = ({navigation}) => {
                               }}>
                               <TextInput
                                 value={name}
-                                onChangeText={setName}
+                                onChangeText={text => {
+                                  const filteredText = text.replace(
+                                    /[^a-zA-Z\s]/g,
+                                    '',
+                                  ); // allow only letters and spaces
+                                  setName(filteredText);
+                                }}
                                 placeholder="Enter your name"
                                 placeholderTextColor={Color.LIGHTGREEN}
                                 style={{
@@ -359,7 +371,7 @@ const IntroScreen = ({navigation}) => {
               </View>
               <View
                 style={{
-                  width: '95%',
+                  width: height >= 900 ? '90%' : '95%',
                   height: 56,
                   position: 'absolute',
                   bottom: height * 0.02,
@@ -375,17 +387,21 @@ const IntroScreen = ({navigation}) => {
                       width: '95%',
                       height: '100%',
                       flexDirection: 'row',
-                      justifyContent: 'space-between',
+                      justifyContent:
+                        currentPage != 0 ? 'space-between' : 'flex-end',
                       alignItems: 'center',
                     }}>
-                    <TouchableOpacity
-                      onPress={handleBack}
-                      disabled={currentPage === 0}>
-                      <Image
-                        source={IconData.BACK}
-                        style={{width: 25, height: 25, left: 8}}
-                      />
-                    </TouchableOpacity>
+                    {currentPage != 0 && (
+                      <TouchableOpacity
+                        onPress={handleBack}
+                        disabled={currentPage === 0}>
+                        <Image
+                          source={IconData.BACK}
+                          style={{width: 25, height: 25, left: 5}}
+                        />
+                      </TouchableOpacity>
+                    )}
+
                     <Button
                       img={ImageData.ARROWNEXT}
                       text="Next"
@@ -394,6 +410,7 @@ const IntroScreen = ({navigation}) => {
                       style={{width: '50%', backgroundColor: 'red', zIndex: -1}}
                       width={91}
                       height={40}
+                      backgroundColor={Color.BROWN4}
                       size={15}
                       font={Font.EBGaramond_SemiBold}
                     />

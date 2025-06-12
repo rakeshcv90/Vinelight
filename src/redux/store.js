@@ -12,10 +12,7 @@ const persistConfig = {
   key: 'root',
   version: 2,
   storage: MMKVStorage, // ✅ use MMKV adapter here
-  // migrate: (state) => {
-  //   console.log('🧹 Dropping old incompatible persisted state');
-  //   return Promise.resolve(undefined); // drops old state
-  // },
+ 
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -1,0 +1,889 @@
+import {
+  View,
+  Text,
+  Dimensions,
+  Keyboard,
+  StatusBar,
+  StyleSheet,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  ImageBackground,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import moment from 'moment';
+import {Color, Font, IconData, ImageData} from '../../../assets/Image';
+import CustomeHeader from '../../Component/CustomeHeader';
+import ActivityLoader from '../../Component/ActivityLoader';
+import {RichEditor} from 'react-native-pell-rich-editor';
+
+import Button from '../../Component/Button';
+import {setJournalData} from '../../redux/actions';
+import uuid from 'react-native-uuid';
+import TooltipModal2 from '../../Component/TooltipModal2';
+import PromptModal from '../../Component/PromptModal';
+import Toast from 'react-native-toast-message';
+import ColorPicker from 'react-native-wheel-color-picker';
+
+const {width, height} = Dimensions.get('window');
+
+// const fonts = [
+//   {label: 'Georgia', value: 'Georgia'},
+//   {label: 'Courier New', value: 'Courier New'},
+// ];
+const fonts = [
+  {label: 'Georgia', value: 'Georgia'},
+  {label: 'Courier New', value: 'Courier New'},
+  {label: 'Times New Roman', value: 'Times New Roman'},
+  {label: 'Arial', value: 'Arial'},
+  {label: 'Verdana', value: 'Verdana'},
+  {label: 'Trebuchet MS', value: 'Trebuchet MS'},
+  {label: 'Palatino', value: 'Palatino'},
+  {label: 'Garamond', value: 'Garamond'},
+  {label: 'Comic Sans MS', value: 'Comic Sans MS'},
+  {label: 'Impact', value: 'Impact'},
+  {label: 'Lucida Console', value: 'Lucida Console'},
+  {label: 'Tahoma', value: 'Tahoma'},
+  {label: 'Helvetica', value: 'Helvetica'},
+  {label: 'Optima', value: 'Optima'},
+  {label: 'Didot', value: 'Didot'},
+  {label: 'Monaco', value: 'Monaco'},
+  {label: 'Brush Script MT', value: 'Brush Script MT'},
+];
+
+const ColorModal = ({visible, onClose, colorData, setColorData}) => {
+  const pickerRef = useRef(null);
+
+  const [swatchesOnly] = useState(false);
+  const [swatchesLast] = useState(true);
+  const [swatchesEnabled] = useState(true);
+  const [disc] = useState(false);
+
+  const handleColorChange = color => {
+    setColorData(color);
+  };
+
+  const handleColorChangeComplete = color => {};
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent>
+      <View style={styles.backdrop}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>Select a Color</Text>
+
+          <ColorPicker
+            ref={pickerRef}
+            color={colorData}
+            swatchesOnly={swatchesOnly}
+            onColorChange={handleColorChange}
+            onColorChangeComplete={handleColorChangeComplete}
+            thumbSize={40}
+            sliderSize={40}
+            noSnap={true}
+            row={false}
+            swatchesLast={swatchesLast}
+            swatches={swatchesEnabled}
+            discrete={disc}
+            wheelLoadingIndicator={<ActivityIndicator size={40} />}
+            sliderLoadingIndicator={<ActivityIndicator size={20} />}
+            useNativeDriver={false}
+            useNativeLayout={false}
+            style={styles.colorPicker}
+          />
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              onPress={() => pickerRef.current?.revert()}
+              style={[styles.button, styles.revertButton]}>
+              <Text style={styles.buttonText}>Revert</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={onClose}
+              style={[styles.button, styles.closeButton]}>
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const CreateJournalEntry = ({navigation, route}) => {
+  const HomeData = route?.params?.prompttype;
+  const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
+  const [propmModalOpen, setPromptMOdalOpen] = useState(false);
+  const [ColorPicjer, setColorPicker] = useState(false);
+  const dispatch = useDispatch();
+  const prompt = useSelector(state => state?.user?.getDailyPrompt);
+  const subscription = useSelector(state => state?.user?.subscription);
+  const editorRef = useRef();
+  const scrollRef = useRef();
+  const [loader, setLoader] = useState(false);
+  const handleCursorPosition = scrollY => {
+    scrollRef.current?.scrollTo({y: scrollY - 30, animated: true});
+  };
+  const [selectedFont, setSelectedFont] = useState(fonts[0]);
+
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [selectedMoods, setSelectedMoods] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [defaultHTML, setDefaultHTML] = useState('<p>Loading...</p>');
+  const [style, setStyle] = useState({
+    font: '',
+    size: 16,
+    color: '#000000',
+    bold: false,
+    italic: false,
+    underline: false,
+  });
+  const [showFontDropdown, setShowFontDropdown] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [promptData, setPromptData] = useState(null);
+  const [isEditorReady, setEditorReady] = useState(false);
+  const [colorCode, setColorCode] = useState();
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      applyStyle();
+    }, 50); // Small delay to ensure editor is ready
+
+    return () => clearTimeout(timer);
+  }, [
+    style.font,
+    style.size,
+    style.color,
+    style.bold,
+    style.italic,
+    style.underline,
+  ]);
+
+  const applyStyle = (customStyle = style) => {
+    const {font, size, color, bold, italic, underline} = customStyle;
+
+    let extra = '';
+    if (bold) extra += 'font-weight: bold;';
+    if (italic) extra += 'font-style: italic;';
+    if (underline) extra += 'text-decoration: underline;';
+
+    const combinedStyle = `font-family:'${font}'; font-size:${size}px; color:${color}; ${extra}`;
+    editorRef.current?.insertHTML(
+      `<span style="${combinedStyle}">&#8203;</span>`,
+    );
+  };
+
+  const onFontSelect = fontLabel => {
+    const newStyle = {...style, font: fontLabel};
+    setStyle(newStyle);
+    setShowFontDropdown(false);
+    applyStyle(newStyle);
+  };
+
+  const onSizeSelect = px => {
+    const newStyle = {...style, size: px};
+    setStyle(newStyle);
+    applyStyle(newStyle);
+  };
+
+  const onColorSelect = hex => {
+    const newStyle = {...style, color: hex};
+    setStyle(newStyle);
+    applyStyle(newStyle);
+  };
+
+  const onUnderLine = hex => {
+    const newStyle = {...style, underline: !style.underline};
+    setStyle(newStyle);
+    applyStyle(newStyle);
+  };
+  const onBold = hex => {
+    const newStyle = {...style, bold: !style.bold};
+    setStyle(newStyle);
+    applyStyle(newStyle);
+  };
+  const onItalic = hex => {
+    const newStyle = {...style, italic: !style.italic};
+    setStyle(newStyle);
+    applyStyle(newStyle);
+  };
+
+  const clearEditorContent = () => {
+    editorRef.current?.setContentHTML('');
+  };
+
+  const saveJournalData = async () => {
+    try {
+      const html = await editorRef.current?.getContentHtml();
+
+      // Normalize HTML spaces and clean up
+      const normalizedHtml = html
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .replace(/&#8203;/g, '')
+        .replace(/\u200B/g, '')
+        .trim();
+
+      // Check for empty content
+      const plainText = normalizedHtml.replace(/<[^>]*>/g, '').trim();
+      const isEmptyHtml =
+        normalizedHtml === '<p><br></p>' ||
+        normalizedHtml === '<div><br></div>';
+      const isBlank = !plainText || isEmptyHtml;
+
+      if (isBlank) {
+        Toast.show({
+          type: 'error',
+          text1: 'Content cannot be empty',
+        });
+        return;
+      }
+
+      setLoader(true);
+
+      dispatch(
+        setJournalData({
+          currentDat,
+          journal: {
+            id: uuid.v4(),
+            journalContent: normalizedHtml, // Save cleaned HTML
+          },
+          mood: selectedMoods,
+        }),
+      );
+
+      setTimeout(() => {
+        setLoader(false);
+        navigation.goBack();
+      }, 900);
+    } catch (error) {
+      setLoader(false);
+      console.error('Error saving journal data:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to save journal',
+      });
+    }
+  };
+  const handleTypingStart = text => {
+    if (!text) return '';
+
+    let plainText = text.replace(/<[^>]*>?/gm, '');
+
+    plainText = plainText
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+
+    if (plainText?.length > 1) {
+      setIsTyping(true);
+    } else {
+      setIsTyping(false);
+    }
+  };
+  const handleInsertContent = () => {
+    const rawText = prompt?.description;
+    const htmlContent = `<p>${rawText}</p>`;
+
+    editorRef.current.setContentHTML(htmlContent);
+    // setIsTyping(true);
+  };
+  useEffect(() => {
+    const rawText = promptData;
+    const htmlContent = `<p>${rawText}</p>`;
+
+    editorRef.current.insertHTML(htmlContent);
+  }, [promptData]);
+
+  useEffect(() => {
+    if (HomeData === true) {
+      const rawText = prompt?.description || '';
+      const htmlContent = `<p>${rawText}</p>`;
+      editorRef.current?.insertHTML(htmlContent); // Or use setContentHTML(htmlContent)
+    }
+  }, [isEditorReady, HomeData]);
+
+  return (
+    <View style={styles.container}>
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0} // adjust if your header overlaps
+      >
+        <TouchableWithoutFeedback
+          onPress={() => {
+            Keyboard.dismiss();
+            editorRef?.current?.blurContentEditor(); // <== Manually blur RichEditor
+          }}
+          accessible={false}>
+          <ImageBackground
+            source={ImageData.BACKGROUND}
+            style={styles.primaryBackground}
+            resizeMode="cover">
+            <View style={{flex: 0.13, marginTop: 5}}>
+              <CustomeHeader
+                onClear={() => {
+                  clearEditorContent();
+                }}
+                onDelete={() => {
+                  clearEditorContent();
+                  navigation.goBack();
+                }}
+                selectedDate={currentDat}
+                setCurrentDate={setCurrentDate}
+                disable={false}
+              />
+            </View>
+
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ImageBackground
+                source={ImageData.DREAMBACKGROUND}
+                resizeMode="stretch"
+                imageStyle={{borderRadius: 10}}
+                style={{
+                  width: '95%',
+                  // height: isKeyboardVisible?100:'100%',
+                  alignSelf: 'center',
+                  marginTop: isKeyboardVisible ? 0 : -height * 0.035,
+                  alignItems: 'center',
+                  borderRadius: 10,
+                  marginLeft: 20,
+                }}>
+                <View
+                  style={{
+                    width: '90%',
+                    maxHeight: isKeyboardVisible ? '70%' : '82%',
+                    marginTop: '2%',
+                    borderWidth: 1,
+
+                    borderColor: Color.LIGHTGREEN,
+                    backgroundColor: 'white',
+                    right: 10,
+                  }}>
+                  <View
+                    style={{
+                      width: '100%',
+                      // height: '10%',
+                      flexDirection: 'row',
+
+                      justifyContent: 'space-between',
+                    }}>
+                    <>
+                      <Image
+                        source={ImageData.LEFT}
+                        resizeMode="contain"
+                        style={{width: 31, height: 31}}
+                      />
+                      <Image
+                        source={ImageData.RIGHT}
+                        resizeMode="contain"
+                        style={{
+                          width: 31,
+                          height: 31,
+                          backgroundColor: 'transparent',
+                        }}
+                      />
+                    </>
+                  </View>
+                  <ActivityLoader visible={loader} />
+
+                  <ScrollView
+                    ref={scrollRef}
+                    style={styles.editorContainer}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={{flexGrow: 1}}>
+                    {/* {!isTyping && (
+                      <View
+                        style={{
+                          width: '95%',
+                          padding: 5,
+                          borderRadius: 4,
+                          backgroundColor: '#F4F6EF',
+                          alignSelf: 'center',
+                          flexDirection: 'row',
+                        }}>
+                        <View
+                          style={{
+                            width: 4,
+                            backgroundColor: 'black',
+                            marginRight: 5,
+                          }}></View>
+                        <View style={{width: '100%'}}>
+                          <View
+                            style={{
+                              width: '100%',
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              padding: 5,
+                              top: -5,
+                            }}>
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                fontFamily: Font.EB_Garamond_Italic,
+                                color: Color.BROWN5,
+                              }}>
+                              Prompt of the Day
+                            </Text>
+                            <TouchableOpacity onPress={handleInsertContent}>
+                              <Image
+                                source={IconData.ADD}
+                                style={{width: 24, height: 24, right: 5}}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              fontFamily: Font.EB_Garamond_Bold,
+                              color: Color.BROWN5,
+                              top: -10,
+                              padding: 5,
+                            }}>
+                            {prompt?.description}
+                          </Text>
+                        </View>
+                      </View>
+                    )} */}
+                    <View
+                      onStartShouldSetResponder={() => true} // to make this View respond to touches
+                      onResponderStart={() => {
+                        editorRef.current?.focusContentEditor();
+                      }}
+                      style={{flex: 1}}>
+                      <RichEditor
+                        ref={editorRef}
+                        initialContentHTML=""
+                        initialFocus={false}
+                        onCursorPosition={handleCursorPosition}
+                        placeholder="Start writing here..."
+                        androidHardwareAccelerationDisabled
+                        androidLayerType="software"
+                        onInitialized={() => {
+                          console.log('Editor is ready');
+                          setEditorReady(true);
+                        }}
+                        onChange={text => {
+                          handleTypingStart(text);
+                        }}
+                        editorStyle={{
+                          contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
+                          placeholderColor: '*000',
+                        }}
+                        style={styles.richEditor}
+                      />
+                    </View>
+                  </ScrollView>
+
+                  <View
+                    style={{
+                      width: '100%',
+                      // height: '10%',
+                      flexDirection: 'row',
+
+                      justifyContent: 'space-between',
+                    }}>
+                    <>
+                      <Image
+                        source={ImageData.BACKLEFT}
+                        resizeMode="contain"
+                        style={{
+                          width: 31,
+                          height: 31,
+                        }}
+                      />
+
+                      <Image
+                        source={ImageData.BACKRIGHT}
+                        resizeMode="contain"
+                        style={{
+                          width: 31,
+                          height: 31,
+                        }}
+                      />
+                    </>
+                  </View>
+                </View>
+
+                <View
+                  style={{
+                    width: '90%',
+                    height: 40,
+                    marginTop: '2%',
+                    marginLeft: -20,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}>
+                  <TouchableOpacity
+                    onPress={() => setShowFontDropdown(true)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: -10,
+                      // width: 150,
+                      height: 36,
+                      gap: 10,
+                      borderRadius: 6,
+                    }}>
+                    {/* <Image
+                      source={IconData.FONTITEM}
+                      resizeMode="contain"
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    /> */}
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        fontSize: 16,
+                        maxWidth: 100,
+                        color: Color.LIGHTGREEN,
+                      }}>
+                      {selectedFont?.label || 'Font'}
+                    </Text>
+                    <Image
+                      source={IconData.DROP}
+                      resizeMode="contain"
+                      style={{width: 12, height: 12, marginLeft: 4}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => onSizeSelect(style.size + 1)}>
+                    <Image
+                      source={IconData.FONTPLUS}
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => onSizeSelect(style.size - 1)}>
+                    <Image
+                      source={IconData.FONTMINUS}
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setColorPicker(true)}>
+                    <Image
+                      source={IconData.FONTCOLOR}
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={onUnderLine}
+                    style={{
+                      backgroundColor: !style.underline
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      source={IconData.UNDERLINE}
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={onBold}
+                    style={{
+                      backgroundColor: !style.bold
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      source={IconData.BOLD}
+                      style={{width: 25, height: 25}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={onItalic}
+                    style={{
+                      backgroundColor: !style.italic
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      source={IconData.ITALIC}
+                      style={{width: 25, height: 25}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <Modal
+                  visible={showFontDropdown}
+                  transparent
+                  animationType="fade">
+                  <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPressOut={() => setShowFontDropdown(false)}>
+                    <View style={styles.centeredDropdownWrapper}>
+                      <TouchableOpacity activeOpacity={1}>
+                        <View style={styles.fontDropdown}>
+                          {fonts.map((font, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              onPress={() => {
+                                onFontSelect(font.value);
+                                setSelectedFont(font);
+                              }}
+                              style={styles.fontOption}>
+                              <Text
+                                style={{fontFamily: font.value, fontSize: 16}}>
+                                {font.label}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                </Modal>
+              </ImageBackground>
+            </View>
+            <ImageBackground
+              source={ImageData.TABBACKGROUND}
+              style={styles.thirdBackground}
+              resizeMode="contain">
+              <View
+                style={{
+                  width: '95%',
+                  height: 70,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  overflow: 'hidden',
+                }}>
+                {subscription?.length <= 0 && (
+                  <Button
+                    img={IconData.PROMPT}
+                    text="Prompts"
+                    left={true}
+                    width={100}
+                    backgroundColor={Color.BROWN4}
+                    height={40}
+                    size={16}
+                    font={Font.EBGaramond_SemiBold}
+                    onPress={() => {
+                      setPromptMOdalOpen(true);
+                    }}
+                    style={{width: '50%', zIndex: -1}}
+                    // disabled={currentPage === subTitleText?.length - 1}
+                  />
+                )}
+
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    gap: 5,
+                    marginLeft: subscription?.length <= 0 ? -10 : 0,
+                  }}
+                  onPress={() => {
+                    setTooltipVisible(true);
+                  }}>
+                  <Image
+                    source={
+                      selectedMoods != null
+                        ? selectedMoods?.Image
+                        : IconData.HAPPY
+                    }
+                    style={{width: 24, height: 24}}
+                    resizeMode="contain"
+                  />
+
+                  <Text
+                    style={{
+                      color: Color.BROWN4,
+                      fontSize: 16,
+                      fontFamily: Font.EB_Garamond,
+                    }}>
+                    {selectedMoods != null
+                      ? selectedMoods?.name
+                      : 'Select Mood'}
+                  </Text>
+                  <Image
+                    source={IconData.DROP}
+                    resizeMode="contain"
+                    style={{width: 20, height: 20}}
+                    // tintColor={'red'}
+                  />
+                </TouchableOpacity>
+                <View style={{right: 15}}>
+                  <Button
+                    img={IconData.SAVE}
+                    text="Save"
+                    left={true}
+                    width={91}
+                    backgroundColor={Color.BROWN4}
+                    height={40}
+                    size={16}
+                    font={Font.EBGaramond_SemiBold}
+                    onPress={saveJournalData}
+                    style={{width: '40%', zIndex: -1}}
+                  />
+                </View>
+
+                <TooltipModal2
+                  visible={tooltipVisible}
+                  selectedOptions={selectedMoods}
+                  onSelect={option => {
+                    setSelectedMoods(option);
+                  }}
+                  onClose={() => setTooltipVisible(false)}
+                />
+              </View>
+            </ImageBackground>
+          </ImageBackground>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+      <PromptModal
+        visible={propmModalOpen}
+        promptData={promptData}
+        setPromptData={setPromptData}
+        onClose={() => {
+          setPromptMOdalOpen(false);
+        }}
+      />
+      <ColorModal
+        visible={ColorPicjer}
+        onClose={setColorPicker(false)}
+        colorData={colorCode}
+        setColorData={(selectedColor) => onColorSelect(selectedColor)}
+      />
+    </View>
+  );
+};
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  primaryBackground: {
+    flex: 1,
+  },
+  thirdBackground: {
+    flex: 1,
+    width: '97%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    bottom: 10,
+    position: 'absolute',
+    left: width * 0.03,
+  },
+  editorContainer: {
+    height: height * 0.7,
+    width: '100%',
+    backgroundColor: 'white',
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centeredDropdownWrapper: {
+    width: 250, // or '90%' for full width on mobile
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    overflow: 'hidden',
+    elevation: 5,
+  },
+  fontDropdown: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  fontOption: {
+    paddingVertical: 10,
+  },
+
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    width: width * 0.9,
+    borderRadius: 16,
+    alignItems: 'center',
+    //   elevation: 5,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 20,
+    color: '#333',
+  },
+  colorPicker: {
+    width: '100%',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    marginTop: 400,
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  revertButton: {
+    backgroundColor: '#000',
+  },
+  closeButton: {
+    backgroundColor: '#888',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+});
+export default CreateJournalEntry;

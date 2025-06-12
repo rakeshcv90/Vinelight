@@ -1,4 +1,4 @@
-import {BaseUrl} from '../Api';
+import {Api, BaseUrl} from '../Api';
 import axios from 'axios';
 
 const callApi = async url => {
@@ -17,28 +17,29 @@ const callApi = async url => {
   } catch (error) {
     throw error;
   }
-  // return new Promise(async (resolve, reject) => {
-  //   let config = {
-  //     method: 'get',
-  //     url: url,
-  //     baseURL: `${BaseUrl}`,
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //   };
-
-  //   try {
-  //     const response = await axios(config);
-
-  //     if (response.status < 400) {
-  //       resolve(response.data);
-  //     } else {
-  //       reject(response);
-  //     }
-  //   } catch (error) {
-  //     reject(error);
-  //   }
-  // });
 };
 
-export {callApi};
+const callApi1 = async (url, options = {}) => {
+  const {method = 'GET', params = {}} = options;
+  console.log(`${BaseUrl}${url}`);
+  try {
+    const response = await axios({
+      url: `${BaseUrl}${url}`,
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params,
+    });
+
+    if (response.status < 400) {
+      return response.data;
+    } else {
+      throw new Error(`API returned status ${response.status}`);
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+export {callApi, callApi1};

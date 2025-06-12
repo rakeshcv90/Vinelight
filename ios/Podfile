@@ -56,7 +56,8 @@ end
 
 target 'Vinelight' do
   config = use_native_modules!
-
+  pod 'RNIap', :path => '../node_modules/react-native-iap'
+  pod 'RNIap', :path => '../node_modules/react-native-iap'
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.

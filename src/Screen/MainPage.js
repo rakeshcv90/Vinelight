@@ -8,7 +8,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../assets/Image';
 
 import {useSelector} from 'react-redux';
@@ -19,14 +19,21 @@ import Journal from './Journal/Journal';
 import Dreams from './Dreams/Dreams';
 import Ceremony from './Ceremony/Ceremony';
 import Goal from './Goal/Goal';
+import {useRoute} from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
 
-const MainPage = ({navigation}) => {
-  const [activeTab, setActiveTab] = useState('Home');
+const MainPage = ({navigation,route}) => {
+  // const [activeTab, setActiveTab] = useState('Home');
+  const [activeTab, setActiveTab] = useState(route?.params?.initialTab || 'Home');
 
   const userInfo = useSelector(state => state?.user?.userInfo);
-
+  useEffect(() => {
+    if (route?.params?.initialTab) {
+      setActiveTab(route.params.initialTab);
+    }
+  }, [route?.params?.initialTab]);
+  
   const tabs = [
     {key: 'Home', activeIcon: IconData?.HOMEA},
     {

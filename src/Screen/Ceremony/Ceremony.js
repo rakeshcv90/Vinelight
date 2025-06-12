@@ -23,8 +23,9 @@ import Button from '../../Component/Button';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import ActivityLoader from '../../Component/ActivityLoader';
-import {setCeremonyInfo} from '../../redux/actions';
+import {deleteCeromonykById, setCeremonyInfo} from '../../redux/actions';
 import FastImage from 'react-native-fast-image';
+import uuid from 'react-native-uuid';
 const {width, height} = Dimensions.get('window');
 const Ceremony = () => {
   const [modalopen, setModalOpen] = useState(false);
@@ -40,6 +41,7 @@ const Ceremony = () => {
     const [loader, setLoader] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const currentDate = moment().format('YYYY-MM-DD');
 
     const showDatePicker = () => setDatePickerVisibility(true);
     const hideDatePicker = () => setDatePickerVisibility(false);
@@ -56,8 +58,10 @@ const Ceremony = () => {
       try {
         if (ceremonyName && selectedDate) {
           const ceremonyData = {
+            id: uuid.v4(),
             name: ceremonyName,
             CeremonyDate: selectedDate,
+            createdDate: currentDate,
           };
 
           setTimeout(() => {
@@ -154,7 +158,7 @@ const Ceremony = () => {
 
                       justifyContent: 'center',
                       alignItems: 'center',
-                      marginVertical: height * 0.05,
+                      marginVertical: height * 0.04,
                       // marginHorizontal: width * 0.03,
                       backgroundColor: Color.BROWN3,
                       alignSelf: 'center',
@@ -235,8 +239,9 @@ const Ceremony = () => {
                         text="Save"
                         left={true}
                         width={91}
-                        height={47}
                         size={16}
+                        backgroundColor={Color.BROWN4}
+                        height={40}
                         font={Font.EBGaramond_SemiBold}
                         onPress={() => {
                           saveCeremony();
@@ -281,25 +286,25 @@ const Ceremony = () => {
     const diffDays = Math.ceil(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
     return {countData, diffDays};
   };
-  const getProgress = ceremonyDate => {
-    const today = new Date(currentDat);
-    const target = new Date(ceremonyDate);
+  const getProgress = (createdDateStr, ceremonyDateStr) => {
+    const createdDate = new Date(createdDateStr);
+    const ceremonyDate = new Date(ceremonyDateStr);
+    const currentDate = new Date();
 
-    today.setHours(0, 0, 0, 0);
-    target.setHours(0, 0, 0, 0);
+    const totalDuration = ceremonyDate - createdDate;
+    const elapsedDuration = currentDate - createdDate;
 
-    const maxDays = 100;
-    const diffDays = Math.max(
-      Math.ceil((target - today) / (1000 * 60 * 60 * 24)),
-      0,
-    );
+    if (totalDuration <= 0) return 1;
 
-    const progress = 1 - Math.min(diffDays / maxDays, 1);
+    const progress = elapsedDuration / totalDuration;
 
-    return progress;
+    return Math.max(0, Math.min(progress, 1));
+  };
+  const deleteCeremony = itemId => {
+    dispatch(deleteCeromonykById(itemId));
   };
   const renderItem = ({item, index}) => {
-    const progress = getProgress(item?.CeremonyDate);
+    const progress = getProgress(item?.createdDate, item?.CeremonyDate);
     const totalBarWidth = Dimensions.get('window').width * 0.82;
     const progressWidth = totalBarWidth * progress;
     const {diffDays, countData} = dayCount(item?.CeremonyDate);
@@ -308,18 +313,30 @@ const Ceremony = () => {
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title1}>{item?.name}</Text>
-          <View
-            style={{
-              width: 70,
-              height: 20,
-              borderRadius: 30,
-              backgroundColor: Color.LIGHTBROWN2,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <Text style={styles.label1}>
-              {dayCalculate(item?.CeremonyDate)}
-            </Text>
+          <View style={{flexDirection: 'row', gap: 10}}>
+            <View
+              style={{
+                width: 70,
+                height: 20,
+                borderRadius: 30,
+                backgroundColor: Color.LIGHTBROWN2,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <Text style={styles.label1}>
+                {dayCalculate(item?.CeremonyDate)}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                deleteCeremony(item?.id);
+              }}>
+              <Image
+                source={IconData.DELETE}
+                style={{width: 20, height: 20}}
+                tintColor={Color.LIGHTGREEN}
+              />
+            </TouchableOpacity>
           </View>
         </View>
         {countData > 0 && (
@@ -369,14 +386,21 @@ const Ceremony = () => {
             height: height * 0.2,
           }}
         />
-        <Text style={{fontSize:24,fontFamily:Font.EBGaramond_SemiBold,color:Color.LIGHTGREEN}}>No Ceremonies Saved</Text>
+        <Text
+          style={{
+            fontSize: 24,
+            fontFamily: Font.EBGaramond_SemiBold,
+            color: Color.LIGHTGREEN,
+          }}>
+          No Ceremonies Saved
+        </Text>
       </View>
     );
   };
-    const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
+  const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
     <View style={styles.secondaryContainer}>
-     <FastImage
+      <FastImage
         source={memoizedBackground}
         style={styles.secondaryBackground}
         resizeMode={FastImage.resizeMode.stretch}>
@@ -396,7 +420,7 @@ const Ceremony = () => {
               marginTop: '10%',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
-              backgroundColor: Color?.LIGHTBROWN,
+              // backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -444,10 +468,9 @@ const Ceremony = () => {
               }}>
               <FlatList
                 data={existingCeremonies}
-               
                 keyExtractor={(item, index) => index.toString()}
                 contentContainerStyle={{paddingBottom: 20}}
-                 showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={false}
                 renderItem={renderItem}
                 ListEmptyComponent={emptyComponent}
               />
@@ -539,7 +562,7 @@ const styles = StyleSheet.create({
   },
   modalWrapper: {
     width: '95%',
-    height: 300, // or adjust based on your design
+    height: 320, // or adjust based on your design
     alignItems: 'center',
 
     marginLeft: width * 0.025,
@@ -594,7 +617,7 @@ const styles = StyleSheet.create({
     top: 10,
   },
   card: {
-    width: 300,
+    // width: 310,
     backgroundColor: Color.BROWN3,
     borderRadius: 10,
     padding: 16,
