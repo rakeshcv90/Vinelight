@@ -9,50 +9,56 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
-import {Color, Font, IconData, ImageData} from '../../../assets/Image';
-import Home from './Home';
-import {storage} from '../../Component/Storage';
+import {Color, Font, IconData, ImageData} from '../../assets/Image';
+
+import {useSelector} from 'react-redux';
+
+import Meditation from './Meditate/Meditation';
+import Home from './Home/Home';
+import Journal from './Journal/Journal';
+import Dreams from './Dreams/Dreams';
+import Ceremony from './Ceremony/Ceremony';
+import Goal from './Goal/Goal';
+import {useRoute} from '@react-navigation/native';
+
 const {width, height} = Dimensions.get('window');
 
-const MainPage = ({navigation}) => {
-  const [activeTab, setActiveTab] = useState('Home');
-  const [userPhotoUri, setUserPhotoUri] = useState(null);
-  useEffect(() => {
-    const storedUserString = storage.getString('userInfo');
+const MainPage = ({navigation, route}) => {
+  // const [activeTab, setActiveTab] = useState('Home');
+  const [activeTab, setActiveTab] = useState(
+    route?.params?.initialTab || 'Home',
+  );
 
-    try {
-      if (storedUserString && typeof storedUserString === 'string') {
-        const user = JSON.parse(storedUserString);
-        setUserPhotoUri(user?.photo?.uri || null);
-      }
-    } catch (e) {
-      console.error('Error parsing userInfo from storage:', storedUserString);
+  const userInfo = useSelector(state => state?.user?.userInfo);
+  useEffect(() => {
+    if (route?.params?.initialTab) {
+      setActiveTab(route.params.initialTab);
     }
-  }, []);
+  }, [route?.params?.initialTab]);
 
   const tabs = [
-    {key: 'Home', inactiveIcon: IconData?.HOME, activeIcon: IconData?.HOMEA},
+    {key: 'Home', activeIcon: IconData?.HOMEA},
     {
       key: 'Journal',
-      inactiveIcon: IconData?.JOURNAL,
+
       activeIcon: IconData?.JOURNALA,
     },
     {
       key: 'Dreams',
-      inactiveIcon: IconData?.DREAM,
+
       activeIcon: IconData?.DREAMA,
     },
     {
       key: 'Meditate',
-      inactiveIcon: IconData?.MEDITATION,
+
       activeIcon: IconData?.MEDITATIONA,
     },
     {
       key: 'Ceremony',
-      inactiveIcon: IconData?.CEREMONY,
+
       activeIcon: IconData?.CEREMONYA,
     },
-    {key: 'Goal', inactiveIcon: IconData?.GOAL, activeIcon: IconData?.GOALA},
+    {key: 'Goal', activeIcon: IconData?.GOALA},
   ];
   return (
     <View style={styles.container}>
@@ -84,8 +90,27 @@ const MainPage = ({navigation}) => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
+          {/* <Image
+            source={userInfo ? {uri: userInfo?.photo?.uri} : ImageData?.NOIMAGE}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              borderWidth: 1,
+              zIndex: 1,
+              borderColor: Color.BROWN4,
+            }}
+          /> */}
           <Image
-            source={{uri: userPhotoUri}}
+            source={
+              userInfo?.photo?.base64
+                ? {
+                    uri: `data:${userInfo.photo.type};base64,${userInfo.photo.base64}`,
+                  }
+                : userInfo?.photo?.uri
+                ? {uri: userInfo.photo.uri}
+                : ImageData.NOIMAGE
+            }
             style={{
               width: 50,
               height: 50,
@@ -96,7 +121,19 @@ const MainPage = ({navigation}) => {
             }}
           />
         </TouchableOpacity>
-        {activeTab === 'Home' ? <Home /> : <></>}
+        {activeTab === 'Home' ? (
+          <Home />
+        ) : activeTab === 'Journal' ? (
+          <Journal />
+        ) : activeTab === 'Dreams' ? (
+          <Dreams />
+        ) : activeTab === 'Ceremony' ? (
+          <Ceremony />
+        ) : activeTab === 'Goal' ? (
+          <Goal />
+        ) : (
+          <Meditation />
+        )}
 
         <View
           style={{

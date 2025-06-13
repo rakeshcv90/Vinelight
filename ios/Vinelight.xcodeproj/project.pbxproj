@@ -10,16 +10,19 @@
 		0C80B921A6F3F58F76C31292 /* libPods-Vinelight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-Vinelight.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		28C828131DEE497F8D7582F9 /* EBGaramond-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8954D1A0ED91401F8273ADFD /* EBGaramond-Medium.ttf */; };
+		2A4BFB432DE495120031A133 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		2AEACA132DC4EC10002F8816 /* EBGaramond-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 326871BC89754509A5CAEEE0 /* EBGaramond-Italic.ttf */; };
 		2AEACA142DC4EC17002F8816 /* EBGaramond-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DF22E04EFCBC4467A89CDA2A /* EBGaramond-Variable.ttf */; };
 		2AEACA152DC4EC1C002F8816 /* EBGaramond-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 761242FBBD3E4F45B2FBD136 /* EBGaramond-Bold.ttf */; };
+		2AEEE87E2DE570A100C373DD /* MusicPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AEEE87D2DE570A100C373DD /* MusicPlayer.m */; };
+		2AEEE8802DE570AE00C373DD /* MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEEE87F2DE570AE00C373DD /* MusicPlayer.swift */; };
 		2CE421411A304781B8F3A778 /* EBGaramond-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 82CE450167F44668A48238F5 /* EBGaramond-ExtraBold.ttf */; };
 		3AD740C086704F8AB0672656 /* EBGaramond-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3DDF2AFFFF174E40814EBA16 /* EBGaramond-ExtraBoldItalic.ttf */; };
 		546212D453D14CC0953EDF83 /* EBGaramond-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 07512506291F4E7E84EC941B /* EBGaramond-MediumItalic.ttf */; };
 		5AC8EEED3BBC43439D018479 /* EBGaramond-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8F8B2B22A74C4540A496A9E5 /* EBGaramond-BoldItalic.ttf */; };
-		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		85E6AB89EF2147EF95027B1C /* EBGaramond-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D2D07370269B4F49A39E7253 /* EBGaramond-SemiBold.ttf */; };
+		A59D575C2DED60E800C92036 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A59D575B2DED60E700C92036 /* StoreKit.framework */; };
 		C624472C596D4711BDC2CA7D /* EBGaramond-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 508C15A6DABD4B41BCC4E507 /* EBGaramond-SemiBoldItalic.ttf */; };
 		DC7E68334C4891335BA7A8B4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		FFC3FBBE31574836B5A4BB59 /* EBGaramond-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AF2D617C987C4D719C1485B1 /* EBGaramond-Regular.ttf */; };
@@ -31,6 +34,10 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Vinelight/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Vinelight/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Vinelight/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2AEEE87B2DE5709400C373DD /* Vinelight-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Vinelight-Bridging-Header.h"; sourceTree = "<group>"; };
+		2AEEE87C2DE570A000C373DD /* Vinelight-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Vinelight-Bridging-Header.h"; sourceTree = "<group>"; };
+		2AEEE87D2DE570A100C373DD /* MusicPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MusicPlayer.m; sourceTree = "<group>"; };
+		2AEEE87F2DE570AE00C373DD /* MusicPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicPlayer.swift; sourceTree = "<group>"; };
 		326871BC89754509A5CAEEE0 /* EBGaramond-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-Italic.ttf"; path = "../assets/fonts/EBGaramond-Italic.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Vinelight.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Vinelight.debug.xcconfig"; path = "Target Support Files/Pods-Vinelight/Pods-Vinelight.debug.xcconfig"; sourceTree = "<group>"; };
 		3DDF2AFFFF174E40814EBA16 /* EBGaramond-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-ExtraBoldItalic.ttf"; path = "../assets/fonts/EBGaramond-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
@@ -43,6 +50,9 @@
 		82CE450167F44668A48238F5 /* EBGaramond-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-ExtraBold.ttf"; path = "../assets/fonts/EBGaramond-ExtraBold.ttf"; sourceTree = "<group>"; };
 		8954D1A0ED91401F8273ADFD /* EBGaramond-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-Medium.ttf"; path = "../assets/fonts/EBGaramond-Medium.ttf"; sourceTree = "<group>"; };
 		8F8B2B22A74C4540A496A9E5 /* EBGaramond-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-BoldItalic.ttf"; path = "../assets/fonts/EBGaramond-BoldItalic.ttf"; sourceTree = "<group>"; };
+
+		A59D575B2DED60E700C92036 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+
 		AF2D617C987C4D719C1485B1 /* EBGaramond-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-Regular.ttf"; path = "../assets/fonts/EBGaramond-Regular.ttf"; sourceTree = "<group>"; };
 		D2D07370269B4F49A39E7253 /* EBGaramond-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-SemiBold.ttf"; path = "../assets/fonts/EBGaramond-SemiBold.ttf"; sourceTree = "<group>"; };
 		DF22E04EFCBC4467A89CDA2A /* EBGaramond-Variable.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-Variable.ttf"; path = "../assets/fonts/EBGaramond-Variable.ttf"; sourceTree = "<group>"; };
@@ -55,6 +65,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C80B921A6F3F58F76C31292 /* libPods-Vinelight.a in Frameworks */,
+				A59D575C2DED60E800C92036 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -64,11 +75,15 @@
 		13B07FAE1A68108700A75B9A /* Vinelight */ = {
 			isa = PBXGroup;
 			children = (
+				2AEEE87F2DE570AE00C373DD /* MusicPlayer.swift */,
+				2AEEE87D2DE570A100C373DD /* MusicPlayer.m */,
+				2AEEE87B2DE5709400C373DD /* Vinelight-Bridging-Header.h */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				2AEEE87C2DE570A000C373DD /* Vinelight-Bridging-Header.h */,
 			);
 			name = Vinelight;
 			sourceTree = "<group>";
@@ -76,6 +91,7 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A59D575B2DED60E700C92036 /* StoreKit.framework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				5DCACB8F33CDC322A6C60F78 /* libPods-Vinelight.a */,
 			);
@@ -172,7 +188,7 @@
 				LastUpgradeCheck = 1210;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1530;
 					};
 				};
 			};
@@ -298,7 +314,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				2AEEE87E2DE570A100C373DD /* MusicPlayer.m in Sources */,
+				2A4BFB432DE495120031A133 /* AppDelegate.swift in Sources */,
+				2AEEE8802DE570AE00C373DD /* MusicPlayer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -314,7 +332,9 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4P2UTHTKB7;
+
+				DEVELOPMENT_TEAM = 9725P63YS7;
+
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Vinelight/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -328,9 +348,10 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = vinelight.ceremony.journal.meditation.timer;
 				PRODUCT_NAME = Vinelight;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Vinelight-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -346,7 +367,9 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4P2UTHTKB7;
+
+				DEVELOPMENT_TEAM = 9725P63YS7;
+
 				INFOPLIST_FILE = Vinelight/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -359,9 +382,10 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = vinelight.ceremony.journal.meditation.timer;
 				PRODUCT_NAME = Vinelight;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Vinelight-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

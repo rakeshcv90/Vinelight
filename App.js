@@ -4,7 +4,9 @@ import {NavigationContainer} from '@react-navigation/native';
 import Router from './src/Navigation/Router';
 import Toast, {BaseToast, ErrorToast} from 'react-native-toast-message';
 import {Color, Font} from './assets/Image';
-
+import {Provider} from 'react-redux';
+import {PersistGate} from 'redux-persist/integration/react';
+import {store, persistor} from './src/redux/store';
 const customToastConfig = {
   error: props => (
     <BaseToast
@@ -63,11 +65,14 @@ const App = () => {
 
   return (
     <>
-      <NavigationContainer>
-        <Router />
-        <Toast config={customToastConfig} />
-      </NavigationContainer>
-   
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <NavigationContainer>
+            <Router />
+            <Toast config={customToastConfig} />
+          </NavigationContainer>
+        </PersistGate>
+      </Provider>
     </>
   );
 };

@@ -1,0 +1,320 @@
+import {View, Text, Image, Dimensions, TouchableOpacity} from 'react-native';
+import React, {useState} from 'react';
+import {Color, Font, IconData} from '../../assets/Image';
+import {useNavigation} from '@react-navigation/native';
+import moment from 'moment';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+const {width, height} = Dimensions.get('window');
+const CustomeHeader2 = ({onClear, onDelete, selectedDate, setCurrentDate}) => {
+
+  const navigation = useNavigation();
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
+  const handleConfirm = date => {
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    setCurrentDate(formattedDate);
+    hideDatePicker();
+  };
+  const [toolVisible, setToolVisible] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 50});
+  return (
+    <View
+      style={{
+        width: '100%',
+        height: 52,
+        padding: 10,
+
+        top: height * 0.05,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        zIndex: 1,
+        alignItems: 'center',
+      }}>
+      <TouchableOpacity
+        onPress={() => {
+          navigation.goBack();
+        }}
+        style={{
+          width: 50,
+          height: 50,
+          backgroundColor: Color?.LIGHTGREEN,
+          borderRadius: 25,
+          alignSelf: 'center',
+          marginVertical: '5%',
+          borderWidth: 3,
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1,
+          borderColor: Color?.BROWN2,
+        }}>
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            backgroundColor: Color?.BROWN4,
+            borderRadius: 20,
+            alignSelf: 'center',
+            marginVertical: '5%',
+            borderWidth: 3,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderColor: Color?.BROWN2,
+          }}>
+          <Image
+            source={IconData.BACK}
+            tintColor={Color?.LIGHTGREEN}
+            style={{width: 24, height: 24}}
+          />
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setDatePickerVisibility(true)}
+        style={{
+          width: 228,
+          height: 50,
+          backgroundColor: Color?.LIGHTGREEN,
+          borderRadius: 25,
+          alignSelf: 'center',
+          marginVertical: '5%',
+          borderWidth: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: 10,
+          borderColor: Color?.BROWN2,
+        }}>
+        <Image
+          source={IconData.DROPDOWN}
+          tintColor={'white'}
+          style={{width: 24, height: 24, transform: [{rotate: '90deg'}]}}
+        />
+        <Text
+          style={{
+            fontFamily: Font.EBGaramond_SemiBold,
+            fontSize: 20,
+            color: Color.BROWN6,
+          }}>
+          {selectedDate ? moment(selectedDate).format('Do MMMM YYYY') : ''}
+        </Text>
+        <Image
+          source={IconData.DROPDOWN}
+          tintColor={'white'}
+          style={{width: 24, height: 24, transform: [{rotate: '270deg'}]}}
+        />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={event => {
+          const {pageX, pageY} = event.nativeEvent;
+          setTooltipPosition({x: pageX, y: pageY});
+
+          setToolVisible(true);
+        }}
+        style={{
+          width: 50,
+          height: 50,
+          backgroundColor: Color?.LIGHTGREEN,
+          borderRadius: 25,
+          alignSelf: 'center',
+          marginVertical: '5%',
+          borderWidth: 3,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderColor: Color?.BROWN2,
+        }}>
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            backgroundColor: Color?.BROWN4,
+            borderRadius: 20,
+            alignSelf: 'center',
+            marginVertical: '5%',
+            borderWidth: 3,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderColor: Color?.BROWN2,
+          }}>
+          <Image
+            source={IconData.DOTS}
+            tintColor={Color?.LIGHTGREEN}
+            style={{width: 24, height: 24}}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {/* {toolVisible && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+          }}>
+       
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{flex: 1}}
+            onPress={() => setToolVisible(false)}
+          />
+
+   
+          <View
+            style={{
+              position: 'absolute',
+              top: tooltipPosition.y + 10,
+              left: tooltipPosition.x - 200,
+          
+              backgroundColor: Color.LIGHTGREEN,
+              padding: 5,
+              borderRadius: 10,
+            }}>
+            <View
+              style={{
+                width: 215,
+                backgroundColor: Color.LIGHTGREEN,
+                padding: 5,
+                alignSelf: 'center',
+                borderRadius: 10,
+                borderColor: Color.BROWN4,
+                borderWidth: 2,
+              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  onClear();
+                  setToolVisible(false);
+                }}
+                style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
+                <Image
+                  source={IconData.PEN}
+                  style={{width: 20, height: 20, marginLeft: 5}}
+                  resizeMode="contain"
+                  tintColor={'#fff'}
+                />
+                <Text
+                  style={{
+                    color: '#fff',
+                    fontSize: 16,
+                    fontFamily: Font.EBGaramond_SemiBold,
+                  }}>
+                  Edit
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  onDelete();
+                  setToolVisible(true);
+                }}
+                style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
+                <Image
+                  source={IconData.DELETE}
+                  style={{width: 20, height: 20, marginLeft: 5}}
+                  resizeMode="contain"
+                  tintColor={'#fff'}
+                />
+                <Text
+                  style={{
+                    color: '#fff',
+                    fontSize: 16,
+                    fontFamily: Font.EBGaramond_SemiBold,
+                  }}>
+                  Delete
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )} */}
+      {toolVisible && (
+        <>
+          {/* Fullscreen Transparent Backdrop */}
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'transparent',
+              zIndex: 9998,
+            }}
+            onPress={() => setToolVisible(false)}
+          />
+
+          {/* Tooltip Box */}
+          <View
+            style={{
+              position: 'absolute',
+              top: tooltipPosition.y + 10,
+              left: tooltipPosition.x - 200,
+              backgroundColor: Color.LIGHTGREEN,
+              padding: 5,
+              borderRadius: 10,
+              zIndex: 9999,
+              borderWidth: 2,
+              borderColor: Color.BROWN4,
+              width: 215,
+            }}>
+            <TouchableOpacity
+              onPress={() => {
+                onClear();
+                setToolVisible(false);
+              }}
+              style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
+              <Image
+                source={IconData.PEN}
+                style={{width: 20, height: 20, marginLeft: 5}}
+                resizeMode="contain"
+                tintColor={'#fff'}
+              />
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 16,
+                  fontFamily: Font.EBGaramond_SemiBold,
+                }}>
+                Edit
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                onDelete();
+                setToolVisible(false); // Should close after Delete too
+              }}
+              style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
+              <Image
+                source={IconData.DELETE}
+                style={{width: 20, height: 20, marginLeft: 5}}
+                resizeMode="contain"
+                tintColor={'#fff'}
+              />
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 16,
+                  fontFamily: Font.EBGaramond_SemiBold,
+                }}>
+                Delete
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={hideDatePicker}
+        display={Platform.OS === 'ios' ? 'inline' : 'default'} // optional but nice
+        maximumDate={new Date()}
+      />
+    </View>
+  );
+};
+
+export default CustomeHeader2;
