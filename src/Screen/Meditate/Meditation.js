@@ -74,22 +74,29 @@ const Meditation = () => {
     //   const seconds = totalSeconds % 60;
     //   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     // };
+    const totalMinutes = parseInt(item?.timeData?.med?.minute) + parseInt(item?.timeData?.med?.second) / 60;
     return (
       <View style={styles.card}>
         <View style={styles.rightSide}>
           <TouchableOpacity
-            style={styles.playButton}
+            // style={styles.playButton}
             onPress={() => {
-         
               navigation.navigate('AdvanceMediaPlayer', {itemData: item?.timeData,});
             }}>
-            <Text style={styles.icon}>▶</Text>
+              <Image
+                source={ImageData.PLAYBUTTON}
+                style={{width: 40, height: 40}}
+              />
+            {/* <Text style={styles.icon}>▶</Text> */}
+
+              {console.log("time data", totalMinutes)}
+      
           </TouchableOpacity>
-          {/* <View style={styles.durationBadge}>
+          <View style={styles.durationBadge}>
             <Text style={styles.durationText}>
-            
+            {totalMinutes} Mins
             </Text>
-          </View> */}
+          </View>
         </View>
         <View style={styles.content}>
           <View
@@ -109,9 +116,9 @@ const Meditation = () => {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.description} numberOfLines={3}>
-           Medatation is created By user
-          </Text>
+          {/* <Text style={styles.description} numberOfLines={3}>
+           Meditation is created by user
+          </Text> */}
         </View>
       </View>
     );
@@ -410,8 +417,9 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
     paddingRight: 6,
     gap: 10,
-    paddingVertical: 5,
+    paddingVertical: 3,
     borderRadius: 12,
+    marginTop: 5,
   },
   durationText: {
     fontSize: 12,

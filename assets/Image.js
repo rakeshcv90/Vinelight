@@ -19,6 +19,7 @@ export const ImageData = {
   BOOK: require('../assets/Image/img/book.png'),
   SELECTIMAGE: require('../assets/Image/img/image.png'),
   MEDATATION: require('../assets/Image/img/medatation.webp'),
+  PLAYBUTTON: require('../assets/Image/img/play_button.png'),
 };
 
 export const IconData = {

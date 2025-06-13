@@ -22,10 +22,15 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [totalPhaseTime, setTotalPhaseTime] = useState(0);
 
-  const [isPlaying, setIsPlaying] = useState(false);
   const medatationData = useSelector(
     state => state?.user?.advanceMeditationData,
   );
+
+  const [lastIntervalSecond, setLastIntervalSecond] = useState(null);
+  const [currentPhase, setCurrentPhase] = useState('Meditations');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [pauseTimestamp, setPauseTimestamp] = useState(null);
 
   const {
     pauseMusic,
@@ -37,9 +42,7 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
     stopMusic,
   } = useNativeMusicPlayer({
     song1: song,
-
     song2: medatationData?.data,
-
     pause: false,
     getSoundOffOn: true,
     restStart: false,
@@ -68,21 +71,21 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  const [lastIntervalSecond, setLastIntervalSecond] = useState(null);
+
 
   useEffect(() => {
     const int = route.params?.itemData?.int;
     const med = route.params?.itemData?.med;
 
     const medDuration = (Number(med?.minute || 0) * 60) + Number(med?.second || 0);
-    const intTime = Number(int?.second || 0);
-    console.log('Time duration ', intTime, medDuration);
+    // const intTime = Number(int?.second || 0);
+   const intTime = (Number(int?.minute || 0) * 60) + Number(int?.second || 0)
+    console.log('Time duration ', intTime, medDuration, int?.song);
 
-    if (!int?.song || !intTime || !medDuration) return;
+    if (!int?.song || !intTime || !medDuration || intTime >= medDuration) return;
 
     const timePassed = medDuration - timeLeft;
     console.log('Time duration ......   ', timePassed);
-
 
     // Repeating interval logic
     if (
@@ -117,79 +120,107 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
 
   const playMeditationFlow = async () => {
     const { pre, med, int, res, end } = route.params?.itemData || {};
-
     const wait = seconds =>
       new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
     try {
       if (pre?.song) {
+        setCurrentPhase('Preparation Time');
         const preTime = Number(pre.second || 0);
         setsong(pre.song);
         startCountdown(preTime);
         setIsPlaying(true);
         playMusic('player1');
         await wait(preTime);
-        setIsPlaying(false);
+        // setIsPlaying(false);
         stopMusic('player1');
         // releaseMusic('player1');
       }
 
       const medDuration =
         Number(med?.minute || 0) * 60 + Number(med?.second || 0);
-      const intTime = Number(int?.minute || 0) * 60 + Number(int?.second || 0);
-      const intDuration =
-        intTime > 0
-          ? Number(int?.minute || 0) * 60 + Number(int?.second || 0)
-          : 0;
-      console.log('Rakesh', intDuration);
-      if (med?.song) {
-        console.log('MED SONG');
-        console.log('XCvcxvxcvcvx', intDuration);
-        startCountdown(medDuration);
+      // const intTime = Number(int?.minute || 0) * 60 + Number(int?.second || 0);
+      // const intDuration =
+      //   intTime > 0
+      //     ? Number(int?.minute || 0) * 60 + Number(int?.second || 0)
+      //     : 0;
+      console.log('Meditation', medDuration,med?.song);
+      // if (med?.song) {
+      //   setCurrentPhase('Meditation Time');
+        
+      //   console.log('MED SONG');
+      //   // console.log('XCvcxvxcvcvx', intDuration);
 
+      //   startCountdown(medDuration);
+      //   playMusic('player2');
+      //   await wait(medDuration);
+      //   stopMusic('player2');
+      //   // }
+      // }
+
+      if(medDuration >0){
+        setCurrentPhase('Meditation Time');
+        
+        console.log('MED SONG');
+        // console.log('XCvcxvxcvcvx', intDuration);
+
+        startCountdown(medDuration);
         playMusic('player2');
         await wait(medDuration);
         stopMusic('player2');
         // }
       }
 
-      // if (res?.song) {
-      //   console.log('RES SONG');
-      //   setsong(song3);
-      //   playMusic('player1');
-      //   await wait(Number(res.second || 0));
-      //   releaseMusic('player1');
-      // }
-
-      // if (end?.song) {
-      //   setsong(song4);
-      //   playMusic('player1', end.song);
-      //   await wait(Number(end.second || 0));
-      //   releaseMusic('player1');
-      // }
-
-      if (res?.song && timeLeft === 0) {
-        console.log('RES SONG');
+      const timePassed = medDuration - timeLeft;
+      if (res?.song && timePassed === medDuration) {
+        setCurrentPhase('Rest Time');
+        console.log('RES SONG  ',res.second);
         setsong(song3);
         playMusic('player1');
         const resTime = Number(res.second || 0);
         startCountdown(resTime); // Optional: show rest countdown
         await wait(resTime);
-        stopMusic('player1');
+        if (end?.song) {
+          setCurrentPhase('End Time');
+          console.log('End SONG');
+          setsong(song4);
+          playMusic('player1');
+          const endTime = Number(3 || 0);
+          // startCountdown(endTime); // Optional: show end countdown
+          await wait(endTime);
+          stopMusic('player1');
+          setCurrentPhase('Meditation Completed');
+        } else {
+          stopMusic('player1');
+        }
       }
 
       // ✅ Only start END after rest timer is 0
-      if (end?.song && timeLeft === 0) {
-          console.log('End SONG');
-        setsong(song4);
-        playMusic('player1');
-        const endTime = Number(end.second || 0);
-        startCountdown(endTime); // Optional: show end countdown
-        await wait(endTime);
-        stopMusic('player1');
-      }
+
     } catch (error) {
       console.error('❌ Error in meditation flow:', error);
+    }
+  };
+
+  const handlePauseResume = () => {
+    console.log("paused or not ", isPaused);
+    if (isPaused) {
+      console.log("play...... ",pauseTimestamp);
+      // Resume music and timer
+      if (pauseTimestamp !== null) {
+        setTimeLeft(pauseTimestamp); // resume countdown
+      }
+      playMusic('player1');
+      playMusic('player2');
+      setIsPaused(false);
+    } else {
+      console.log("paused...... ", timeLeft);
+      // Pause music and timer
+      pauseMusic('player1');
+      pauseMusic('player2');
+      setPauseTimestamp(timeLeft); // remember remaining time
+      setTimeLeft(0); // will stop the timer useEffect
+      setIsPaused(true);
     }
   };
 
@@ -271,11 +302,10 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
               <View
                 style={{
                   width: '90%',
-
                   alignItems: 'center',
                   borderWidth: 1,
                   borderColor: Color.LIGHTGREEN,
-                  backgroundColor: Color?.LIGHTBROWN,
+                  // backgroundColor: Color?.LIGHTBROWN,
                 }}>
                 <View
                   style={{
@@ -308,13 +338,13 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}>
-                  <Text style={styles.subText}>Meditations</Text>
+                  <Text style={styles.subText}>{route.params?.itemData?.user?.name}</Text>
                   <FastImage
                     source={ImageData.MEDATATION}
                     resizeMode={FastImage.resizeMode.contain}
                     style={{ width: width * 0.5, height: height * 0.2 }}
                   />
-                  <Text style={styles.subText}>Meditations</Text>
+                  <Text style={styles.subText}>{currentPhase}</Text>
                 </View>
 
                 <View style={styles.timerDisplay}>
@@ -332,7 +362,7 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
                   </View>
                 </View>
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   onPress={playMeditationFlow}
                   style={{
                     width: '100%',
@@ -345,7 +375,34 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
                     style={{ width: 40, height: 40 }}
                     resizeMode="contain"
                   />
+                </TouchableOpacity> */}
+
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!isPlaying) {
+                      playMeditationFlow();        // Start playback
+                      setIsPlaying(true);
+                      setIsPaused(false);
+                    } else if (isPaused) {
+                      handlePauseResume()
+                    } else {
+                      handlePauseResume()
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    marginTop: 20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Image
+                    source={isPlaying ? (isPaused ? IconData.PLAY : IconData.PAUSE) : IconData.PLAY}
+                    style={{ width: 40, height: 40 }}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
+
                 <View
                   style={{
                     width: '100%',

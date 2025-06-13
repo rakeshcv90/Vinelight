@@ -17,22 +17,22 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import React, {useEffect, useMemo, useState} from 'react';
-import {Color, Font, IconData, ImageData} from '../../../assets/Image';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Color, Font, IconData, ImageData } from '../../../assets/Image';
 import Button from '../../Component/Button';
 import FastImage from 'react-native-fast-image';
-import {callApi} from '../../Component/ApiCall';
-import {Api} from '../../Api';
-import {RadioButton} from 'react-native-paper';
-import {useDispatch} from 'react-redux';
+import { callApi } from '../../Component/ApiCall';
+import { Api } from '../../Api';
+import { RadioButton } from 'react-native-paper';
+import { useDispatch } from 'react-redux';
 import uuid from 'react-native-uuid';
 import ActivityLoader from '../../Component/ActivityLoader';
 import Toast from 'react-native-toast-message';
-import {setCustomeMedidation} from '../../redux/actions';
+import { setCustomeMedidation } from '../../redux/actions';
 import DropDown from '../../Component/DropDown';
 import useNativeMusicPlayer from '../../Component/NativeusicPlayer';
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const SaveAdvanceSoundModal = ({
   visible,
@@ -49,7 +49,7 @@ const SaveAdvanceSoundModal = ({
         <View style={styles.overlay}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <View style={[styles.modalWrapper, {height: 350}]}>
+            <View style={[styles.modalWrapper, { height: 350 }]}>
               <ImageBackground
                 source={ImageData.MODAL}
                 style={styles.modalContainer}
@@ -61,7 +61,7 @@ const SaveAdvanceSoundModal = ({
                     style={styles.closeButton}>
                     <Image
                       source={IconData.CANCEL}
-                      style={{width: 35, height: 35}}
+                      style={{ width: 35, height: 35 }}
                     />
                   </TouchableOpacity>
                 </View>
@@ -162,7 +162,7 @@ const SaveAdvanceSoundModal = ({
                           });
                         }
                       }}
-                      style={{width: '50%'}}
+                      style={{ width: '50%' }}
                     />
                   </View>
                 </ImageBackground>
@@ -174,7 +174,7 @@ const SaveAdvanceSoundModal = ({
     </Modal>
   );
 };
-const AdvanceSetting = ({navigation}) => {
+const AdvanceSetting = ({ navigation }) => {
   const dispatch = useDispatch();
   const [loader, setLoader] = useState(false);
   const [modalopen, setModalOpen] = useState(false);
@@ -186,12 +186,12 @@ const AdvanceSetting = ({navigation}) => {
   const [selectTime, setselectTime] = useState(0);
 
   const [time, setTime] = useState({
-    pre: {second: '', song: '', songName: ''},
-    med: {minute: '', second: '', song: '', songName: ''},
-    int: {minute: '', second: '', song: '', songName: ''},
-    end: {song: '', songName: ''},
-    res: {second: '', song: '', songName: ''},
-    user: {name: ''},
+    pre: { second: '', song: '', songName: '' },
+    med: { minute: '', second: ''},
+    int: { minute: '', second: '', song: '', songName: '' },
+    end: { song: '', songName: '' },
+    res: { second: '', song: '', songName: '' },
+    user: { name: '' },
   });
 
   const updateTime = (key, unit, value) => {
@@ -218,13 +218,13 @@ const AdvanceSetting = ({navigation}) => {
     });
   };
 
-  const SoundModal = ({visible, onClose}) => {
+  const SoundModal = ({ visible, onClose }) => {
     const [sound, setSound] = useState([]);
     const [music, setmusic] = useState();
     const [selectedValue, setSelectedValue] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const {pauseMusic, playMusic, stopMusic, seekTo, currentTime,stopMusicAndReset,releaseMusic} =
+    const { pauseMusic, playMusic, stopMusic, seekTo, currentTime, stopMusicAndReset, releaseMusic } =
       useNativeMusicPlayer({
         song1: selectedValue?.music_path,
         pause: false,
@@ -282,7 +282,7 @@ const AdvanceSetting = ({navigation}) => {
         </View>
       );
     };
-   
+
 
     useEffect(() => {
       console.log('Selected Music Path:', selectedValue?.music_path);
@@ -301,12 +301,12 @@ const AdvanceSetting = ({navigation}) => {
 
       playSelectedSound();
     }, [selectedValue]);
-    const renderItem = ({item, index}) => {
+    const renderItem = ({ item, index }) => {
       return (
         <View style={styles.card} key={index}>
           <View style={styles.content}>
             <TouchableOpacity
-              style={{flexDirection: 'row'}}
+              style={{ flexDirection: 'row' }}
               onPress={() => setSelectedValue(item)}>
               <RadioButton
                 value={item.id}
@@ -318,13 +318,13 @@ const AdvanceSetting = ({navigation}) => {
               <Text style={styles.title}>{item?.name}</Text>
             </TouchableOpacity>
 
-     
+
             <TouchableOpacity
               onPress={() => {
                 releaseMusic('player1'); // Stop previous
                 playMusic('player1');
               }}>
-              <Image source={IconData.SOUND} style={{width: 24, height: 24}} />
+              <Image source={IconData.SOUND} style={{ width: 24, height: 24 }} />
             </TouchableOpacity>
           </View>
         </View>
@@ -343,7 +343,7 @@ const AdvanceSetting = ({navigation}) => {
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                   <Image
                     source={IconData.CANCEL}
-                    style={{width: 35, height: 35}}
+                    style={{ width: 35, height: 35 }}
                   />
                 </TouchableOpacity>
               </View>
@@ -359,7 +359,7 @@ const AdvanceSetting = ({navigation}) => {
                 <FlatList
                   data={sound}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{paddingBottom: 20}}
+                  contentContainerStyle={{ paddingBottom: 20 }}
                   ListEmptyComponent={emptyComponent}
                   renderItem={renderItem}
                 />
@@ -380,7 +380,7 @@ const AdvanceSetting = ({navigation}) => {
                     height={40}
                     font={Font.EBGaramond_SemiBold}
                     onPress={handleSave}
-                    style={{width: '50%'}}
+                    style={{ width: '50%' }}
                   />
                 </View>
               </ImageBackground>
@@ -398,9 +398,8 @@ const AdvanceSetting = ({navigation}) => {
       Toast.show({
         type: 'error',
         text1: 'Meditation Data',
-        text2: `Missing: ${missingFields[0]}${
-          missingFields.length > 1 ? ' and more' : ''
-        }`,
+        text2: `Missing: ${missingFields[0]}${missingFields.length > 1 ? ' and more' : ''
+          }`,
         visibilityTime: 2000,
         position: 'top',
       });
@@ -418,12 +417,12 @@ const AdvanceSetting = ({navigation}) => {
 
       // Reset form
       setTime({
-        pre: {second: '', song: '', songName: ''},
-        med: {minute: '', second: '', song: '', songName: ''},
-        int: {minute: '', second: '', song: '', songName: ''},
-        end: {song: '', songName: ''},
-        res: {second: '', song: '', songName: ''},
-        user: {name: ''},
+        pre: { second: '', song: '', songName: '' },
+        med: { minute: '', second: '', song: '', songName: '' },
+        int: { minute: '', second: '', song: '', songName: '' },
+        end: { song: '', songName: '' },
+        res: { second: '', song: '', songName: '' },
+        user: { name: '' },
       });
     }, 300);
   };
@@ -449,9 +448,8 @@ const AdvanceSetting = ({navigation}) => {
       Toast.show({
         type: 'error',
         text1: 'Meditation Data',
-        text2: `Missing: ${missingFields[0]}${
-          missingFields.length > 1 ? ' and more' : ''
-        }`,
+        text2: `Missing: ${missingFields[0]}${missingFields.length > 1 ? ' and more' : ''
+          }`,
         visibilityTime: 2000,
         position: 'top',
       });
@@ -521,7 +519,7 @@ const AdvanceSetting = ({navigation}) => {
               <Image
                 source={IconData.BACK}
                 tintColor={Color?.LIGHTGREEN}
-                style={{width: 24, height: 24}}
+                style={{ width: 24, height: 24 }}
               />
             </View>
           </TouchableOpacity>
@@ -548,7 +546,7 @@ const AdvanceSetting = ({navigation}) => {
                   marginTop: '10%',
                   borderWidth: 1,
                   borderColor: Color.LIGHTGREEN,
-                  backgroundColor: Color?.LIGHTBROWN,
+                  // backgroundColor: Color?.LIGHTBROWN,
                 }}>
                 <View
                   style={{
@@ -561,7 +559,7 @@ const AdvanceSetting = ({navigation}) => {
                   <Image
                     source={ImageData.LEFT}
                     resizeMode="contain"
-                    style={{width: 31, height: 31}}
+                    style={{ width: 31, height: 31 }}
                   />
                   <Image
                     source={ImageData.RIGHT}
@@ -611,7 +609,7 @@ const AdvanceSetting = ({navigation}) => {
                       onChangeText={text =>
                         setTime(prev => ({
                           ...prev,
-                          user: {...prev.user, name: text}, // ✅ This correctly updates `user.name`
+                          user: { ...prev.user, name: text }, // ✅ This correctly updates `user.name`
                         }))
                       }
                       placeholder="Name"
@@ -662,14 +660,16 @@ const AdvanceSetting = ({navigation}) => {
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexDirection: 'row',
-                            gap: 20,
+                            paddingLeft: 10,
+                            paddingRight: 5,
+                            gap: 10,
                           }}>
                           <Text>{time?.pre?.second || 'Select'}</Text>
                           <Image
                             source={IconData.DROPDOWN}
                             style={{
-                              width: 24,
-                              height: 24,
+                              width: 20,
+                              height: 20,
                               alignSelf: 'center',
                               tintColor: Color.LIGHTGREEN,
                             }}
@@ -682,7 +682,7 @@ const AdvanceSetting = ({navigation}) => {
                           setModalOpen(true);
                         }}
                         style={{
-                          width: '40%',
+                          // width: '40%',
                           height: 40,
                           backgroundColor: Color.BROWN3,
                           alignSelf: 'center',
@@ -695,14 +695,18 @@ const AdvanceSetting = ({navigation}) => {
                           alignItems: 'center',
                           gap: 10,
                         }}>
-                        <Text>{time?.pre?.songName || 'Chime'}</Text>
+                        <Text>{(() => {
+                          const name = time?.pre?.songName || 'Chime';
+                          const words = name.trim().split(' ');
+                          return words.length > 1 ? `${words[0]}...` : name;
+                        })()}</Text>
                         <Image
                           source={IconData.DROPDOWN}
                           style={{
-                            width: 24,
-                            height: 24,
+                            width: 20,
+                            height: 20,
                             alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
+                            transform: [{ rotate: '270deg' }],
                             tintColor: Color.LIGHTGREEN,
                           }}
                         />
@@ -733,8 +737,10 @@ const AdvanceSetting = ({navigation}) => {
                             alignSelf: 'center',
                             borderRadius: 8,
                             borderWidth: 1,
-                            paddingHorizontal: 5,
+                            paddingLeft: 5,
+                            paddingRight: 5,
                             borderColor: Color.BROWN,
+                            marginStart: 12,
                           }}>
                           <TextInput
                             value={time?.med?.minute}
@@ -744,7 +750,7 @@ const AdvanceSetting = ({navigation}) => {
                                 .slice(0, 2);
                               setTime(prev => ({
                                 ...prev,
-                                med: {...prev.med, minute: cleaned},
+                                med: { ...prev.med, minute: cleaned },
                               }));
                             }}
                             maxLength={2}
@@ -754,13 +760,14 @@ const AdvanceSetting = ({navigation}) => {
                               width: '100%',
                               height: 40,
                               color: Color.LIGHTGREEN,
-                              fontSize: 16,
+                              fontSize: 12,
+                              textAlign: 'center',
                               fontFamily: Font.EBGaramond_Regular,
                             }}
                             selectionColor={Color.LIGHTGREEN}
                           />
                         </View>
-                        <Text style={{fontSize: 36, top: -5}}>:</Text>
+                        <Text style={{ fontSize: 25, top: 0 }}>:</Text>
                         <View
                           style={{
                             width: '50%',
@@ -769,7 +776,9 @@ const AdvanceSetting = ({navigation}) => {
                             alignSelf: 'center',
                             borderRadius: 8,
                             borderWidth: 1,
-                            paddingHorizontal: 5,
+                            paddingLeft: 5,
+                            paddingRight: 5,
+                            paddingTop: 1,
                             borderColor: Color.BROWN,
                           }}>
                           <TextInput
@@ -780,7 +789,7 @@ const AdvanceSetting = ({navigation}) => {
                                 .slice(0, 2);
                               setTime(prev => ({
                                 ...prev,
-                                med: {...prev.med, second: cleaned},
+                                med: { ...prev.med, second: cleaned },
                               }));
                             }}
                             placeholder="SS"
@@ -790,20 +799,21 @@ const AdvanceSetting = ({navigation}) => {
                               width: '100%',
                               height: 40,
                               color: Color.LIGHTGREEN,
-                              fontSize: 16,
+                              fontSize: 13,
+                              textAlign: 'center',
                               fontFamily: Font.EBGaramond_Regular,
                             }}
                             selectionColor={Color.LIGHTGREEN}
                           />
                         </View>
                       </View>
-                      <TouchableOpacity
+                      {/* <TouchableOpacity
                         onPress={() => {
                           setActiveKey('med');
                           setModalOpen(true);
                         }}
                         style={{
-                          width: '40%',
+                          // width: '40%',
                           height: 40,
                           backgroundColor: Color.BROWN3,
                           alignSelf: 'center',
@@ -816,18 +826,24 @@ const AdvanceSetting = ({navigation}) => {
                           alignItems: 'center',
                           gap: 10,
                         }}>
-                        <Text>{time?.med?.songName || 'Chime'}</Text>
+                        <Text > {(() => {
+                          const name = time?.med?.songName || 'Chime';
+                          const words = name.trim().split(' ');
+                          return words.length > 1
+                            ? `${words[0]}...`
+                            : name;
+                        })()}</Text>
                         <Image
                           source={IconData.DROPDOWN}
                           style={{
-                            width: 24,
-                            height: 24,
+                            width: 20,
+                            height: 20,
                             alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
+                            transform: [{ rotate: '270deg' }],
                             tintColor: Color.LIGHTGREEN,
                           }}
                         />
-                      </TouchableOpacity>
+                      </TouchableOpacity> */}
                     </View>
                     <Text style={styles.headerText}>
                       Interval Chime (Repeat every)
@@ -858,6 +874,7 @@ const AdvanceSetting = ({navigation}) => {
                             borderWidth: 1,
                             paddingHorizontal: 5,
                             borderColor: Color.BROWN,
+                            marginStart: 12,
                           }}>
                           <TextInput
                             value={time?.int?.minute}
@@ -867,7 +884,7 @@ const AdvanceSetting = ({navigation}) => {
                                 .slice(0, 2);
                               setTime(prev => ({
                                 ...prev,
-                                int: {...prev.int, minute: cleaned},
+                                int: { ...prev.int, minute: cleaned },
                               }));
                             }}
                             placeholder="MM"
@@ -877,13 +894,14 @@ const AdvanceSetting = ({navigation}) => {
                               width: '100%',
                               height: 40,
                               color: Color.LIGHTGREEN,
-                              fontSize: 16,
+                              fontSize: 12,
+                              textAlign: 'center',
                               fontFamily: Font.EBGaramond_Regular,
                             }}
                             selectionColor={Color.LIGHTGREEN}
                           />
                         </View>
-                        <Text style={{fontSize: 36, top: -5}}>:</Text>
+                        <Text style={{ fontSize: 25, top: 0 }}>:</Text>
                         <View
                           style={{
                             width: '50%',
@@ -903,7 +921,7 @@ const AdvanceSetting = ({navigation}) => {
                                 .slice(0, 2);
                               setTime(prev => ({
                                 ...prev,
-                                int: {...prev.int, second: cleaned},
+                                int: { ...prev.int, second: cleaned },
                               }));
                             }}
                             placeholder="SS"
@@ -913,7 +931,8 @@ const AdvanceSetting = ({navigation}) => {
                               width: '100%',
                               height: 40,
                               color: Color.LIGHTGREEN,
-                              fontSize: 16,
+                              fontSize: 12,
+                              textAlign: 'center',
                               fontFamily: Font.EBGaramond_Regular,
                             }}
                             selectionColor={Color.LIGHTGREEN}
@@ -926,7 +945,7 @@ const AdvanceSetting = ({navigation}) => {
                           setModalOpen(true);
                         }}
                         style={{
-                          width: '40%',
+                          // width: '40%',
                           height: 40,
                           backgroundColor: Color.BROWN3,
                           alignSelf: 'center',
@@ -939,14 +958,19 @@ const AdvanceSetting = ({navigation}) => {
                           alignItems: 'center',
                           gap: 10,
                         }}>
-                        <Text>{time?.int?.songName || 'Chime'}</Text>
+                        <Text>{(() => {
+                          const rawName = time?.int?.songName;
+                          const name = typeof rawName === 'string' && rawName.trim() ? rawName.trim() : 'Chime';
+                          const words = name.split(' ');
+                          return words.length > 1 ? `${words[0]}...` : name;
+                        })()}</Text>
                         <Image
                           source={IconData.DROPDOWN}
                           style={{
-                            width: 24,
-                            height: 24,
+                            width: 20,
+                            height: 20,
                             alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
+                            transform: [{ rotate: '270deg' }],
                             tintColor: Color.LIGHTGREEN,
                           }}
                         />
@@ -963,6 +987,7 @@ const AdvanceSetting = ({navigation}) => {
                       <View
                         style={{
                           height: 40,
+                          marginTop: 10,
                         }}>
                         <Text style={styles.headerText}>End Alert</Text>
                       </View>
@@ -972,7 +997,7 @@ const AdvanceSetting = ({navigation}) => {
                           setModalOpen(true);
                         }}
                         style={{
-                          width: '40%',
+                          // width: '40%',
                           height: 40,
                           backgroundColor: Color.BROWN3,
                           alignSelf: 'center',
@@ -985,14 +1010,21 @@ const AdvanceSetting = ({navigation}) => {
                           alignItems: 'center',
                           gap: 10,
                         }}>
-                        <Text>{time?.end?.songName || 'Chime'}</Text>
+                        <Text>
+                          {(() => {
+                            const rawName = time?.end?.songName;
+                            const name = typeof rawName === 'string' && rawName.trim() ? rawName.trim() : 'Chime';
+                            const words = name.split(' ');
+                            return words.length > 1 ? `${words[0]}...` : name;
+                          })()}
+                        </Text>
                         <Image
                           source={IconData.DROPDOWN}
                           style={{
-                            width: 24,
-                            height: 24,
+                            width: 20,
+                            height: 20,
                             alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
+                            transform: [{ rotate: '270deg' }],
                             tintColor: Color.LIGHTGREEN,
                           }}
                         />
@@ -1016,7 +1048,6 @@ const AdvanceSetting = ({navigation}) => {
                           borderRadius: 8,
                           borderWidth: 1,
                           padding: 10,
-
                           borderColor: Color.BROWN,
                         }}>
                         <TouchableOpacity
@@ -1029,6 +1060,8 @@ const AdvanceSetting = ({navigation}) => {
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexDirection: 'row',
+                            paddingLeft: 10,
+                            paddingRight: 5,
                             gap: 10,
                           }}>
                           <Text>{time?.res?.second || 'Select'}</Text>
@@ -1036,8 +1069,8 @@ const AdvanceSetting = ({navigation}) => {
                           <Image
                             source={IconData.DROPDOWN}
                             style={{
-                              width: 24,
-                              height: 24,
+                              width: 20,
+                              height: 20,
                               alignSelf: 'center',
                               tintColor: Color.LIGHTGREEN,
                             }}
@@ -1050,7 +1083,7 @@ const AdvanceSetting = ({navigation}) => {
                           setModalOpen(true);
                         }}
                         style={{
-                          width: '40%',
+                          // width: '40%',
                           height: 40,
                           backgroundColor: Color.BROWN3,
                           alignSelf: 'center',
@@ -1063,14 +1096,23 @@ const AdvanceSetting = ({navigation}) => {
                           alignItems: 'center',
                           gap: 10,
                         }}>
-                        <Text>{time?.res?.songName || 'Chime'}</Text>
+                        <Text>
+                          {(() => {
+                            const rawName = time?.res?.songName;
+                            const name = typeof rawName === 'string' && rawName.trim() ? rawName.trim() : 'Chime';
+                            const words = name.split(' ');
+                            return words.length > 1 ? `${words[0]}...` : name;
+                          })()}
+
+
+                        </Text>
                         <Image
                           source={IconData.DROPDOWN}
                           style={{
-                            width: 24,
-                            height: 24,
+                            width: 20,
+                            height: 20,
                             alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
+                            transform: [{ rotate: '270deg' }],
                             tintColor: Color.LIGHTGREEN,
                           }}
                         />
@@ -1100,7 +1142,7 @@ const AdvanceSetting = ({navigation}) => {
                     img={IconData.SAVE}
                     text="Save"
                     left={true}
-                    width={130}
+                    width={100}
                     height={40}
                     size={16}
                     color={Color.BROWN3}
