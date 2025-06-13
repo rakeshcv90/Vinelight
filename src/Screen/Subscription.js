@@ -27,6 +27,7 @@ import * as RNIap from 'react-native-iap';
 import Toast from 'react-native-toast-message';
 import ActivityLoader from '../Component/ActivityLoader';
 import {setSubscriptionDetails} from '../redux/actions';
+import axios from 'axios';
 
 const {width, height} = Dimensions.get('window');
 const Subscription = ({navigation}) => {
@@ -94,25 +95,116 @@ const Subscription = ({navigation}) => {
       }
     }
   });
+  // useEffect(() => {
+  //   if (Platform.OS !== 'android') return;
+  //   let hasHandled = false;
+
+  //   const purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
+  //     async purchase => {
+  //       try {
+  //         const receipt = purchase.transactionReceipt;
+  //         const isAndroid = Platform.OS === 'android';
+  //         const isIos = Platform.OS === 'ios';
+
+  //         const isAndroidPurchased =
+  //           isAndroid && purchase?.purchaseStateAndroid === 1;
+  //         const isAndroidPending =
+  //           isAndroid && purchase?.purchaseStateAndroid === 2;
+  //         const isIosValid = isIos && receipt;
+  //         if (isAndroidPending) {
+  //           console.log(
+  //             'ℹ️ Purchase pending, waiting for completion:',
+  //             purchase.productId,
+  //           );
+
+  //           Toast.show({
+  //             type: 'error',
+  //             text1: 'Subscription Purchase',
+  //             text2: 'Your purchase is pending completion',
+  //             visibilityTime: 1500,
+  //             position: 'top',
+  //           });
+  //           return;
+  //         }
+  //         if ((isAndroidPurchased || isIosValid) && receipt) {
+  //           // First finish the transaction to prevent duplicate processing
+  //           await RNIap.finishTransaction({purchase, isConsumable: false});
+
+  //           // Prepare subscription data
+  //           const subscriptionData = {
+  //             productId: purchase.productId,
+  //             transactionId: purchase.transactionId,
+  //             transactionDate: purchase.transactionDate,
+  //             subscriptionStatus: 'Active',
+  //             receipt: receipt,
+  //             platform: Platform.OS,
+  //             ...(isAndroid && {purchaseToken: purchase.purchaseToken}),
+  //             ...(isIos && {
+  //               originalTransactionId:
+  //                 purchase.originalTransactionIdentifierIOS,
+  //               originalTransactionDate: purchase.originalTransactionDateIOS,
+  //             }),
+  //           };
+
+  //           Toast.show({
+  //             type: 'success',
+  //             text1: 'Subscription Purchase',
+  //             text2: 'Subscription activated successfully!',
+  //             visibilityTime: 1500,
+  //             position: 'top',
+  //           });
+  //           console.log('✅ Subscription processed:', subscriptionData);
+  //           dispatch(setSubscriptionDetails(subscriptionData));
+  //         }
+  //       } catch (err) {
+  //         console.warn('⚠️ Error finalizing transaction', err);
+  //       }
+  //     },
+  //   );
+
+  //   const purchaseErrorSubscription = RNIap.purchaseErrorListener(error => {
+  //     if (error.code === 'E_USER_CANCELLED' || error.responseCode === '2') {
+  //       console.log('User cancelled the purchase');
+  //       // Don't show error for cancellations
+  //     } else {
+  //       Toast.show({
+  //         type: 'error',
+  //         text1: 'Subscription Purchase',
+  //         text2: getPurchaseErrorMessage(error),
+  //         visibilityTime: 1500,
+  //         position: 'top',
+  //       });
+  //     }
+  //   });
+
+  //   return () => {
+  //     if (purchaseUpdateSubscription) {
+  //       purchaseUpdateSubscription.remove();
+  //     }
+  //     if (purchaseErrorSubscription) {
+  //       purchaseErrorSubscription.remove();
+  //     }
+  //   };
+  // }, []);
+
+
   useEffect(() => {
+    if (Platform.OS !== 'android') return;
+  
+    let hasHandled = false;
+  
     const purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
       async purchase => {
+        if (hasHandled) return;
+        hasHandled = true;
+  
         try {
           const receipt = purchase.transactionReceipt;
-          const isAndroid = Platform.OS === 'android';
-          const isIos = Platform.OS === 'ios';
-
-          const isAndroidPurchased =
-            isAndroid && purchase?.purchaseStateAndroid === 1;
-          const isAndroidPending =
-            isAndroid && purchase?.purchaseStateAndroid === 2;
-          const isIosValid = isIos && receipt;
+          const isAndroidPurchased = purchase?.purchaseStateAndroid === 1;
+          const isAndroidPending = purchase?.purchaseStateAndroid === 2;
+  
           if (isAndroidPending) {
-            console.log(
-              'ℹ️ Purchase pending, waiting for completion:',
-              purchase.productId,
-            );
-
+            console.log('ℹ️ Purchase pending:', purchase.productId);
             Toast.show({
               type: 'error',
               text1: 'Subscription Purchase',
@@ -122,46 +214,40 @@ const Subscription = ({navigation}) => {
             });
             return;
           }
-          if ((isAndroidPurchased || isIosValid) && receipt) {
-            // First finish the transaction to prevent duplicate processing
-            await RNIap.finishTransaction({purchase, isConsumable: false});
-
-            // Prepare subscription data
+  
+          if (isAndroidPurchased && receipt) {
+            await RNIap.finishTransaction({ purchase, isConsumable: false });
+  
             const subscriptionData = {
               productId: purchase.productId,
               transactionId: purchase.transactionId,
               transactionDate: purchase.transactionDate,
               subscriptionStatus: 'Active',
-              receipt: receipt,
-              platform: Platform.OS,
-              ...(isAndroid && {purchaseToken: purchase.purchaseToken}),
-              ...(isIos && {
-                originalTransactionId:
-                  purchase.originalTransactionIdentifierIOS,
-                originalTransactionDate: purchase.originalTransactionDateIOS,
-              }),
+              receipt,
+              platform: 'android',
+              purchaseToken: purchase.purchaseToken,
             };
-
+  
             Toast.show({
               type: 'success',
               text1: 'Subscription Purchase',
-              text2: 'ubscription activated successfully!',
+              text2: 'Subscription activated successfully!',
               visibilityTime: 1500,
               position: 'top',
             });
+  
             console.log('✅ Subscription processed:', subscriptionData);
-            // dispatch(setSubscriptionDetails(subscriptionData));
+            dispatch(setSubscriptionDetails(subscriptionData));
           }
         } catch (err) {
           console.warn('⚠️ Error finalizing transaction', err);
         }
-      },
+      }
     );
-
+  
     const purchaseErrorSubscription = RNIap.purchaseErrorListener(error => {
       if (error.code === 'E_USER_CANCELLED' || error.responseCode === '2') {
         console.log('User cancelled the purchase');
-        // Don't show error for cancellations
       } else {
         Toast.show({
           type: 'error',
@@ -172,16 +258,14 @@ const Subscription = ({navigation}) => {
         });
       }
     });
-
+  
     return () => {
-      if (purchaseUpdateSubscription) {
-        purchaseUpdateSubscription.remove();
-      }
-      if (purchaseErrorSubscription) {
-        purchaseErrorSubscription.remove();
-      }
+      purchaseUpdateSubscription?.remove();
+      purchaseErrorSubscription?.remove();
+      hasHandled = false;
     };
   }, []);
+  
   function getPurchaseErrorMessage(error) {
     if (error.code === 'E_ALREADY_OWNED') {
       return 'You already own this subscription';
@@ -203,23 +287,68 @@ const Subscription = ({navigation}) => {
   };
 
   const purchaseItems = async items => {
-    console.log('ddddddd', items);
     // setForLoading(true);
     try {
       const purchase = await RNIap.requestSubscription({
         sku: items,
       });
 
-      if (purchase) {
-        // validateIOS(purchase.transactionReceipt);
-      } else {
-        // setForLoading(false);
-        // showMessage({
-        //   message: 'Subscription purchase failed.',
-        //   type: 'danger',
-        //   animationDuration: 500,
-        //   floating: true,
-        // });
+      try {
+        const receipt = purchase.transactionReceipt;
+        const isAndroid = Platform.OS === 'android';
+        const isIos = Platform.OS === 'ios';
+
+        const isAndroidPurchased =
+          isAndroid && purchase?.purchaseStateAndroid === 1;
+        const isAndroidPending =
+          isAndroid && purchase?.purchaseStateAndroid === 2;
+        const isIosValid = isIos && receipt;
+        if (isAndroidPending) {
+          console.log(
+            'ℹ️ Purchase pending, waiting for completion:',
+            purchase.productId,
+          );
+
+          Toast.show({
+            type: 'error',
+            text1: 'Subscription Purchase',
+            text2: 'Your purchase is pending completion',
+            visibilityTime: 1500,
+            position: 'top',
+          });
+          return;
+        }
+        if ((isAndroidPurchased || isIosValid) && receipt) {
+          // First finish the transaction to prevent duplicate processing
+          await RNIap.finishTransaction({purchase, isConsumable: false});
+
+          // Prepare subscription data
+          const subscriptionData = {
+            productId: purchase.productId,
+            transactionId: purchase.transactionId,
+            transactionDate: purchase.transactionDate,
+            subscriptionStatus: 'Active',
+            receipt: receipt,
+            platform: Platform.OS,
+            ...(isAndroid && {purchaseToken: purchase.purchaseToken}),
+            ...(isIos && {
+              originalTransactionId: purchase.originalTransactionIdentifierIOS,
+              originalTransactionDate: purchase.originalTransactionDateIOS,
+            }),
+          };
+
+          Toast.show({
+            type: 'success',
+            text1: 'Subscription Purchase',
+            text2: 'Subscription activated successfully!',
+            visibilityTime: 1500,
+            position: 'top',
+          });
+          console.log('✅ Subscription processed:', subscriptionData);
+          dispatch(setSubscriptionDetails(subscriptionData));
+        }
+      } catch (err) {
+        console.warn('⚠️ Error finalizing transaction', err);
       }
     } catch (error) {
       // showMessage({
@@ -257,10 +386,11 @@ const Subscription = ({navigation}) => {
         visibilityTime: 2000,
         position: 'top',
       });
+      setLoader(false);
       dispatch(setSubscriptionDetails([]));
       return;
     } else {
-      setLoader(false);
+      // setLoader(false);
       if (Platform.OS == 'android') {
         const sortedPurchases = purchases.sort(
           (a, b) => b.transactionDate - a.transactionDate,
@@ -282,6 +412,7 @@ const Subscription = ({navigation}) => {
             visibilityTime: 2000,
             position: 'top',
           });
+          dispatch(setSubscriptionDetails([]));
           return;
         }
 
@@ -321,17 +452,17 @@ const Subscription = ({navigation}) => {
           visibilityTime: 2000,
           position: 'top',
         });
-
+        setLoader(false);
         dispatch(setSubscriptionDetails(subscriptionData));
       } else {
         const latestPurchase = purchases[purchases.length - 1];
-      
+
         const apiRequestBody = {
           'receipt-data': latestPurchase.transactionReceipt,
           password: 'f41a27c3319749ccb2e0e4607ecb0664',
+          'exclude-old-transactions': true, // optional
         };
 
-        console.log("zdfddddd",apiRequestBody)
         try {
           const result = await axios(
             'https://sandbox.itunes.apple.com/verifyReceipt',
@@ -343,52 +474,74 @@ const Subscription = ({navigation}) => {
               data: apiRequestBody,
             },
           );
+          setLoader(false);
+          const receipt = purchases.transactionReceipt;
+          const isAndroid = Platform.OS === 'android';
+          const isIos = Platform.OS === 'ios';
 
-          // let timestamp =
-          //   result.data.latest_receipt_info[0].original_purchase_date;
+          const isAndroidPurchased =
+            isAndroid && purchases?.purchaseStateAndroid === 1;
+          const isAndroidPending =
+            isAndroid && purchases?.purchaseStateAndroid === 2;
+          const isIosValid = isIos && receipt;
 
-          // const [datePart] = timestamp.split(' ');
+          let timestamp =
+            result.data.latest_receipt_info[0].original_purchase_date;
 
-          // if (result.data) {
-          //   const renewalHistory = result.data.pending_renewal_info;
+          const [datePart] = timestamp.split(' ');
 
-          //   const activeSubs = renewalHistory.filter(item => {
-          //     if (item.auto_renew_status == '1') {
-          //       Toast.show({
-          //         type: 'success',
-          //         text1: 'Subscription Restored',
+          if (result.data) {
+            const renewalHistory = result.data.pending_renewal_info;
 
-          //         visibilityTime: 2000,
-          //         position: 'top',
-          //       });
-          //     } else {
-          //       Toast.show({
-          //         type: 'error',
-          //         text1: 'No Active Subscription Found!',
-          //         visibilityTime: 2000,
-          //         position: 'top',
-          //       });
-          //     }
-          //   });
-          // } else {
-          //   Toast.show({
-          //     type: 'error',
-          //     text1: 'No Active Subscription Found!',
-          //     visibilityTime: 2000,
-          //     position: 'top',
-          //   });
-          // }
+            const activeSubs = renewalHistory.filter(item => {
+              if (item.auto_renew_status == '1') {
+                // Prepare subscription data
+                const subscriptionData = {
+                  productId: item?.product_id,
+                  transactionId: item?.transaction_id,
+                  transactionDate: item?.purchase_date_ms,
+                  subscriptionStatus: 'Active',
+                  receipt: receipt,
+                  platform: Platform.OS,
+                  ...(isAndroid && {purchaseToken: purchases.purchaseToken}),
+                  ...(isIos && {
+                    originalTransactionId:
+                      purchases.originalTransactionIdentifierIOS,
+                    originalTransactionDate:
+                      purchases.originalTransactionDateIOS,
+                  }),
+                };
+
+                Toast.show({
+                  type: 'success',
+                  text1: 'Subscription Purchase',
+                  text2: 'ubscription activated successfully!',
+                  visibilityTime: 1500,
+                  position: 'top',
+                });
+
+                dispatch(setSubscriptionDetails(subscriptionData));
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'No Active Subscription Found!',
+                  visibilityTime: 2000,
+                  position: 'top',
+                });
+                dispatch(setSubscriptionDetails([]));
+              }
+            });
+          } else {
+            Toast.show({
+              type: 'error',
+              text1: 'No Active Subscription Found!',
+              visibilityTime: 2000,
+              position: 'top',
+            });
+          }
         } catch (error) {
-          showMessage({
-            message: 'No Active Subscription Found!',
-            type: 'danger',
-            animationDuration: 500,
-
-            floating: true,
-            // // icon: {icon: 'auto', position: 'left'},
-          });
-          setForLoading(false);
-          console.log(error);
+          setLoader(false);
+          console.log('Reeeeeeeee', error);
         }
       }
     }
@@ -865,7 +1018,7 @@ const Subscription = ({navigation}) => {
                     alignItems: 'center',
                     alignSelf: 'center',
 
-                    gap: 5,
+                    gap: 20,
                     flexDirection: 'row',
                   }}>
                   <TouchableOpacity
@@ -890,8 +1043,9 @@ const Subscription = ({navigation}) => {
                       }
                     }}
                     style={{
-                      width: 150,
-                      height: 40,
+                      // width: 150,
+                      // height: 40,
+                      padding: 13,
                       backgroundColor: Color.LIGHTGREEN,
                       borderRadius: 30,
                       justifyContent: 'center',
@@ -911,8 +1065,9 @@ const Subscription = ({navigation}) => {
                       restorePurchase();
                     }}
                     style={{
-                      width: 150,
-                      height: 40,
+                      // width: 150,
+                      // height: 40,
+                      padding: 13,
                       backgroundColor: '#1B2112',
                       borderRadius: 30,
                       justifyContent: 'center',

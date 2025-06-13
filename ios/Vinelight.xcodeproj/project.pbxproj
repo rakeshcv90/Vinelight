@@ -23,7 +23,6 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		85E6AB89EF2147EF95027B1C /* EBGaramond-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D2D07370269B4F49A39E7253 /* EBGaramond-SemiBold.ttf */; };
 		A59D575C2DED60E800C92036 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A59D575B2DED60E700C92036 /* StoreKit.framework */; };
-		A5BAD8E92DF8388A00C661B3 /* SubscriptionGroup.storekit in Resources */ = {isa = PBXBuildFile; fileRef = A5BAD8E82DF8388A00C661B3 /* SubscriptionGroup.storekit */; };
 		C624472C596D4711BDC2CA7D /* EBGaramond-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 508C15A6DABD4B41BCC4E507 /* EBGaramond-SemiBoldItalic.ttf */; };
 		DC7E68334C4891335BA7A8B4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		FFC3FBBE31574836B5A4BB59 /* EBGaramond-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AF2D617C987C4D719C1485B1 /* EBGaramond-Regular.ttf */; };
@@ -51,8 +50,9 @@
 		82CE450167F44668A48238F5 /* EBGaramond-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-ExtraBold.ttf"; path = "../assets/fonts/EBGaramond-ExtraBold.ttf"; sourceTree = "<group>"; };
 		8954D1A0ED91401F8273ADFD /* EBGaramond-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-Medium.ttf"; path = "../assets/fonts/EBGaramond-Medium.ttf"; sourceTree = "<group>"; };
 		8F8B2B22A74C4540A496A9E5 /* EBGaramond-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-BoldItalic.ttf"; path = "../assets/fonts/EBGaramond-BoldItalic.ttf"; sourceTree = "<group>"; };
+
 		A59D575B2DED60E700C92036 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
-		A5BAD8E82DF8388A00C661B3 /* SubscriptionGroup.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = SubscriptionGroup.storekit; sourceTree = "<group>"; };
+
 		AF2D617C987C4D719C1485B1 /* EBGaramond-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-Regular.ttf"; path = "../assets/fonts/EBGaramond-Regular.ttf"; sourceTree = "<group>"; };
 		D2D07370269B4F49A39E7253 /* EBGaramond-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-SemiBold.ttf"; path = "../assets/fonts/EBGaramond-SemiBold.ttf"; sourceTree = "<group>"; };
 		DF22E04EFCBC4467A89CDA2A /* EBGaramond-Variable.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EBGaramond-Variable.ttf"; path = "../assets/fonts/EBGaramond-Variable.ttf"; sourceTree = "<group>"; };
@@ -84,7 +84,6 @@
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				2AEEE87C2DE570A000C373DD /* Vinelight-Bridging-Header.h */,
-				A5BAD8E82DF8388A00C661B3 /* SubscriptionGroup.storekit */,
 			);
 			name = Vinelight;
 			sourceTree = "<group>";
@@ -223,7 +222,6 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				DC7E68334C4891335BA7A8B4 /* PrivacyInfo.xcprivacy in Resources */,
 				28C828131DEE497F8D7582F9 /* EBGaramond-Medium.ttf in Resources */,
-				A5BAD8E92DF8388A00C661B3 /* SubscriptionGroup.storekit in Resources */,
 				5AC8EEED3BBC43439D018479 /* EBGaramond-BoldItalic.ttf in Resources */,
 				2CE421411A304781B8F3A778 /* EBGaramond-ExtraBold.ttf in Resources */,
 				3AD740C086704F8AB0672656 /* EBGaramond-ExtraBoldItalic.ttf in Resources */,
@@ -334,7 +332,9 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+
 				DEVELOPMENT_TEAM = 9725P63YS7;
+
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Vinelight/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -367,7 +367,9 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+
 				DEVELOPMENT_TEAM = 9725P63YS7;
+
 				INFOPLIST_FILE = Vinelight/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -458,10 +460,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -530,10 +529,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;

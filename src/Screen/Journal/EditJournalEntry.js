@@ -11,6 +11,7 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -19,23 +20,39 @@ import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import CustomeHeader from '../../Component/CustomeHeader';
 import ActivityLoader from '../../Component/ActivityLoader';
 import {RichEditor} from 'react-native-pell-rich-editor';
-import {Modal} from 'react-native-paper';
+
 import Button from '../../Component/Button';
 import {setJournalData, updateJournalData} from '../../redux/actions';
 import uuid from 'react-native-uuid';
 import TooltipModal2 from '../../Component/TooltipModal2';
 import PromptModal from '../../Component/PromptModal';
+import ColorToolModal from '../../Component/ColorToolModal';
 const {width, height} = Dimensions.get('window');
 
 const fonts = [
   {label: 'Georgia', value: 'Georgia'},
   {label: 'Courier New', value: 'Courier New'},
+  {label: 'Times New Roman', value: 'Times New Roman'},
+  {label: 'Arial', value: 'Arial'},
+  {label: 'Verdana', value: 'Verdana'},
+  {label: 'Trebuchet MS', value: 'Trebuchet MS'},
+  {label: 'Palatino', value: 'Palatino'},
+  {label: 'Garamond', value: 'Garamond'},
+  {label: 'Comic Sans MS', value: 'Comic Sans MS'},
+  {label: 'Impact', value: 'Impact'},
+  {label: 'Lucida Console', value: 'Lucida Console'},
+  {label: 'Tahoma', value: 'Tahoma'},
+  {label: 'Helvetica', value: 'Helvetica'},
+  {label: 'Optima', value: 'Optima'},
+  {label: 'Didot', value: 'Didot'},
+  {label: 'Monaco', value: 'Monaco'},
+  {label: 'Brush Script MT', value: 'Brush Script MT'},
 ];
-
 const EditJournalEntry = ({navigation, route}) => {
   const [currentDat, setCurrentDate] = useState(
     moment().format(route?.params?.journalData?.currentDat),
   );
+  const [colorModal, setColorModa] = useState(false);
   const dispatch = useDispatch();
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const subscription = useSelector(state => state?.user?.subscription);
@@ -377,12 +394,12 @@ const EditJournalEntry = ({navigation, route}) => {
                       gap: 10,
                       borderRadius: 6,
                     }}>
-                    <Image
+                    {/* <Image
                       source={IconData.FONTITEM}
                       resizeMode="contain"
                       style={{width: 30, height: 30}}
                       tintColor={Color.LIGHTGREEN}
-                    />
+                    /> */}
                     <Text
                       numberOfLines={1}
                       style={{
@@ -415,31 +432,56 @@ const EditJournalEntry = ({navigation, route}) => {
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => onColorSelect('#ff5733')}>
+                  <TouchableOpacity onPress={() => setColorModa(true)}>
                     <Image
                       source={IconData.FONTCOLOR}
                       style={{width: 30, height: 30}}
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={onUnderLine}>
+
+                  <TouchableOpacity
+                    onPress={onUnderLine}
+                    style={{
+                      backgroundColor: !style.underline
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
                     <Image
                       source={IconData.UNDERLINE}
                       style={{width: 30, height: 30}}
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={onBold}>
+                  <TouchableOpacity
+                    onPress={onBold}
+                    style={{
+                      backgroundColor: !style.bold
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
                     <Image
                       source={IconData.BOLD}
-                      style={{width: 30, height: 30}}
+                      style={{width: 25, height: 25}}
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={onItalic}>
+                  <TouchableOpacity
+                    onPress={onItalic}
+                    style={{
+                      backgroundColor: !style.italic
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
                     <Image
                       source={IconData.ITALIC}
-                      style={{width: 30, height: 30}}
+                      style={{width: 25, height: 25}}
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
@@ -492,7 +534,8 @@ const EditJournalEntry = ({navigation, route}) => {
                   alignItems: 'center',
                   overflow: 'hidden',
                 }}>
-                {subscription?.length <= 0 && (
+                {(subscription?.length > 0 ||
+                  subscription?.length == undefined) && (
                   <Button
                     img={IconData.PROMPT}
                     text="Prompts"
@@ -514,7 +557,7 @@ const EditJournalEntry = ({navigation, route}) => {
                   style={{
                     flexDirection: 'row',
                     gap: 5,
-                    marginLeft: subscription?.length <= 0 ? -10 : 0,
+                    // marginLeft: subscription?.length <= 0 ? -10 : 0,
                   }}
                   onPress={() => {
                     setTooltipVisible(true);
@@ -580,6 +623,15 @@ const EditJournalEntry = ({navigation, route}) => {
         onClose={() => {
           setPromptMOdalOpen(false);
         }}
+      />
+      <ColorToolModal
+        visible={colorModal}
+        selectedColor={style.color}
+        onSelect={hex => {
+          onColorSelect(hex); // ✅ Pass hex argument here
+          setColorModa(false); // Optionally close modal after selection
+        }}
+        onClose={() => setColorModa(false)}
       />
     </View>
   );

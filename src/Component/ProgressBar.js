@@ -260,7 +260,7 @@ import React, {useEffect, useState} from 'react';
 import {Color, IconData, PLATFORM_IOS} from '../../assets/Image';
 import LinearGradient from 'react-native-linear-gradient';
 import useNativeMusicPlayer from './NativeusicPlayer';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 
 const {width} = Dimensions.get('window');
 
@@ -384,14 +384,16 @@ const ProgressBar = ({
         <TouchableOpacity
           style={styles.iconCircle}
           activeOpacity={0.7}
-          onPress={
-            () =>
-              // stopMusic('player1')
-              pauseMusic('player1')
-            // setDefaultMusic(false)
-          }>
+          onPress={() => {
+            if (isPlaying) {
+              pauseMusic('player1');
+            } else {
+              playMusic('player1');
+            }
+            setIsPlaying(!isPlaying);
+          }}>
           <Image
-            source={defaultMusic ? IconData.MUSICCLOSE : IconData.MUSIC}
+            source={isPlaying ? IconData.MUSICCLOSE : IconData.MUSIC}
             style={styles.icon}
             resizeMode="contain"
           />

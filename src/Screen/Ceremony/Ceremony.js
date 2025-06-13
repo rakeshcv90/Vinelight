@@ -26,6 +26,7 @@ import ActivityLoader from '../../Component/ActivityLoader';
 import {deleteCeromonykById, setCeremonyInfo} from '../../redux/actions';
 import FastImage from 'react-native-fast-image';
 import uuid from 'react-native-uuid';
+import Toast from 'react-native-toast-message';
 const {width, height} = Dimensions.get('window');
 const Ceremony = () => {
   const [modalopen, setModalOpen] = useState(false);
@@ -89,8 +90,8 @@ const Ceremony = () => {
             visibilityTime: 3000,
             position: 'top',
           });
-          onClose?.();
-          setDatePickerVisibility?.(false);
+          // onClose?.();
+          // setDatePickerVisibility?.(false);
         }
       } catch (error) {
         console.error('Error in saveCeremony:', error);
@@ -115,7 +116,8 @@ const Ceremony = () => {
             onPress={Keyboard.dismiss}
             accessible={false}>
             <ScrollView
-              contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-end'}}>
+              contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-end'}}
+              keyboardShouldPersistTaps="handled">
               <View style={styles.modalWrapper}>
                 <ImageBackground
                   source={ImageData.MODAL}
@@ -165,8 +167,11 @@ const Ceremony = () => {
                     }}>
                     <TextInput
                       value={ceremonyName}
+                      autoFocus={true}
                       onChangeText={text => setCeremonyName(text)}
                       placeholder=" Name"
+                      multiline={true}
+                      // textAlignVertical="top"
                       placeholderTextColor={Color.GREEN}
                       style={{
                         width: '90%',
@@ -290,13 +295,20 @@ const Ceremony = () => {
     const createdDate = new Date(createdDateStr);
     const ceremonyDate = new Date(ceremonyDateStr);
     const currentDate = new Date();
+    if (isNaN(createdDate) || isNaN(ceremonyDate)) {
+      console.warn('Invalid created/ceremony date');
+      return 0;
+    }
+    createdDate.setHours(0, 0, 0, 0);
+    ceremonyDate.setHours(0, 0, 0, 0);
+    currentDate.setHours(0, 0, 0, 0);
 
     const totalDuration = ceremonyDate - createdDate;
     const elapsedDuration = currentDate - createdDate;
 
     if (totalDuration <= 0) return 1;
 
-    const progress = elapsedDuration / totalDuration;
+    const progress = (elapsedDuration + 86400000) / totalDuration;
 
     return Math.max(0, Math.min(progress, 1));
   };
@@ -307,6 +319,7 @@ const Ceremony = () => {
     const progress = getProgress(item?.createdDate, item?.CeremonyDate);
     const totalBarWidth = Dimensions.get('window').width * 0.82;
     const progressWidth = totalBarWidth * progress;
+    console.log('progress:', progress, 'width:', progressWidth);
     const {diffDays, countData} = dayCount(item?.CeremonyDate);
 
     return (
@@ -339,6 +352,7 @@ const Ceremony = () => {
             </TouchableOpacity>
           </View>
         </View>
+        {console.log('XCvcxvxcvxcvxcvcxv', countData, progressWidth)}
         {countData > 0 && (
           <View style={styles.progressWrapper}>
             <View style={styles.unfilledBar} />

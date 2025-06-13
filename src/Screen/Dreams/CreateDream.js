@@ -25,6 +25,7 @@ import {setDreamData} from '../../redux/actions';
 import ActivityLoader from '../../Component/ActivityLoader';
 import PromptDreamModal from '../../Component/PromptDreamModal';
 import Toast from 'react-native-toast-message';
+import ColorToolModal from '../../Component/ColorToolModal';
 const {width, height} = Dimensions.get('window');
 
 const fonts = [
@@ -51,6 +52,7 @@ const CreateDream = ({navigation}) => {
   const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
   const subscription = useSelector(state => state?.user?.subscription);
   const [propmModalOpen, setPromptMOdalOpen] = useState(false);
+  const [colorModal, setColorModa] = useState(false);
   const dispatch = useDispatch();
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const editorRef = useRef(null);
@@ -114,7 +116,7 @@ const CreateDream = ({navigation}) => {
     //   // `<span style="${combinedStyle}">&#8203;</span>`,
     //    `<span class="style-marker" style="${combinedStyle}">&#8203;</span>`
     // );
-  
+
     const {font, size, color, bold, italic, underline} = customStyle;
 
     let extra = '';
@@ -417,12 +419,6 @@ const CreateDream = ({navigation}) => {
                       gap: 10,
                       borderRadius: 6,
                     }}>
-                    {/* <Image
-                      source={IconData.FONTITEM}
-                      resizeMode="contain"
-                      style={{width: 30, height: 30}}
-                      tintColor={Color.LIGHTGREEN}
-                    /> */}
                     <Text
                       numberOfLines={1}
                       style={{
@@ -455,14 +451,16 @@ const CreateDream = ({navigation}) => {
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => onColorSelect('#ff5733')}>
+                  <TouchableOpacity onPress={() => setColorModa(true)}>
                     <Image
                       source={IconData.FONTCOLOR}
                       style={{width: 30, height: 30}}
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={onUnderLine}  style={{
+                  <TouchableOpacity
+                    onPress={onUnderLine}
+                    style={{
                       backgroundColor: !style.underline
                         ? 'transparent'
                         : Color.LIGHTBROWN2,
@@ -573,7 +571,7 @@ const CreateDream = ({navigation}) => {
                     style={{width: '50%', zIndex: -1}}
                   />
                 )}
-                <View style={{right: subscription?.length > 0 ? 0 : 10}}>
+                <View style={{right: hasActiveSubscription() ? 10 : 10}}>
                   <Button
                     img={IconData.SAVE}
                     text="Save"
@@ -599,6 +597,15 @@ const CreateDream = ({navigation}) => {
         onClose={() => {
           setPromptMOdalOpen(false);
         }}
+      />
+      <ColorToolModal
+        visible={colorModal}
+        selectedColor={style.color}
+        onSelect={hex => {
+          onColorSelect(hex); // ✅ Pass hex argument here
+          setColorModa(false); // Optionally close modal after selection
+        }}
+        onClose={() => setColorModa(false)}
       />
     </View>
   );

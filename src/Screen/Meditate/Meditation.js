@@ -56,6 +56,7 @@ const Meditation = () => {
     );
   };
   const renderItem1 = ({item, index}) => {
+
     console.log("dddddd",item)
     // const timeKeys = ['pre', 'med', 'int', 'end', 'res'];
     // let totalSeconds = 0;
@@ -75,6 +76,7 @@ const Meditation = () => {
     //   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     // };
     const totalMinutes = parseInt(item?.timeData?.med?.minute) + parseInt(item?.timeData?.med?.second) / 60;
+
     return (
       <View style={styles.card}>
         <View style={styles.rightSide}>
@@ -92,11 +94,13 @@ const Meditation = () => {
               {console.log("time data", totalMinutes)}
       
           </TouchableOpacity>
+
           <View style={styles.durationBadge}>
             <Text style={styles.durationText}>
             {totalMinutes} Mins
             </Text>
           </View>
+
         </View>
         <View style={styles.content}>
           <View

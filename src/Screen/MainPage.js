@@ -23,9 +23,11 @@ import {useRoute} from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
 
-const MainPage = ({navigation,route}) => {
+const MainPage = ({navigation, route}) => {
   // const [activeTab, setActiveTab] = useState('Home');
-  const [activeTab, setActiveTab] = useState(route?.params?.initialTab || 'Home');
+  const [activeTab, setActiveTab] = useState(
+    route?.params?.initialTab || 'Home',
+  );
 
   const userInfo = useSelector(state => state?.user?.userInfo);
   useEffect(() => {
@@ -33,7 +35,7 @@ const MainPage = ({navigation,route}) => {
       setActiveTab(route.params.initialTab);
     }
   }, [route?.params?.initialTab]);
-  
+
   const tabs = [
     {key: 'Home', activeIcon: IconData?.HOMEA},
     {
