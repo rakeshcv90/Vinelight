@@ -28,6 +28,7 @@ import uuid from 'react-native-uuid';
 import TooltipModal2 from '../../Component/TooltipModal2';
 import PromptModal from '../../Component/PromptModal';
 import Toast from 'react-native-toast-message';
+
 import ColorToolModal from '../../Component/ColorToolModal';
 // import ColorPicker from 'react-native-wheel-color-picker';
 
@@ -489,7 +490,9 @@ const CreateJournalEntry = ({navigation, route}) => {
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
+
                   <TouchableOpacity onPress={() => setColorModa(true)}>
+
                     <Image
                       source={IconData.FONTCOLOR}
                       style={{width: 30, height: 30}}
@@ -694,6 +697,7 @@ const CreateJournalEntry = ({navigation, route}) => {
           setPromptMOdalOpen(false);
         }}
       />
+
     </View>
   );
 };
