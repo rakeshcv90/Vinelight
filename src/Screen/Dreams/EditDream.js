@@ -30,21 +30,34 @@ import {
 } from '../../redux/actions';
 import ActivityLoader from '../../Component/ActivityLoader';
 import PromptDreamModal from '../../Component/PromptDreamModal';
+import ColorToolModal from '../../Component/ColorToolModal';
 const {width, height} = Dimensions.get('window');
 
 const fonts = [
   {label: 'Georgia', value: 'Georgia'},
   {label: 'Courier New', value: 'Courier New'},
-  {
-    label: 'Inter',
-    value: 'sans-serif',
-  },
+  {label: 'Times New Roman', value: 'Times New Roman'},
+  {label: 'Arial', value: 'Arial'},
+  {label: 'Verdana', value: 'Verdana'},
+  {label: 'Trebuchet MS', value: 'Trebuchet MS'},
+  {label: 'Palatino', value: 'Palatino'},
+  {label: 'Garamond', value: 'Garamond'},
+  {label: 'Comic Sans MS', value: 'Comic Sans MS'},
+  {label: 'Impact', value: 'Impact'},
+  {label: 'Lucida Console', value: 'Lucida Console'},
+  {label: 'Tahoma', value: 'Tahoma'},
+  {label: 'Helvetica', value: 'Helvetica'},
+  {label: 'Optima', value: 'Optima'},
+  {label: 'Didot', value: 'Didot'},
+  {label: 'Monaco', value: 'Monaco'},
+  {label: 'Brush Script MT', value: 'Brush Script MT'},
 ];
 
 const EditDream = ({route, navigation}) => {
   const [currentDat, setCurrentDate] = useState(
     moment().format(route.params.dreamData?.currentDat),
   );
+  const [colorModal, setColorModa] = useState(false);
   const subscription = useSelector(state => state?.user?.subscription);
   const dispatch = useDispatch();
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
@@ -202,6 +215,14 @@ const EditDream = ({route, navigation}) => {
 
     editorRef.current.insertHTML(htmlContent);
   }, [promptData]);
+
+  const hasActiveSubscription = () => {
+    if (subscription?.length > 0 || subscription.length == undefined) {
+      return true;
+    } else {
+      return false;
+    }
+  };
   return (
     <View style={styles.container}>
       <StatusBar
@@ -377,12 +398,7 @@ const EditDream = ({route, navigation}) => {
                       gap: 10,
                       borderRadius: 6,
                     }}>
-                    <Image
-                      source={IconData.FONTITEM}
-                      resizeMode="contain"
-                      style={{width: 30, height: 30}}
-                      tintColor={Color.LIGHTGREEN}
-                    />
+                  
                     <Text
                       numberOfLines={1}
                       style={{
@@ -415,14 +431,14 @@ const EditDream = ({route, navigation}) => {
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => onColorSelect('#ff5733')}>
+                  <TouchableOpacity onPress={() => setColorModa(true)}>
                     <Image
                       source={IconData.FONTCOLOR}
                       style={{width: 30, height: 30}}
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={onUnderLine}>
+                  {/* <TouchableOpacity onPress={onUnderLine}>
                     <Image
                       source={IconData.UNDERLINE}
                       style={{width: 30, height: 30}}
@@ -440,6 +456,51 @@ const EditDream = ({route, navigation}) => {
                     <Image
                       source={IconData.ITALIC}
                       style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity> */}
+                  <TouchableOpacity
+                    onPress={onUnderLine}
+                    style={{
+                      backgroundColor: !style.underline
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      source={IconData.UNDERLINE}
+                      style={{width: 30, height: 30}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={onBold}
+                    style={{
+                      backgroundColor: !style.bold
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      source={IconData.BOLD}
+                      style={{width: 25, height: 25}}
+                      tintColor={Color.LIGHTGREEN}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={onItalic}
+                    style={{
+                      backgroundColor: !style.italic
+                        ? 'transparent'
+                        : Color.LIGHTBROWN2,
+                      padding: 5,
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      source={IconData.ITALIC}
+                      style={{width: 25, height: 25}}
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
@@ -477,34 +538,7 @@ const EditDream = ({route, navigation}) => {
                 </Modal>
               </ImageBackground>
             </View>
-            {/* <ImageBackground
-              source={ImageData.TABBACKGROUND}
-              style={styles.thirdBackground}
-              resizeMode="contain">
-              <View
-                style={{
-                  width: '90%',
-                  height: 70,
 
-                  justifyContent: 'center',
-                  alignItems: 'flex-end',
-                  overflow: 'hidden',
-                }}>
-                <Button
-                  img={IconData.SAVE}
-                  text="Save"
-                  left={true}
-                  width={91}
-                  backgroundColor={Color.BROWN4}
-                  height={40}
-                  size={16}
-                  font={Font.EBGaramond_SemiBold}
-                  onPress={saveDreamData}
-                  style={{width: '50%', zIndex: -1}}
-                  // disabled={currentPage === subTitleText?.length - 1}
-                />
-              </View>
-            </ImageBackground> */}
             <ImageBackground
               source={ImageData.TABBACKGROUND}
               style={styles.thirdBackground}
@@ -514,12 +548,14 @@ const EditDream = ({route, navigation}) => {
                   width: '95%',
                   height: 70,
                   flexDirection: 'row',
-                  justifyContent:
-                    subscription?.length > 0 ? 'flex-end' : 'space-between',
+                  justifyContent: hasActiveSubscription()
+                    ? 'space-between'
+                    : 'flex-end',
                   alignItems: 'center',
                   overflow: 'hidden',
                 }}>
-                {subscription?.length <= 0 && (
+                {(subscription?.length > 0 ||
+                  subscription?.length == undefined) && (
                   <Button
                     img={IconData.PROMPT}
                     text="Prompts"
@@ -537,7 +573,7 @@ const EditDream = ({route, navigation}) => {
                   />
                 )}
 
-                <View style={{right: 15}}>
+                <View style={{right: hasActiveSubscription() ? 10 : 10}}>
                   <Button
                     img={IconData.SAVE}
                     text="Save"
@@ -564,6 +600,15 @@ const EditDream = ({route, navigation}) => {
         onClose={() => {
           setPromptMOdalOpen(false);
         }}
+      />
+      <ColorToolModal
+        visible={colorModal}
+        selectedColor={style.color}
+        onSelect={hex => {
+          onColorSelect(hex); // ✅ Pass hex argument here
+          setColorModa(false); // Optionally close modal after selection
+        }}
+        onClose={() => setColorModa(false)}
       />
     </View>
   );

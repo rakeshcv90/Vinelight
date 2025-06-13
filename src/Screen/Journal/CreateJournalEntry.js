@@ -28,7 +28,8 @@ import uuid from 'react-native-uuid';
 import TooltipModal2 from '../../Component/TooltipModal2';
 import PromptModal from '../../Component/PromptModal';
 import Toast from 'react-native-toast-message';
-import ColorPicker from 'react-native-wheel-color-picker';
+import ColorToolModal from '../../Component/ColorToolModal';
+// import ColorPicker from 'react-native-wheel-color-picker';
 
 const {width, height} = Dimensions.get('window');
 
@@ -56,70 +57,11 @@ const fonts = [
   {label: 'Brush Script MT', value: 'Brush Script MT'},
 ];
 
-const ColorModal = ({visible, onClose, colorData, setColorData}) => {
-  const pickerRef = useRef(null);
-
-  const [swatchesOnly] = useState(false);
-  const [swatchesLast] = useState(true);
-  const [swatchesEnabled] = useState(true);
-  const [disc] = useState(false);
-
-  const handleColorChange = color => {
-    setColorData(color);
-  };
-
-  const handleColorChangeComplete = color => {};
-
-  return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.backdrop}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Select a Color</Text>
-
-          <ColorPicker
-            ref={pickerRef}
-            color={colorData}
-            swatchesOnly={swatchesOnly}
-            onColorChange={handleColorChange}
-            onColorChangeComplete={handleColorChangeComplete}
-            thumbSize={40}
-            sliderSize={40}
-            noSnap={true}
-            row={false}
-            swatchesLast={swatchesLast}
-            swatches={swatchesEnabled}
-            discrete={disc}
-            wheelLoadingIndicator={<ActivityIndicator size={40} />}
-            sliderLoadingIndicator={<ActivityIndicator size={20} />}
-            useNativeDriver={false}
-            useNativeLayout={false}
-            style={styles.colorPicker}
-          />
-
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              onPress={() => pickerRef.current?.revert()}
-              style={[styles.button, styles.revertButton]}>
-              <Text style={styles.buttonText}>Revert</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={onClose}
-              style={[styles.button, styles.closeButton]}>
-              <Text style={styles.buttonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
 const CreateJournalEntry = ({navigation, route}) => {
   const HomeData = route?.params?.prompttype;
   const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
   const [propmModalOpen, setPromptMOdalOpen] = useState(false);
-  const [ColorPicjer, setColorPicker] = useState(false);
+  const [colorModal, setColorModa] = useState(false);
   const dispatch = useDispatch();
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const subscription = useSelector(state => state?.user?.subscription);
@@ -147,7 +89,6 @@ const CreateJournalEntry = ({navigation, route}) => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [promptData, setPromptData] = useState(null);
   const [isEditorReady, setEditorReady] = useState(false);
-  const [colorCode, setColorCode] = useState();
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -307,7 +248,12 @@ const CreateJournalEntry = ({navigation, route}) => {
     const htmlContent = `<p>${rawText}</p>`;
 
     editorRef.current.setContentHTML(htmlContent);
-    // setIsTyping(true);
+    setIsTyping(true);
+    setTimeout(() => {
+      // Move cursor to start
+      editorRef.current?.blurContentEditor();
+      editorRef.current?.focusContentEditor();
+    }, 100);
   };
   useEffect(() => {
     const rawText = promptData;
@@ -318,11 +264,11 @@ const CreateJournalEntry = ({navigation, route}) => {
 
   useEffect(() => {
     if (HomeData === true) {
-      const rawText = prompt?.description || '';
-      const htmlContent = `<p>${rawText}</p>`;
-      editorRef.current?.insertHTML(htmlContent); // Or use setContentHTML(htmlContent)
+      setTimeout(() => {
+        handleInsertContent();
+      }, 500);
     }
-  }, [isEditorReady, HomeData]);
+  }, [HomeData]);
 
   return (
     <View style={styles.container}>
@@ -424,59 +370,6 @@ const CreateJournalEntry = ({navigation, route}) => {
                     style={styles.editorContainer}
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={{flexGrow: 1}}>
-                    {/* {!isTyping && (
-                      <View
-                        style={{
-                          width: '95%',
-                          padding: 5,
-                          borderRadius: 4,
-                          backgroundColor: '#F4F6EF',
-                          alignSelf: 'center',
-                          flexDirection: 'row',
-                        }}>
-                        <View
-                          style={{
-                            width: 4,
-                            backgroundColor: 'black',
-                            marginRight: 5,
-                          }}></View>
-                        <View style={{width: '100%'}}>
-                          <View
-                            style={{
-                              width: '100%',
-                              flexDirection: 'row',
-                              justifyContent: 'space-between',
-                              padding: 5,
-                              top: -5,
-                            }}>
-                            <Text
-                              style={{
-                                fontSize: 14,
-                                fontFamily: Font.EB_Garamond_Italic,
-                                color: Color.BROWN5,
-                              }}>
-                              Prompt of the Day
-                            </Text>
-                            <TouchableOpacity onPress={handleInsertContent}>
-                              <Image
-                                source={IconData.ADD}
-                                style={{width: 24, height: 24, right: 5}}
-                              />
-                            </TouchableOpacity>
-                          </View>
-                          <Text
-                            style={{
-                              fontSize: 16,
-                              fontFamily: Font.EB_Garamond_Bold,
-                              color: Color.BROWN5,
-                              top: -10,
-                              padding: 5,
-                            }}>
-                            {prompt?.description}
-                          </Text>
-                        </View>
-                      </View>
-                    )} */}
                     <View
                       onStartShouldSetResponder={() => true} // to make this View respond to touches
                       onResponderStart={() => {
@@ -596,7 +489,7 @@ const CreateJournalEntry = ({navigation, route}) => {
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setColorPicker(true)}>
+                  <TouchableOpacity onPress={() => setColorModa(true)}>
                     <Image
                       source={IconData.FONTCOLOR}
                       style={{width: 30, height: 30}}
@@ -694,7 +587,9 @@ const CreateJournalEntry = ({navigation, route}) => {
                   alignItems: 'center',
                   overflow: 'hidden',
                 }}>
-                {subscription?.length <= 0 && (
+       
+                {(subscription?.length > 0 ||
+                  subscription?.length == undefined) && (
                   <Button
                     img={IconData.PROMPT}
                     text="Prompts"
@@ -716,7 +611,7 @@ const CreateJournalEntry = ({navigation, route}) => {
                   style={{
                     flexDirection: 'row',
                     gap: 5,
-                    marginLeft: subscription?.length <= 0 ? -10 : 0,
+                    marginLeft: 0,
                   }}
                   onPress={() => {
                     setTooltipVisible(true);
@@ -771,6 +666,21 @@ const CreateJournalEntry = ({navigation, route}) => {
                   }}
                   onClose={() => setTooltipVisible(false)}
                 />
+                {/* <ColorToolModal
+                  visible={colorModal}
+                  selectedOptions={style.color}
+                  onSelect={hex => onColorSelect(hex)}
+                  onClose={() => setColorModa(false)}
+                /> */}
+                <ColorToolModal
+                  visible={colorModal}
+                  selectedColor={style.color}
+                  onSelect={hex => {
+                    onColorSelect(hex); // ✅ Pass hex argument here
+                    setColorModa(false); // Optionally close modal after selection
+                  }}
+                  onClose={() => setColorModa(false)}
+                />
               </View>
             </ImageBackground>
           </ImageBackground>
@@ -783,12 +693,6 @@ const CreateJournalEntry = ({navigation, route}) => {
         onClose={() => {
           setPromptMOdalOpen(false);
         }}
-      />
-      <ColorModal
-        visible={ColorPicjer}
-        onClose={setColorPicker(false)}
-        colorData={colorCode}
-        setColorData={(selectedColor) => onColorSelect(selectedColor)}
       />
     </View>
   );

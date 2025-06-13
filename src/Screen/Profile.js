@@ -46,7 +46,11 @@ const Profile = ({navigation}) => {
   const [modalopen, setModalOpen] = useState(false);
   const userInfo = useSelector(state => state?.user?.userInfo);
   const subscription = useSelector(state => state?.user?.subscription);
-
+  const goalData = useSelector(state => state.user?.goalByDate || []);
+  const getJournalData = useSelector(state => state?.user?.getJournalData);
+  const getDreamData = useSelector(state => state?.user?.getDreamData);
+  const customMeditation = useSelector(state => state?.user?.customeMedidation);
+  console.log('Rakesh goal', getJournalData?.length);
   const url = 'https://www.instagram.com/vinelightapp/';
   const url1 = 'https://arkanaapps.com/contact/';
   useEffect(() => {
@@ -62,6 +66,19 @@ const Profile = ({navigation}) => {
       RNIap.endConnection();
     };
   }, []);
+  const countCompletedTasks = data => {
+    let count = 0;
+
+    Object.values(data).forEach(entry => {
+      const completed = entry.tasks.filter(task => task.completed).length;
+      count += completed;
+    });
+
+    return count;
+  };
+
+  const completedCount = countCompletedTasks(goalData);
+
   const getPlanData = () => {
     Platform.OS === 'ios'
       ? RNIap.initConnection()
@@ -74,7 +91,6 @@ const Profile = ({navigation}) => {
                 console.log('error finding purchase');
               })
               .then(res => {
-                console.log("Cccccc",res)
                 dispatch(setSubscriptionProducts(res));
               });
           })
@@ -340,12 +356,12 @@ const Profile = ({navigation}) => {
                   flexDirection: 'row',
                 }}>
                 <ProfileGoalComponent
-                  count={6}
-                  title={'Hours Meditated'}
+                  count={customMeditation?.length}
+                  title={'Meditation Created'}
                   image={IconData.MEDITATIONA}
                 />
                 <ProfileGoalComponent
-                  count={56}
+                  count={completedCount}
                   title={'Goals Completed'}
                   image={IconData.GOALA}
                 />
@@ -362,12 +378,12 @@ const Profile = ({navigation}) => {
                   flexDirection: 'row',
                 }}>
                 <ProfileGoalComponent
-                  count={14}
+                  count={getJournalData?.length}
                   title={'Journal Streak'}
                   image={IconData.JOURNALA}
                 />
                 <ProfileGoalComponent
-                  count={56}
+                  count={getDreamData?.length}
                   title={'Dream Journal Streak'}
                   image={IconData.DREAMA}
                 />
@@ -534,9 +550,7 @@ const Profile = ({navigation}) => {
                     img={IconData.UPGRADE}
                     left={true}
                     size={20}
-                    onPress={() => 
-                    navigation.navigate('Subscription')
-                    }
+                    onPress={() => navigation.navigate('Subscription')}
                   />
                 </View>
                 <View
@@ -798,7 +812,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   title: {
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: '500',
     color: Color.LIGHTGREEN,
 

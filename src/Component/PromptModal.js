@@ -19,7 +19,7 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
   const [header, setHeader] = useState('Categories');
   const [header2, setHeader2] = useState('Sub Categories');
   const [header3, setHeader3] = useState('Prompts');
- 
+
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubCategories] = useState([]);
   const [prompts, setPrompts] = useState(null);
@@ -40,10 +40,17 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
   const openSubList = async dataId => {
     try {
       const data = await callApi1(`${Api.GET_SUBCATEGORIES}/${dataId}`);
-
+      console.log("ddddd",data?.sub_category=='true' )
       if (data?.success) {
-        setSubCategories(data?.data);
-        setListOpen(1);
+        if (data?.sub_category == 'true') {
+          console.log("ddddd")
+          setSubCategories(data?.data);
+          setListOpen(1);
+        } else {
+          console.log("tttttttt")
+          setPrompts(data?.data);
+          setListOpen(2);
+        }
       } else {
         Toast.show({
           type: 'error',
@@ -141,7 +148,11 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
     );
   };
   const backScreen = dataItem => {
+
     if (dataItem == 1) {
+      setListOpen(0);
+      fetchData();
+    } else if (dataItem == 2 && subcategories?.length == 0) {
       setListOpen(0);
       fetchData();
     } else {

@@ -56,24 +56,8 @@ const Meditation = () => {
     );
   };
   const renderItem1 = ({item, index}) => {
-    console.log("dddddd",item)
-    // const timeKeys = ['pre', 'med', 'int', 'end', 'res'];
-    // let totalSeconds = 0;
-
-    // timeKeys.forEach(key => {
-    //   const section = item[key];
-    //   if (section) {
-    //     const min = parseInt(section.minute || '0', 10);
-    //     const sec = parseInt(section.second || '0', 10);
-    //     totalSeconds += min * 60 + sec;
-    //   }
-    // });
-   
-    // const formatDuration = totalSeconds => {
-    //   const minutes = Math.floor(totalSeconds / 60);
-    //   const seconds = totalSeconds % 60;
-    //   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    // };
+ 
+  
     return (
       <View style={styles.card}>
         <View style={styles.rightSide}>
@@ -85,11 +69,7 @@ const Meditation = () => {
             }}>
             <Text style={styles.icon}>▶</Text>
           </TouchableOpacity>
-          {/* <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>
-            
-            </Text>
-          </View> */}
+       
         </View>
         <View style={styles.content}>
           <View

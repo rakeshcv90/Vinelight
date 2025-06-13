@@ -40,66 +40,35 @@ const MeditationPlayer = ({route, navigation}) => {
     );
   }, [words]);
 
-  // useEffect(() => {
-  //   const initTts = async () => {
-  //     try {
-  //       await Tts.setDefaultLanguage('en-IN');
-  //       await Tts.setDucking(true);
-  //       await Tts.setIgnoreSilentSwitch('ignore');
-  //       setTtsInitialized(true);
-
-  //       // Event for tracking current word
-  //       Tts.addEventListener('tts-progress', event => {
-  //         const {start} = event;
-
-  //         if (typeof start !== 'number') {
-  //           console.log('❌ Invalid event:', event);
-  //           return;
-  //         }
-
-  //         const partial = cleanText.substring(0, start);
-  //         const index = partial.trim().split(/\s+/).filter(Boolean).length - 1;
-
-  //         console.log('📍 Word index:', index, '→', words[index]);
-  //         setCurrentWordIndex(index);
-
-  //         // Scroll to current word
-  //         InteractionManager.runAfterInteractions(() => {
-  //           const wordRef = wordRefs.current[index];
-  //           if (wordRef?.current && scrollRef.current) {
-  //             wordRef.current.measureLayout(
-  //               scrollRef.current,
-  //               (x, y) => {
-  //                 scrollRef.current.scrollTo({y: y - 50, animated: true});
-  //               },
-  //               err => console.log('📛 measureLayout error:', err),
-  //             );
-  //           }
-  //         });
-  //       });
-
-  //       Tts.addEventListener('tts-finish', () => {
-  //         setCurrentWordIndex(-1);
-  //       });
-  //     } catch (error) {
-  //       console.log('TTS Init Error:', error);
-  //     }
-  //   };
-
-  //   initTts();
-
-  //   return () => {
-  //     Tts.removeAllListeners('tts-progress');
-  //     Tts.removeAllListeners('tts-finish');
-  //   };
-  // }, []);
-
   useEffect(() => {
     const initTts = async () => {
       try {
-        await Tts.setDefaultLanguage('en-IN');
+        if (Platform.OS == 'ios') {
+          const voices = await Tts.voices();
+
+          const femaleVoice = voices.find(
+            voice =>
+              voice.language.startsWith('en') &&
+              voice.name === 'Samantha' && // You can try 'Karen', 'Tessa', etc.
+              !voice.notInstalled,
+          );
+
+          if (femaleVoice) {
+            await Tts.setDefaultLanguage(femaleVoice.language);
+            await Tts.setDefaultVoice(femaleVoice.id);
+          } else {
+            await Tts.setDefaultLanguage('en-IN'); // fallback
+          }
+          await Tts.setDefaultRate(0.4);
+          Tts.setDucking(true)
+        } else {
+          await Tts.setDefaultLanguage('en-IN');
+          await Tts.setDefaultRate(0.35);
+        }
+
         await Tts.setDucking(true);
         await Tts.setIgnoreSilentSwitch('ignore');
+      
         setTtsInitialized(true);
 
         if (Platform.OS === 'android') {
@@ -137,6 +106,7 @@ const MeditationPlayer = ({route, navigation}) => {
     };
   }, []);
 
+
   const scrollToWord = index => {
     InteractionManager.runAfterInteractions(() => {
       const wordRef = wordRefs.current[index];
@@ -144,7 +114,7 @@ const MeditationPlayer = ({route, navigation}) => {
         wordRef.current.measureLayout(
           scrollRef.current,
           (x, y) => {
-            scrollRef.current.scrollTo({y: y - 50, animated: true});
+            scrollRef.current.scrollTo({y: y - 100, animated: true});
           },
           err => console.log('📛 measureLayout error:', err),
         );
@@ -152,29 +122,17 @@ const MeditationPlayer = ({route, navigation}) => {
     });
   };
 
-  // useEffect(() => {
-  //   // if (ttsInitialized) {
-  //   if (ttsOpen) {
-  //     Tts.speak(cleanText);
-  //   } else {
-  //     // Tts.stop();
-  //     setCurrentWordIndex(-1);
-  //   }
-  //   // }
-  // }, [ttsOpen]);
-
   useEffect(() => {
-    // if (!ttsInitialized) return;
 
     if (ttsOpen) {
-      // Tts.stop();
+
       setCurrentWordIndex(-1);
       Tts.speak(cleanText);
 
       if (Platform.OS === 'ios') {
         let index = 0;
-        const wpm = 180;
-        const delay = 60000 / wpm; // milliseconds per word
+        const wpm = 160;
+        const delay = 60000 / wpm; 
 
         iosIntervalRef.current = setInterval(() => {
           if (index < words.length) {
@@ -188,7 +146,7 @@ const MeditationPlayer = ({route, navigation}) => {
         }, delay);
       }
     } else {
-      Platform.OS == 'android' && Tts.stop();
+      Platform.OS == 'android' ?Tts.stop():Tts.stop();
       //
       setCurrentWordIndex(-1);
       if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
@@ -228,6 +186,7 @@ const MeditationPlayer = ({route, navigation}) => {
             onPress={() => {
               setPauseSound(true);
               navigation.goBack();
+              Tts.stop()
             }}
             style={{
               width: 50,
@@ -316,18 +275,14 @@ const MeditationPlayer = ({route, navigation}) => {
                     height: '7%',
 
                     flexDirection: 'row',
-                    top: -height * 0.065,
+                    top: -height * 0.05,
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}>
                   <Text style={styles.subText}>
                     {route?.params?.itemData?.name}
                   </Text>
-                  {/* <View style={styles.durationBadge}>
-                    <Text style={styles.durationText}>
-                      {formatDuration(route?.params?.itemData?.time)} Min
-                    </Text>
-                  </View> */}
+                  
                 </View>
 
                 <View
@@ -444,7 +399,7 @@ const styles = StyleSheet.create({
     height: '100%', // Fills the parent container
   },
   subText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '500',
     color: Color.LIGHTGREEN,
     textAlign: 'center',
