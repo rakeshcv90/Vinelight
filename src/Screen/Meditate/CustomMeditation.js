@@ -21,11 +21,11 @@ import FastImage from 'react-native-fast-image';
 const {width, height} = Dimensions.get('window');
 const CustomMeditation = ({navigation}) => {
   const presetTimes = [5, 10, 15, 20, 25, 30];
-  const [selectedTime, setSelectedTime] = useState(25);
+  const [selectedTime, setSelectedTime] = useState();
   const memoizedBackground = useMemo(() => ImageData.BACKGROUND, []);
   const memoizedBackground1 = useMemo(() => ImageData.MAINBACKGROUND, []);
   const [hour, setHour] = useState();
-  const [minute, setMinute] = useState(25);
+  const [minute, setMinute] = useState();
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
@@ -187,6 +187,7 @@ const CustomMeditation = ({navigation}) => {
                                       styles.activeTimeButton,
                                   ]}
                                   onPress={() => {
+                                    console.log('time check ', time);
                                     setMinute(time);
                                     setSelectedTime(time);
                                   }}>
@@ -230,7 +231,7 @@ const CustomMeditation = ({navigation}) => {
                             textAlign: 'center',
                           }}
                           keyboardType="numeric"
-                          placeholder="HH"
+                          placeholder="00"
                           placeholderTextColor={Color.BROWN2}
                           underlineColorAndroid="transparent"
                         />
@@ -262,7 +263,7 @@ const CustomMeditation = ({navigation}) => {
                             textAlign: 'center',
                           }}
                           keyboardType="numeric"
-                          placeholder="MM"
+                          placeholder="00"
                           placeholderTextColor={Color.BROWN2}
                           underlineColorAndroid="transparent"
                         />

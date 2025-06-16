@@ -12,7 +12,7 @@ const DropDown = ({visible, onClose, selectedOptions, onSelect}) => {
       <View style={styles.overlay}>
         <View style={styles.container}>
           <ScrollView showsVerticalScrollIndicator={false}>
-            {[1,3,5]?.map((option, index) => {
+            {/* {[1,3,5]?.map((option, index) => {
               const isSelected = selectedOptions === option;
               return (
                 <TouchableOpacity
@@ -29,7 +29,26 @@ const DropDown = ({visible, onClose, selectedOptions, onSelect}) => {
                   </Text>
                 </TouchableOpacity>
               );
-            })}
+            })} */}
+
+            {Array.from({ length: 60 }, (_, i) => i + 1).map((option, index) => {
+    const isSelected = selectedOptions === option;
+    return (
+      <TouchableOpacity
+        key={index}
+        onPress={() => onSelect(option)}
+        style={[styles.option, isSelected && styles.selectedOption]}>
+        
+        <Text
+          style={[
+            styles.optionText,
+            isSelected && styles.selectecText,
+          ]}>
+          {option} sec
+        </Text>
+      </TouchableOpacity>
+    );
+  })}
           </ScrollView>
 
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -54,7 +73,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     width: 200,
-    // maxHeight: 400,
+    maxHeight: 310,
     borderWidth: 2,
     borderColor: '#bfb68c',
   },

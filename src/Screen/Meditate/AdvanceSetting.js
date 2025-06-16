@@ -187,7 +187,7 @@ const AdvanceSetting = ({ navigation }) => {
 
   const [time, setTime] = useState({
     pre: { second: '', song: '', songName: '' },
-    med: { minute: '', second: ''},
+    med: { minute: '', second: '' },
     int: { minute: '', second: '', song: '', songName: '' },
     end: { song: '', songName: '' },
     res: { second: '', song: '', songName: '' },
@@ -252,6 +252,8 @@ const AdvanceSetting = ({ navigation }) => {
         return;
       }
 
+
+
       if (!activeKey || typeof activeKey !== 'string') {
         console.warn('Invalid activeKey:', activeKey);
         return;
@@ -303,11 +305,14 @@ const AdvanceSetting = ({ navigation }) => {
     }, [selectedValue]);
     const renderItem = ({ item, index }) => {
       return (
-        <View style={styles.card} key={index}>
+        <TouchableOpacity key={index}
+          style={styles.card}
+          onPress={() => setSelectedValue(item)}
+          activeOpacity={0.8}>
           <View style={styles.content}>
             <TouchableOpacity
               style={{ flexDirection: 'row' }}
-              onPress={() => setSelectedValue(item)}>
+              onPress={() => setSelectedValue(item)} activeOpacity={0.8}>
               <RadioButton
                 value={item.id}
                 status={selectedValue?.id == item?.id ? 'checked' : 'unchecked'}
@@ -327,7 +332,7 @@ const AdvanceSetting = ({ navigation }) => {
               <Image source={IconData.SOUND} style={{ width: 24, height: 24 }} />
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       );
     };
     return (
@@ -406,6 +411,18 @@ const AdvanceSetting = ({ navigation }) => {
       return;
     }
 
+    if (isIntervalGreaterThanMeditation()) {
+    Toast.show({
+      type: 'error',
+      text1: 'Invalid Interval',
+      text2: 'Interval time must be less than total meditation time',
+      visibilityTime: 2000,
+      position: 'top',
+    });
+    console.warn('Interval time must be less than meditation time');
+    return;
+  }
+
     const newMeditation = {
       id: uuid.v4(),
       timeData: time, // optional if you want to save
@@ -426,6 +443,19 @@ const AdvanceSetting = ({ navigation }) => {
       });
     }, 300);
   };
+
+  const isIntervalGreaterThanMeditation = () => {
+  const medMin = parseInt(time?.med?.minute || '0', 10);
+  const medSec = parseInt(time?.med?.second || '0', 10);
+  const intMin = parseInt(time?.int?.minute || '0', 10);
+  const intSec = parseInt(time?.int?.second || '0', 10);
+
+  const medTotal = medMin * 60 + medSec;
+  const intTotal = intMin * 60 + intSec;
+
+  return intTotal >= medTotal;
+};
+
   const validateFields = data => {
     const missingFields = [];
 

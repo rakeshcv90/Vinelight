@@ -216,14 +216,13 @@ const styles = StyleSheet.create({
   tabButton: {
     alignItems: 'center',
     justifyContent: 'center',
-
     paddingHorizontal: width * 0.03,
   },
 
   activeLabelContainer: {
     backgroundColor: Color?.BROWN4,
     borderRadius: 100,
-    paddingHorizontal: 8,
+    paddingHorizontal: 2,
     minWidth: 46,
     height: 16,
     justifyContent: 'center',
@@ -232,7 +231,7 @@ const styles = StyleSheet.create({
   },
 
   activeLabelText: {
-    fontSize: 12,
+    fontSize: 10,
     color: Color?.LIGHTGREEN,
     fontFamily: Font.EBGaramond_Medium,
     fontWeight: '500',
