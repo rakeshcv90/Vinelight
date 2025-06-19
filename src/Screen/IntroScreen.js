@@ -75,14 +75,15 @@ const IntroScreen = ({navigation}) => {
 
           setTimeout(() => {
             setLoader(false);
+         
             Toast.show({
-              type: 'success',
-              text1: 'Profile Created',
-              text2: 'Your profile has been created successfully',
-              visibilityTime: 3000,
+              type: 'custom',
               position: 'top',
+              props: {
+                icon: IconData.SUCC, // your custom image
+                text: 'Your profile has been created successfully',
+              },
             });
-
             setName(null);
             setImage(null);
             setCurrentPage(0);
@@ -111,14 +112,15 @@ const IntroScreen = ({navigation}) => {
 
           setTimeout(() => {
             setLoader(false);
-            Toast.show({
-              type: 'success',
-              text1: 'Profile Created',
-              text2: 'Your profile has been created successfully',
-              visibilityTime: 1500,
+  
+     Toast.show({
+              type: 'custom',
               position: 'top',
+              props: {
+                icon: IconData.SUCC, // your custom image
+                text: 'Your profile has been created successfully',
+              },
             });
-
             setName(null);
             setImage(null);
             setCurrentPage(0);

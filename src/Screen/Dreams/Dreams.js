@@ -8,13 +8,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import {useNavigation} from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
 import {useDispatch, useSelector} from 'react-redux';
 import {deleteDreamData} from '../../redux/actions';
+import moment from 'moment';
 const {width, height} = Dimensions.get('window');
 const Dreams = () => {
   const navigation = useNavigation();
@@ -24,7 +25,10 @@ const Dreams = () => {
   const [toolVisible, setToolVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 0});
   const [selectedDream, setSelectedDream] = useState(null);
-
+  const [editSet, setEditSet] = useState(false);
+  const [currentDat, setCurrentDate] = useState(
+    moment().local().format('YYYY-MM-DD'),
+  );
   // const flattenDreamData = dreamData => {
   //   const result = [];
 
@@ -94,13 +98,22 @@ const Dreams = () => {
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
           }}>
-          No Dream Journal Data Saved
+          No dream data available.
         </Text>
       </View>
     );
   };
+  // const formatDate = dateStr => {
+  //   const date = new Date(dateStr);
+  //   return date.toLocaleDateString('en-GB', {
+  //     day: 'numeric',
+  //     month: 'long',
+  //     year: 'numeric',
+  //   });
+  // };
+
   const formatDate = dateStr => {
-    const date = new Date(dateStr);
+    const date = new Date(`${dateStr}T12:00:00`); // Add time to avoid timezone offset
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'long',
@@ -126,6 +139,19 @@ const Dreams = () => {
   const deleteDream = () => {
     dispatch(deleteDreamData(selectedDream?.dream?.id));
   };
+
+  useEffect(() => {
+    const clickedDateData = getDreamData.find(
+      d => d?.currentDat === currentDat,
+    );
+    if (clickedDateData == undefined) {
+      setEditSet(false);
+    } else {
+      setEditSet(true);
+    }
+ 
+  }, [getDreamData]);
+  // console.log('Jurnal Entry', getDreamData);
   return (
     <View style={styles.secondaryContainer}>
       <FastImage
@@ -148,7 +174,7 @@ const Dreams = () => {
               marginTop: '10%',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
-              // backgroundColor: Color?.LIGHTBROWN,
+              backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -304,17 +330,37 @@ const Dreams = () => {
                 gap: 20,
                 flexDirection: 'row',
               }}>
-              <Button2
-                width={280}
-                height={50}
-                buttonTitle={'New Dream Journal Entry'}
-                img={IconData.PLUS}
-                left={true}
-                size={20}
-                onPress={() => {
-                  navigation.navigate('CreateDream');
-                }}
-              />
+              {!editSet ? (
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'New Dream Journal Entry'}
+                  img={IconData.PLUS}
+                  left={true}
+                  size={20}
+                  onPress={() => {
+                    navigation.navigate('CreateDream');
+                  }}
+                />
+              ) : (
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'Edit Dream Journal Entry'}
+                  img={IconData.PLUS}
+                  left={true}
+                  size={20}
+                  onPress={() => {
+                    const clickedDateData = getDreamData.find(
+                      d => d?.currentDat === currentDat,
+                    );
+
+                    navigation.navigate('EditDream', {
+                      dreamData: clickedDateData,
+                    });
+                  }}
+                />
+              )}
             </View>
 
             <View

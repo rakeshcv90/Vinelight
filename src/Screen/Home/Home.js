@@ -22,10 +22,15 @@ import FastImage from 'react-native-fast-image';
 import {useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import {moodData} from '../../Component/Mood';
+import moment from 'moment-timezone';
 
 const {width, height} = Dimensions.get('window');
+// const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+// const today = new Date().toISOString().split('T')[0];
 
-const today = new Date().toISOString().split('T')[0];
+const deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+const today = moment().tz(deviceTimeZone).format('YYYY-MM-DD');
 
 LocaleConfig.locales['custom'] = {
   monthNames: [
@@ -73,11 +78,12 @@ LocaleConfig.defaultLocale = 'custom';
 
 const Home = () => {
   const [selectedDate, setSelectedDate] = useState(today);
+
   const navigation = useNavigation();
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
-
+  const [editSet, setEditSet] = useState(false);
   const markedJournalDates = useMemo(() => {
     const marks = {};
     const todayDate = new Date();
@@ -107,6 +113,8 @@ const Home = () => {
   }, [getJournalData, selectedDate]);
 
   const getDayPresh = date => {
+    // console.log("Ccccccccccc",date)
+    // setSelectedDate(date);
     const mood = getJournalData?.filter(item => {
       return item?.currentDat === date;
     });
@@ -116,12 +124,17 @@ const Home = () => {
         journal: mood[0],
       });
     } else {
-      Toast.show({
-        type: 'error', // 'info' or any type you want
-        text1: 'No data found',
-        text2: 'No journal entry data available for this selected date.',
-        visibilityTime: 3000,
-        position: 'top', // 'top' or 'bottom'
+      // Toast.show({
+      //   type: 'custom',
+      //   position: 'top',
+      //   props: {
+      //     icon: IconData.ERR, // your custom image
+      //     text: 'No journal entry data available for this selected date.',
+      //   },
+      // });
+      navigation.navigate('CreateJournalEntry', {
+        prompttype: false,
+        selectedDate: date,
       });
     }
   };
@@ -133,6 +146,25 @@ const Home = () => {
 
     return mood[0]?.Image;
   };
+  const onclickData = () => {
+    const mood = getJournalData?.filter(item => {
+      return item?.currentDat === today;
+    });
+    console.log('ddddddddddd', mood);
+    // navigation.navigate('CreateJournalEntry', {
+    //   prompttype: false,
+    //   selectedDate: selectedDate,
+    // });
+  };
+
+  useEffect(() => {
+    const clickedDateData = getJournalData.find(d => d?.currentDat === today);
+    if (clickedDateData == undefined) {
+      setEditSet(false);
+    } else {
+      setEditSet(true);
+    }
+  }, [getJournalData]);
   return (
     <View style={styles.secondaryContainer}>
       <FastImage
@@ -163,7 +195,7 @@ const Home = () => {
               borderWidth: 1,
               alignSelf: 'center',
               borderColor: Color.LIGHTGREEN,
-              // backgroundColor: Color?.LIGHTBROWN,
+              backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -330,7 +362,11 @@ const Home = () => {
               showsVerticalScrollIndicator={false}>
               <TouchableOpacity
                 onPress={() =>
-                  navigation.navigate('CreateJournalEntry', {prompttype: true})
+                  // navigation.navigate('CreateJournalEntry', {prompttype: true})
+                  navigation.navigate('CreateJournalEntry', {
+                    prompttype: true,
+                    selectedDate: selectedDate,
+                  })
                 }>
                 <Text style={styles.text}>{prompt?.description}</Text>
               </TouchableOpacity>
@@ -345,17 +381,37 @@ const Home = () => {
               alignItems: 'center',
               zIndex: 1,
             }}>
-            <Button2
-              width={250}
-              height={50}
-              buttonTitle={'Add Journal Entry'}
-              img={IconData.PLUS}
-              left={true}
-              size={20}
-              onPress={() =>
-                navigation.navigate('CreateJournalEntry', {prompttype: false})
-              }
-            />
+            {!editSet ? (
+              <Button2
+                width={250}
+                height={50}
+                buttonTitle={'New Journal Entry'}
+                img={IconData.PLUS}
+                left={true}
+                size={20}
+                onPress={() =>
+                  navigation.navigate('CreateJournalEntry', {prompttype: false})
+                }
+              />
+            ) : (
+              <Button2
+                width={250}
+                height={50}
+                buttonTitle={'Edit Journal Entry'}
+                img={IconData.PLUS}
+                left={true}
+                size={20}
+                onPress={() => {
+                  const clickedDateData = getJournalData.find(
+                    d => d?.currentDat === today,
+                  );
+
+                  navigation.navigate('EditJournalEntry', {
+                    journalData: clickedDateData,
+                  });
+                }}
+              />
+            )}
           </View>
         </ScrollView>
       </FastImage>

@@ -40,24 +40,23 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
   const openSubList = async dataId => {
     try {
       const data = await callApi1(`${Api.GET_SUBCATEGORIES}/${dataId}`);
-      console.log("ddddd",data?.sub_category=='true' )
+
       if (data?.success) {
         if (data?.sub_category == 'true') {
-          console.log("ddddd")
           setSubCategories(data?.data);
           setListOpen(1);
         } else {
-          console.log("tttttttt")
           setPrompts(data?.data);
           setListOpen(2);
         }
       } else {
         Toast.show({
-          type: 'error',
-          text1: 'Data Not Found',
-          text2: 'Sub-Categories Data Not FOund',
-          visibilityTime: 3000,
+          type: 'custom',
           position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Sub-Categories Data Not Found',
+          },
         });
       }
     } catch (error) {
@@ -66,7 +65,6 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
   };
 
   const openPropmptsList = async dataId => {
-    console.log('Data', dataId);
     try {
       const data = await callApi1(`${Api.SUBCATEGORIES_PRMPTS}/${dataId}`);
 
@@ -120,7 +118,6 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
         key={index}
         // onPress={() => openPropmptsList(item?.sub_category)}>
         onPress={() => {
-          console.log('Item', item);
           openPropmptsList(item?.sub_category);
         }}>
         <Image
@@ -148,7 +145,6 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
     );
   };
   const backScreen = dataItem => {
-
     if (dataItem == 1) {
       setListOpen(0);
       fetchData();

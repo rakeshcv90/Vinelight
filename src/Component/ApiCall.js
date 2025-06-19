@@ -21,7 +21,7 @@ const callApi = async url => {
 
 const callApi1 = async (url, options = {}) => {
   const {method = 'GET', params = {}} = options;
-  console.log(`${BaseUrl}${url}`);
+
   try {
     const response = await axios({
       url: `${BaseUrl}${url}`,

@@ -21,7 +21,7 @@ import {
   setMeditationData,
   setSubscriptionDetails,
 } from '../redux/actions';
-import Toast from 'react-native-toast-message';
+
 import axios from 'axios';
 
 const Splash = ({navigation}) => {
@@ -41,7 +41,7 @@ const Splash = ({navigation}) => {
         const purchases = await RNIap.getAvailablePurchases();
 
         if (purchases?.length === 0) {
-          console.log('No active subscriptions found');
+        
           dispatch(setSubscriptionDetails([]));
           return;
         }
@@ -83,7 +83,7 @@ const Splash = ({navigation}) => {
             }),
           };
 
-          console.log('Active Subscription Data:', sortedPurchases);
+ 
           // Determine plan type
           const planType = activePurchase.productId.includes('monthly')
             ? 'Monthly'
@@ -131,7 +131,7 @@ const Splash = ({navigation}) => {
 
               const activeSubs = renewalHistory.filter(item => {
                 if (item.auto_renew_status == '1') {
-                  console.log('Active');
+            
                   const subscriptionData = {
                     productId: item?.product_id,
                     transactionId: item?.transaction_id,
@@ -150,18 +150,18 @@ const Splash = ({navigation}) => {
 
                   dispatch(setSubscriptionDetails(subscriptionData));
                 } else {
-                  console.log('No Active');
+        
                   dispatch(setSubscriptionDetails([]));
                 }
               });
             } else {
             }
           } catch (error) {
-            console.log('Reeeeeeeee', error);
+            console.log('Subscription Error', error);
           }
         }
       } catch (error) {
-        console.error('Subscription error:', error);
+        // console.error('Subscription error:', error);
         dispatch(setSubscriptionDetails([]));
       }
     };

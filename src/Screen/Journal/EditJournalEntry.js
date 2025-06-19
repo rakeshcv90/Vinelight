@@ -52,6 +52,13 @@ const EditJournalEntry = ({navigation, route}) => {
   const [currentDat, setCurrentDate] = useState(
     moment().format(route?.params?.journalData?.currentDat),
   );
+  // const [currentDat, setCurrentDate] = useState(
+  //   route.params.dreamData?.currentDat
+  //     ? moment(route?.params?.journalData?.currentDat)
+  //         .local()
+  //         .format('YYYY-MM-DD')
+  //     : moment().local().format('YYYY-MM-DD'),
+  // );
   const [colorModal, setColorModa] = useState(false);
   const dispatch = useDispatch();
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
@@ -206,11 +213,83 @@ const EditJournalEntry = ({navigation, route}) => {
       handleInsertContent();
     }, 1000);
   }, [route, navigation]);
-  const handleInsertContent = () => {
-    const htmlContent = route?.params?.journalData?.journal?.journalContent;
+  // const handleInsertContent = () => {
+  //   const htmlContent = route?.params?.journalData?.journal?.journalContent;
 
-    editorRef.current.setContentHTML(htmlContent);
-  };
+  //   editorRef.current.setContentHTML(htmlContent);
+  // };
+// const handleInsertContent = () => {
+//   const rawHTML = route?.params?.journalData?.journal?.journalContent || '';
+
+//   // Step 1: Inject previous HTML + clean trailing block
+//   const finalHTML = `
+//     ${rawHTML}
+//     <div><br/></div>
+//   `;
+
+//   editorRef.current?.setContentHTML(finalHTML);
+
+//   // Step 2: Focus and inject invisible styled span to break old formatting
+//   setTimeout(() => {
+//     editorRef.current?.focusContentEditor();
+
+//     const defaultStyle = `
+//       font-family: '${style.font}';
+//       font-size: ${style.size}px;
+//       color: ${style.color};
+//       font-weight: ${style.bold ? 'bold' : 'normal'};
+//       font-style: ${style.italic ? 'italic' : 'normal'};
+//       text-decoration: ${style.underline ? 'underline' : 'none'};
+//     `.replace(/\s\s+/g, ' ').trim();
+
+//     // 👇 Inserting a zero-width styled space so future text adopts only this style
+//     editorRef.current?.insertHTML(`<span style="${defaultStyle}">&#8203;</span>`);
+//   }, 200);
+// }
+
+const handleInsertContent = () => {
+  const rawHTML = route?.params?.journalData?.journal?.journalContent || '';
+
+  // Use inline-only span with no block element
+  const cursorMarker = `<span id="cursor-marker" style="all: unset;">&#8203;</span>`;
+
+  // Avoid <div><br/></div> to prevent extra line
+  const finalHTML = `${rawHTML}${cursorMarker}`;
+
+  editorRef.current?.setContentHTML(finalHTML);
+
+  setTimeout(() => {
+    editorRef.current?.focusContentEditor();
+
+    editorRef.current?.commandDOM(`
+      var marker = document.getElementById("cursor-marker");
+      if (marker) {
+        var range = document.createRange();
+        var sel = window.getSelection();
+        range.setStartAfter(marker);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    `);
+
+    const defaultStyle = `
+      font-family: '${style.font}';
+      font-size: ${style.size}px;
+      color: ${style.color};
+      font-weight: ${style.bold ? 'bold' : 'normal'};
+      font-style: ${style.italic ? 'italic' : 'normal'};
+      text-decoration: ${style.underline ? 'underline' : 'none'};
+    `.replace(/\s\s+/g, ' ').trim();
+
+    setTimeout(() => {
+      // Use invisible space to carry style
+      editorRef.current?.insertHTML(`<span style="${defaultStyle}">&#8203;</span>`);
+    }, 50);
+  }, 200);
+};
+
+
   useEffect(() => {
     const rawText = promptData;
     const htmlContent = `<p>${rawText}</p>`;
@@ -232,7 +311,8 @@ const EditJournalEntry = ({navigation, route}) => {
         <TouchableWithoutFeedback
           onPress={() => {
             Keyboard.dismiss();
-            editorRef?.current?.blurContentEditor(); // <== Manually blur RichEditor
+              Platform.OS=='ios'&& editorRef?.current?.blurContentEditor()
+            // editorRef?.current?.blurContentEditor(); // <== Manually blur RichEditor
           }}
           accessible={false}>
           <ImageBackground
@@ -394,12 +474,6 @@ const EditJournalEntry = ({navigation, route}) => {
                       gap: 10,
                       borderRadius: 6,
                     }}>
-                    {/* <Image
-                      source={IconData.FONTITEM}
-                      resizeMode="contain"
-                      style={{width: 30, height: 30}}
-                      tintColor={Color.LIGHTGREEN}
-                    /> */}
                     <Text
                       numberOfLines={1}
                       style={{
@@ -417,7 +491,7 @@ const EditJournalEntry = ({navigation, route}) => {
                     />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => onSizeSelect(style.size + 4)}>
+                    onPress={() => onSizeSelect(style.size + 3)}>
                     <Image
                       source={IconData.FONTPLUS}
                       style={{width: 30, height: 30}}
@@ -425,7 +499,11 @@ const EditJournalEntry = ({navigation, route}) => {
                     />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => onSizeSelect(style.size - 4)}>
+                    onPress={() => {
+                      if (style.size > 5) {
+                        onSizeSelect(style?.size - 3);
+                      }
+                    }}>
                     <Image
                       source={IconData.FONTMINUS}
                       style={{width: 30, height: 30}}
@@ -549,15 +627,20 @@ const EditJournalEntry = ({navigation, route}) => {
                       setPromptMOdalOpen(true);
                     }}
                     style={{width: '50%', zIndex: -1}}
-                    // disabled={currentPage === subTitleText?.length - 1}
                   />
                 )}
 
                 <TouchableOpacity
                   style={{
                     flexDirection: 'row',
-                    gap: 5,
-                    // marginLeft: subscription?.length <= 0 ? -10 : 0,
+                    gap: 2,
+                    justifyContent:'center',
+                    alignItems:'center',
+                    marginLeft:
+                      subscription?.length > 0 ||
+                      subscription?.length == undefined
+                        ? -15
+                        : 5,
                   }}
                   onPress={() => {
                     setTooltipVisible(true);
@@ -568,14 +651,14 @@ const EditJournalEntry = ({navigation, route}) => {
                         ? selectedMoods?.Image
                         : IconData.HAPPY
                     }
-                    style={{width: 24, height: 24}}
+                    style={{width: 20, height: 20}}
                     resizeMode="contain"
                   />
 
                   <Text
                     style={{
                       color: Color.BROWN4,
-                      fontSize: 16,
+                      fontSize: 14,
                       fontFamily: Font.EB_Garamond,
                     }}>
                     {selectedMoods != null
@@ -585,7 +668,7 @@ const EditJournalEntry = ({navigation, route}) => {
                   <Image
                     source={IconData.DROP}
                     resizeMode="contain"
-                    style={{width: 20, height: 20}}
+                    style={{width: 12, height: 12}}
                     // tintColor={'red'}
                   />
                 </TouchableOpacity>

@@ -46,15 +46,17 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
         setPrompts(data?.data);
         setListOpen(1);
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Data Not Found',
-          text2: 'Sub-Categories Data Not FOund',
-          visibilityTime: 3000,
-          position: 'top',
-        });
+    
+           Toast.show({
+                  type: 'custom',
+                  position: 'top',
+                  props: {
+                    icon: IconData.ERR, // your custom image
+                    text: 'Sub-Categories Data Not Found',
+                  },
+                });
       }
-      console.log('Data', data);
+ 
     } catch (error) {
       console.error('Error:', error.message);
     }

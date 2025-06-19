@@ -87,3 +87,7 @@ export const updateJournalData = updatedEntry => ({
   type: types.UPDATE_JOURNAL,
   payload: updatedEntry,
 });
+export const deleteTaskByRepetedId = taskId => ({
+  type: types.DELETE_TASKS_BY_REPEAT_ID,
+  payload: taskId,
+});

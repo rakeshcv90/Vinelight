@@ -14,7 +14,7 @@ const colorCode = [
   {id: 1, code: '#000000', name: 'Black'},
   {id: 2, code: '#808080', name: 'Gray'},
   {id: 3, code: '#C0C0C0', name: 'Silver'},
-  {id: 4, code: '#FFFFFF', name: 'White'},
+
   {id: 5, code: '#800000', name: 'Maroon'},
   {id: 6, code: '#980000', name: 'Dark Red'},
   {id: 7, code: '#FF0000', name: 'Red'},
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingBottom:150,
+    paddingBottom: 150,
   },
   container: {
     backgroundColor: '#2f2f1f',
@@ -130,11 +130,11 @@ const styles = StyleSheet.create({
   },
   colorText: {
     fontSize: 16,
-    color: '#f0f0dc',
+    color: '#ffffff',
     fontFamily: Font.EBGaramond_SemiBold,
   },
   selectedText: {
-    color: Color.LIGHTGREEN,
+    color: '#ffffff',
     fontWeight: '700',
   },
   closeButton: {

@@ -1,12 +1,12 @@
-import {View, Text, Image} from 'react-native';
+import {View, Text, Image, Dimensions} from 'react-native';
 import React from 'react';
 import {Color, Font, IconData} from '../../assets/Image';
-
+const {width, height} = Dimensions.get('window');
 const ProfileGoalComponent = ({image, count, title}) => {
   return (
     <View
       style={{
-        width: 155,
+        width: width * 0.42,
         height: 96,
         borderRadius: 8,
         padding: 8,

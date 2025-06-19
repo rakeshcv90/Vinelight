@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   Modal,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -60,7 +61,15 @@ const fonts = [
 
 const CreateJournalEntry = ({navigation, route}) => {
   const HomeData = route?.params?.prompttype;
-  const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
+  const DataCurrent = route?.params?.selectedDate;
+  console.log('Ccccccccc', DataCurrent);
+  // const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
+  const [currentDat, setCurrentDate] = useState(
+    DataCurrent == undefined
+      ? moment().local().format('YYYY-MM-DD')
+      : DataCurrent,
+  );
+    console.log('Journal', currentDat);
   const [propmModalOpen, setPromptMOdalOpen] = useState(false);
   const [colorModal, setColorModa] = useState(false);
   const dispatch = useDispatch();
@@ -72,6 +81,7 @@ const CreateJournalEntry = ({navigation, route}) => {
   const handleCursorPosition = scrollY => {
     scrollRef.current?.scrollTo({y: scrollY - 30, animated: true});
   };
+
   const [selectedFont, setSelectedFont] = useState(fonts[0]);
 
   const [tooltipVisible, setTooltipVisible] = useState(false);
@@ -147,12 +157,23 @@ const CreateJournalEntry = ({navigation, route}) => {
     applyStyle(newStyle);
   };
 
-  const onColorSelect = hex => {
+  // const onColorSelect = hex => {
+  //   const newStyle = {...style, color: hex};
+  //   setStyle(newStyle);
+  //   applyStyle(newStyle);
+  // };
+  const onColorSelect = async hex => {
     const newStyle = {...style, color: hex};
     setStyle(newStyle);
-    applyStyle(newStyle);
-  };
 
+    // Ensure editor is focused before applying style
+    if (editorRef.current) {
+      await editorRef.current.focusContentEditor();
+      setTimeout(() => {
+        editorRef.current.setForeColor(hex); // or applyStyle(newStyle)
+      }, 100); // Small delay ensures focus before applying
+    }
+  };
   const onUnderLine = hex => {
     const newStyle = {...style, underline: !style.underline};
     setStyle(newStyle);
@@ -194,8 +215,12 @@ const CreateJournalEntry = ({navigation, route}) => {
 
       if (isBlank) {
         Toast.show({
-          type: 'error',
-          text1: 'Content cannot be empty',
+          type: 'custom',
+          position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Content cannot be empty',
+          },
         });
         return;
       }
@@ -212,7 +237,14 @@ const CreateJournalEntry = ({navigation, route}) => {
           mood: selectedMoods,
         }),
       );
-
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.SUCC, // your custom image
+          text: 'Journal entry created successfully',
+        },
+      });
       setTimeout(() => {
         setLoader(false);
         navigation.goBack();
@@ -220,9 +252,14 @@ const CreateJournalEntry = ({navigation, route}) => {
     } catch (error) {
       setLoader(false);
       console.error('Error saving journal data:', error);
+
       Toast.show({
-        type: 'error',
-        text1: 'Failed to save journal',
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: 'Failed to save journal',
+        },
       });
     }
   };
@@ -286,7 +323,7 @@ const CreateJournalEntry = ({navigation, route}) => {
         <TouchableWithoutFeedback
           onPress={() => {
             Keyboard.dismiss();
-            editorRef?.current?.blurContentEditor(); // <== Manually blur RichEditor
+            Platform.OS == 'ios' && editorRef?.current?.blurContentEditor();
           }}
           accessible={false}>
           <ImageBackground
@@ -475,7 +512,7 @@ const CreateJournalEntry = ({navigation, route}) => {
                     />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => onSizeSelect(style.size + 1)}>
+                    onPress={() => onSizeSelect(style.size + 3)}>
                     <Image
                       source={IconData.FONTPLUS}
                       style={{width: 30, height: 30}}
@@ -483,7 +520,12 @@ const CreateJournalEntry = ({navigation, route}) => {
                     />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => onSizeSelect(style.size - 1)}>
+                    // onPress={() => onSizeSelect(style.size - 3)}>
+                    onPress={() => {
+                      if (style.size > 5) {
+                        onSizeSelect(style?.size - 3);
+                      }
+                    }}>
                     <Image
                       source={IconData.FONTMINUS}
                       style={{width: 30, height: 30}}
@@ -492,7 +534,6 @@ const CreateJournalEntry = ({navigation, route}) => {
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={() => setColorModa(true)}>
-
                     <Image
                       source={IconData.FONTCOLOR}
                       style={{width: 30, height: 30}}
@@ -590,7 +631,6 @@ const CreateJournalEntry = ({navigation, route}) => {
                   alignItems: 'center',
                   overflow: 'hidden',
                 }}>
-       
                 {(subscription?.length > 0 ||
                   subscription?.length == undefined) && (
                   <Button
@@ -606,15 +646,20 @@ const CreateJournalEntry = ({navigation, route}) => {
                       setPromptMOdalOpen(true);
                     }}
                     style={{width: '50%', zIndex: -1}}
-                    // disabled={currentPage === subTitleText?.length - 1}
                   />
                 )}
 
                 <TouchableOpacity
                   style={{
                     flexDirection: 'row',
-                    gap: 5,
-                    marginLeft: 0,
+                    gap: 2,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginLeft:
+                      subscription?.length > 0 ||
+                      subscription?.length == undefined
+                        ? -15
+                        : 5,
                   }}
                   onPress={() => {
                     setTooltipVisible(true);
@@ -625,14 +670,14 @@ const CreateJournalEntry = ({navigation, route}) => {
                         ? selectedMoods?.Image
                         : IconData.HAPPY
                     }
-                    style={{width: 24, height: 24}}
+                    style={{width: 20, height: 20}}
                     resizeMode="contain"
                   />
 
                   <Text
                     style={{
                       color: Color.BROWN4,
-                      fontSize: 16,
+                      fontSize: 14,
                       fontFamily: Font.EB_Garamond,
                     }}>
                     {selectedMoods != null
@@ -642,11 +687,11 @@ const CreateJournalEntry = ({navigation, route}) => {
                   <Image
                     source={IconData.DROP}
                     resizeMode="contain"
-                    style={{width: 20, height: 20}}
+                    style={{width: 12, height: 12}}
                     // tintColor={'red'}
                   />
                 </TouchableOpacity>
-                <View style={{right: 15}}>
+                <View style={{right: 12}}>
                   <Button
                     img={IconData.SAVE}
                     text="Save"
@@ -669,18 +714,13 @@ const CreateJournalEntry = ({navigation, route}) => {
                   }}
                   onClose={() => setTooltipVisible(false)}
                 />
-                {/* <ColorToolModal
-                  visible={colorModal}
-                  selectedOptions={style.color}
-                  onSelect={hex => onColorSelect(hex)}
-                  onClose={() => setColorModa(false)}
-                /> */}
+
                 <ColorToolModal
                   visible={colorModal}
                   selectedColor={style.color}
                   onSelect={hex => {
-                    onColorSelect(hex); // ✅ Pass hex argument here
-                    setColorModa(false); // Optionally close modal after selection
+                    onColorSelect(hex);
+                    setColorModa(false);
                   }}
                   onClose={() => setColorModa(false)}
                 />
@@ -697,7 +737,6 @@ const CreateJournalEntry = ({navigation, route}) => {
           setPromptMOdalOpen(false);
         }}
       />
-
     </View>
   );
 };

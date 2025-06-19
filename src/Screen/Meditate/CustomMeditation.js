@@ -17,15 +17,16 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import FastImage from 'react-native-fast-image';
-
+import Toast from 'react-native-toast-message';
+import KeepAwake from 'react-native-keep-awake';
 const {width, height} = Dimensions.get('window');
 const CustomMeditation = ({navigation}) => {
   const presetTimes = [5, 10, 15, 20, 25, 30];
-  const [selectedTime, setSelectedTime] = useState(25);
+  const [selectedTime, setSelectedTime] = useState();
   const memoizedBackground = useMemo(() => ImageData.BACKGROUND, []);
   const memoizedBackground1 = useMemo(() => ImageData.MAINBACKGROUND, []);
-  const [hour, setHour] = useState();
-  const [minute, setMinute] = useState(25);
+  const [second, setSecond] = useState(null);
+  const [minute, setMinute] = useState(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
@@ -41,7 +42,13 @@ const CustomMeditation = ({navigation}) => {
       hideSub.remove();
     };
   }, []);
+  useEffect(() => {
+    KeepAwake.activate(); // Prevent screen sleep when this screen is active
 
+    return () => {
+      KeepAwake.deactivate(); // Clean up on unmount
+    };
+  }, []);
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -205,7 +212,7 @@ const CustomMeditation = ({navigation}) => {
                       )}
                     </View>
                     <View style={styles.timerDisplay}>
-                      <View
+                      {/* <View
                         style={{
                           width: 100,
                           height: 79,
@@ -230,14 +237,103 @@ const CustomMeditation = ({navigation}) => {
                             textAlign: 'center',
                           }}
                           keyboardType="numeric"
-                          placeholder="HH"
+                          placeholder="00"
                           placeholderTextColor={Color.BROWN2}
                           underlineColorAndroid="transparent"
                         />
-                      </View>
+                      </View> */}
 
-                      <Text style={styles.timerText}>:</Text>
+                      {/* <View
+                        style={{
+                          width: 100,
+                          height: 79,
+                          backgroundColor: Color.BROWN3,
+                          borderRadius: 8,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          position: 'relative',
+                        }}>
+                        <TextInput
+                          value={minute?.toString()}
+                          onChangeText={text => {
+                            const digitsOnly = text.replace(/[^0-9]/g, '');
+                            setMinute(Number(digitsOnly.slice(0, 2)));
+                          }}
+                          style={{
+                            width: '100%',
+                            height: 79,
+                            color: Color.LIGHTGREEN,
+                            fontSize: 48,
+                            borderRadius: 8,
+                            backgroundColor: Color.BROWN3,
+                            textAlign: 'center',
+                            fontFamily: Font.EB_Garamond_Bold,
+                          }}
+                          keyboardType="numeric"
+                          placeholder="00"
+                          placeholderTextColor={Color.BROWN2}
+                          underlineColorAndroid="transparent"
+                        />
+                        <Text
+                          style={{
+                            position: 'absolute',
+                            right: 3,
+                            bottom: 5,
+                            top: height * 0.03,
+                            color: Color.BROWN2,
+                            fontSize: 30,
+                            fontFamily: Font.EB_Garamond_Bold,
+                          }}>
+                          m
+                        </Text>
+                      </View> */}
                       <View
+                        style={{
+                          width: 100,
+                          height: 79,
+                          backgroundColor: Color.BROWN3,
+                          borderRadius: 8,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          position: 'relative',
+                        }}>
+                        <TextInput
+                          value={minute?.toString()}
+                          onChangeText={text => {
+                            const digitsOnly = text.replace(/[^0-9]/g, '');
+                            setMinute(Number(digitsOnly.slice(0, 2)));
+                          }}
+                          style={{
+                            width: '100%',
+                            height: 79,
+                            color: Color.LIGHTGREEN,
+                            fontSize: 48,
+                            borderRadius: 8,
+                            left: -5,
+                            backgroundColor: Color.BROWN3,
+                            textAlign: 'center',
+                            fontFamily: Font.EB_Garamond_Bold,
+                          }}
+                          keyboardType="numeric"
+                          placeholder="00"
+                          placeholderTextColor={Color.BROWN2}
+                          underlineColorAndroid="transparent"
+                        />
+                        <Text
+                          style={{
+                            position: 'absolute',
+                            right: 2,
+                            bottom: 5,
+                            top: height * 0.03,
+                            color: Color.BROWN2,
+                            fontSize: 30,
+                            fontFamily: Font.EB_Garamond_Bold,
+                          }}>
+                          M
+                        </Text>
+                      </View>
+                      <Text style={styles.timerText}>:</Text>
+                      {/* <View
                         style={{
                           width: 100,
                           height: 79,
@@ -262,10 +358,54 @@ const CustomMeditation = ({navigation}) => {
                             textAlign: 'center',
                           }}
                           keyboardType="numeric"
-                          placeholder="MM"
+                          placeholder="00"
                           placeholderTextColor={Color.BROWN2}
                           underlineColorAndroid="transparent"
                         />
+                      </View> */}
+                      <View
+                        style={{
+                          width: 100,
+                          height: 79,
+                          backgroundColor: Color.BROWN3,
+                          borderRadius: 8,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          position: 'relative',
+                        }}>
+                        <TextInput
+                          value={second?.toString()}
+                          onChangeText={text => {
+                            const digitsOnly = text.replace(/[^0-9]/g, '');
+                            setSecond(Number(digitsOnly.slice(0, 2)));
+                          }}
+                          style={{
+                            width: '100%',
+                            height: 79,
+                            color: Color.LIGHTGREEN,
+                            fontSize: 48,
+                            borderRadius: 8,
+                            backgroundColor: Color.BROWN3,
+                            textAlign: 'center',
+                            fontFamily: Font.EB_Garamond_Bold,
+                          }}
+                          keyboardType="numeric"
+                          placeholder="00"
+                          placeholderTextColor={Color.BROWN2}
+                          underlineColorAndroid="transparent"
+                        />
+                        <Text
+                          style={{
+                            position: 'absolute',
+                            right: 10,
+                            bottom: 5,
+                            top: height * 0.03,
+                            color: Color.BROWN2,
+                            fontSize: 30,
+                            fontFamily: Font.EB_Garamond_Bold,
+                          }}>
+                          S
+                        </Text>
                       </View>
                     </View>
                     <TouchableOpacity
@@ -291,28 +431,45 @@ const CustomMeditation = ({navigation}) => {
                     <View
                       style={{
                         width: '100%',
-                        marginTop: 10,
+                        top: height * 0.01,
                         justifyContent: 'center',
                         alignItems: 'center',
                       }}>
                       <Button2
-                        width={300}
+                        width={280}
                         height={50}
                         buttonTitle={'Start Meditation'}
                         img={IconData.MED}
                         left={true}
                         size={20}
                         onPress={() => {
-                          console.log("DFdfdffd",0 * 60 + minute)
-                          if (hour == undefined) {
+                          if (minute) {
                             navigation.navigate('CustomMeditationPlayer', {
-                              timer: 0 * 60 + minute,
+                              timer: second / 60 + minute,
                             });
+                            setMinute(null);
+                            setSecond(null);
+                          } else if (!minute && second) {
+                            navigation.navigate('CustomMeditationPlayer', {
+                              timer: second / 60 + minute,
+                            });
+                            setMinute(null);
+                            setSecond(null);
+                          } else if (!second && minute) {
+                            navigation.navigate('CustomMeditationPlayer', {
+                              timer: second / 60 + minute,
+                            });
+                            setMinute(null);
+                            setSecond(null);
                           } else {
-                            console.log("cxvcvcvcx")
-                            // navigation.navigate('CustomMeditationPlayer', {
-                            //   timer: hour * 60 + minute,
-                            // });
+                            Toast.show({
+                              type: 'custom',
+                              position: 'top',
+                              props: {
+                                icon: IconData.ERR, // your custom image
+                                text: 'Please select time',
+                              },
+                            });
                           }
                         }}
                       />

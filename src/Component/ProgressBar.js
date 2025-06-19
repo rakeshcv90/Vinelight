@@ -256,7 +256,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import {Color, IconData, PLATFORM_IOS} from '../../assets/Image';
 import LinearGradient from 'react-native-linear-gradient';
 import useNativeMusicPlayer from './NativeusicPlayer';
@@ -275,7 +275,8 @@ const ProgressBar = ({
   ttsOpen,
   setTtsOpen,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [musicPlay, setMusicPlay] = useState(true);
   const medatationData = useSelector(
     state => state?.user?.advanceMeditationData,
   );
@@ -300,7 +301,12 @@ const ProgressBar = ({
       releaseMusic();
     };
   }, []);
-
+  useEffect(() => {
+    if (isPlaying) {
+     playMusic('player1');
+      playMusic('player2');
+    }
+  }, [isPlaying]);
   useEffect(() => {
     if (onUpdateTime) {
       onUpdateTime(currentTime.player1);
@@ -319,11 +325,14 @@ const ProgressBar = ({
   const handlePlayPause = () => {
     if (isPlaying) {
       pauseMusic('player1');
+       setTtsOpen(false)
     } else {
       playMusic('player1');
       playMusic('player2');
+       setTtsOpen(true)
     }
     setIsPlaying(!isPlaying);
+   
   };
 
   return (
@@ -385,15 +394,15 @@ const ProgressBar = ({
           style={styles.iconCircle}
           activeOpacity={0.7}
           onPress={() => {
-            if (isPlaying) {
+            if (musicPlay) {
               pauseMusic('player1');
             } else {
               playMusic('player1');
             }
-            setIsPlaying(!isPlaying);
+            setMusicPlay(!musicPlay);
           }}>
           <Image
-            source={isPlaying ? IconData.MUSICCLOSE : IconData.MUSIC}
+            source={musicPlay ?  IconData.MUSIC:IconData.MUSICCLOSE }
             style={styles.icon}
             resizeMode="contain"
           />

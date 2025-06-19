@@ -78,7 +78,7 @@
 //   const progressWidth =
 //   musicTimer > 0 ? (position / musicTimer) * 300 : 0;
 
-//   console.log("cxvcxvcxvcxvxcvcx",position,musicTimer)
+
 //   // const progressWidth =
 //   //   duration.player1 > 0 ? (currentTime.player1 / duration.player1) * 300 : 0;
 //   useEffect(() => {
@@ -320,7 +320,7 @@ const ProgressBar2 = ({musicTime, pauseSound}) => {
         )}
       </View>
 
-      {console.log("isPlaying",isPlaying)}
+    
       <View style={styles.controls}>
         <View style={styles.iconCircle} />
         <TouchableOpacity

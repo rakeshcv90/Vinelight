@@ -14,7 +14,7 @@ import {
   Keyboard,
   FlatList,
 } from 'react-native';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useState, useEffect} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import {useDispatch, useSelector} from 'react-redux';
@@ -29,23 +29,38 @@ import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
 const {width, height} = Dimensions.get('window');
 const Ceremony = () => {
-  const [modalopen, setModalOpen] = useState(false);
-  const [showProgress, setShowProgess] = useState(true);
-  const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
+  const [modalCeremonyopen, setModalCeromonyOpen] = useState(false);
+
+  const [currentDat, setCurrentDate] = useState(
+    moment().local().format('YYYY-MM-DD'),
+  );
   const dispatch = useDispatch();
   const existingCeremonies = useSelector(
     state => state.user?.ceremonyinfo || [],
   );
 
+  const [selectedHeader, setSelectedHeader] = useState(0);
+
   const CeremonyModal = ({visible, onClose}) => {
+    const [isReady, setIsReady] = useState(false);
     const [ceremonyName, setCeremonyName] = useState(null);
     const [loader, setLoader] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(null);
-    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [selectedDate, setSelectedDate] = useState();
+    const [isDatePickerVisibleCermony, setDatePickerVisibilityCermony] =
+      useState(false);
     const currentDate = moment().format('YYYY-MM-DD');
+    const dispatch = useDispatch();
 
-    const showDatePicker = () => setDatePickerVisibility(true);
-    const hideDatePicker = () => setDatePickerVisibility(false);
+    useEffect(() => {
+      if (visible) {
+        setTimeout(() => setIsReady(true), 200); // prevent auto keyboard
+      } else {
+        setIsReady(false);
+      }
+    }, [visible]);
+
+    const showDatePicker = () => setDatePickerVisibilityCermony(true);
+    const hideDatePicker = () => setDatePickerVisibilityCermony(false);
 
     const handleConfirm = date => {
       const formattedDate = moment(date).format('YYYY-MM-DD');
@@ -54,85 +69,97 @@ const Ceremony = () => {
     };
 
     const saveCeremony = () => {
+      Keyboard.dismiss(); // dismiss keyboard
       setLoader(true);
 
-      try {
-        if (ceremonyName && selectedDate) {
-          const ceremonyData = {
-            id: uuid.v4(),
-            name: ceremonyName,
-            CeremonyDate: selectedDate,
-            createdDate: currentDate,
-          };
+      if (ceremonyName && selectedDate) {
+        const ceremonyData = {
+          id: uuid.v4(),
+          name: ceremonyName,
+          CeremonyDate: selectedDate,
+          createdDate: currentDate,
+        };
 
-          setTimeout(() => {
-            try {
-              dispatch?.(setCeremonyInfo(ceremonyData));
-              onClose?.();
-              setDatePickerVisibility?.(false);
-            } catch (error) {
-              console.error('Error in timeout block:', error);
-              Toast.show({
-                type: 'error',
-                text1: 'Something went wrong',
-                text2: error.message,
-              });
-            } finally {
-              setLoader(false);
-            }
-          }, 3000);
-        } else {
-          setLoader(false);
-          Toast.show({
-            type: 'error',
-            text1: 'Data Save failed',
-            text2: 'Please enter your ceremony name and date',
-            visibilityTime: 3000,
-            position: 'top',
-          });
-          // onClose?.();
-          // setDatePickerVisibility?.(false);
-        }
-      } catch (error) {
-        console.error('Error in saveCeremony:', error);
-        Toast.show({
-          type: 'error',
-          text1: 'Unexpected error',
-          text2: error.message,
-        });
+        setTimeout(() => {
+          try {
+            dispatch(setCeremonyInfo(ceremonyData));
+
+            Toast.show({
+              type: 'custom',
+              position: 'top',
+              props: {
+                icon: IconData.SUCC, // your custom image
+                text: 'Cermony data save!',
+              },
+            });
+            onClose?.();
+            setDatePickerVisibilityCermony(false);
+          } catch (error) {
+            Toast.show({
+              type: 'custom',
+              position: 'top',
+              props: {
+                icon: IconData.ERR, // your custom image
+                text: 'Something went wrong',
+              },
+            });
+          } finally {
+            setLoader(false);
+          }
+        }, 3000);
+      } else {
         setLoader(false);
-        onClose?.();
-        setDatePickerVisibility?.(false);
+
+        Toast.show({
+          type: 'custom',
+          position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Please enter your ceremony name and date',
+          },
+        });
       }
     };
+
+    if (!isReady) return null;
 
     return (
       <Modal visible={visible} transparent animationType="slide">
         <KeyboardAvoidingView
-          style={styles.overlay}
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'flex-end',
+          }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ActivityLoader visible={loader} />
-          <TouchableWithoutFeedback
-            onPress={Keyboard.dismiss}
-            accessible={false}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView
               contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-end'}}
               keyboardShouldPersistTaps="handled">
-              <View style={styles.modalWrapper}>
+              <View
+                style={{
+                  width: '95%',
+                  height: 320,
+                  alignItems: 'center',
+                  marginLeft: width * 0.025,
+                }}>
                 <ImageBackground
                   source={ImageData.MODAL}
-                  style={styles.modalContainer}
-                  imageStyle={styles.imageStyle}>
+                  style={{width: '100%', height: '100%'}}
+                  imageStyle={{
+                    resizeMode: 'cover',
+                    borderTopLeftRadius: 12,
+                    borderTopRightRadius: 12,
+                  }}>
                   <View
                     style={{
                       width: '95%',
                       flexDirection: 'row',
                       justifyContent: 'center',
+                      alignItems: 'center',
                       alignSelf: 'center',
                       paddingVertical: 10,
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      alignItems: 'center',
                       position: 'relative',
                     }}>
                     <Text
@@ -141,10 +168,13 @@ const Ceremony = () => {
                         fontFamily: Font.EBGaramond_SemiBold,
                         textAlign: 'center',
                       }}>
-                      Add New Ceremony
+                      New Ceremony
                     </Text>
                     <TouchableOpacity
-                      onPress={() => setModalOpen(false)}
+                      onPress={() => {
+                        Keyboard.dismiss();
+                        onClose();
+                      }}
                       style={{position: 'absolute', right: 5}}>
                       <Image
                         source={IconData.CANCEL}
@@ -152,26 +182,22 @@ const Ceremony = () => {
                       />
                     </TouchableOpacity>
                   </View>
+
                   <View
                     style={{
                       width: '90%',
                       height: 52,
                       borderRadius: 12,
-
                       justifyContent: 'center',
                       alignItems: 'center',
                       marginVertical: height * 0.04,
-                      // marginHorizontal: width * 0.03,
                       backgroundColor: Color.BROWN3,
                       alignSelf: 'center',
                     }}>
                     <TextInput
                       value={ceremonyName}
-                      autoFocus={true}
                       onChangeText={text => setCeremonyName(text)}
-                      placeholder=" Name"
-                      multiline={true}
-                      // textAlignVertical="top"
+                      placeholder="Name"
                       placeholderTextColor={Color.GREEN}
                       style={{
                         width: '90%',
@@ -183,58 +209,50 @@ const Ceremony = () => {
                       selectionColor={Color.LIGHTGREEN}
                     />
                   </View>
-                  <View
+
+                  <TouchableOpacity
+                    onPress={showDatePicker}
                     style={{
                       width: '90%',
                       height: 52,
                       borderRadius: 12,
                       flexDirection: 'row',
-                      justifyContent: 'center',
+                      justifyContent: 'space-between',
                       alignItems: 'center',
                       marginVertical: -height * 0.03,
-                      paddingHorizontal: 10,
-                      paddingRight: 10,
+                      paddingHorizontal: 18,
                       backgroundColor: Color.BROWN3,
                       alignSelf: 'center',
                     }}>
-                    <TextInput
-                      value={selectedDate}
-                      editable={false}
-                      placeholder="Date"
-                      placeholderTextColor={Color.GREEN}
+                    <Text
                       style={{
-                        width: '90%',
-                        height: '100%',
-                        color: Color.LIGHTGREEN,
+                        color: selectedDate ? Color.LIGHTGREEN : Color.GREEN,
                         fontSize: 16,
                         fontFamily: Font.EBGaramond_Regular,
-                      }}
-                      selectionColor={Color.LIGHTGREEN}
-                    />
-                    <TouchableOpacity
-                      onPress={showDatePicker}
-                      style={{
-                        width: 30,
-                        height: 30,
-                        justifyContent: 'center',
-                        alignItems: 'center',
                       }}>
-                      <Image
-                        source={IconData.CALENDER}
-                        style={{width: 24, height: 24}}
-                      />
-                    </TouchableOpacity>
-                  </View>
+                      {selectedDate || 'Date'}
+                    </Text>
+                    <Image
+                      source={IconData.CALENDER}
+                      style={{width: 24, height: 24}}
+                    />
+                  </TouchableOpacity>
 
                   <ImageBackground
                     source={ImageData.TABBACKGROUND}
-                    style={styles.thirdBackground}
+                    style={{
+                      flex: 1,
+                      width: '100%',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      alignSelf: 'center',
+                      top: 10,
+                    }}
                     resizeMode="contain">
                     <View
                       style={{
                         width: '95%',
                         height: '100%',
-
                         justifyContent: 'center',
                         alignItems: 'flex-end',
                         overflow: 'hidden',
@@ -248,21 +266,21 @@ const Ceremony = () => {
                         backgroundColor={Color.BROWN4}
                         height={40}
                         font={Font.EBGaramond_SemiBold}
-                        onPress={() => {
-                          saveCeremony();
-                        }}
+                        onPress={saveCeremony}
                         style={{width: '50%', zIndex: -1}}
                       />
                     </View>
                   </ImageBackground>
                 </ImageBackground>
               </View>
+
               <DateTimePickerModal
-                isVisible={isDatePickerVisible}
+                isVisible={isDatePickerVisibleCermony}
                 mode="date"
                 onConfirm={handleConfirm}
                 onCancel={hideDatePicker}
-                display={Platform.OS === 'ios' ? 'inline' : 'default'} // optional but nice
+                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                date={selectedDate ? new Date(selectedDate) : new Date()}
               />
             </ScrollView>
           </TouchableWithoutFeedback>
@@ -270,6 +288,7 @@ const Ceremony = () => {
       </Modal>
     );
   };
+
   const dayCalculate = data => {
     let textData = '';
     if (currentDat < data) {
@@ -314,18 +333,29 @@ const Ceremony = () => {
   };
   const deleteCeremony = itemId => {
     dispatch(deleteCeromonykById(itemId));
+    Toast.show({
+      type: 'custom',
+      position: 'top',
+      props: {
+        icon: IconData.DEL, // your custom image
+        text: 'Ceremony data deleted successfully!',
+      },
+    });
   };
   const renderItem = ({item, index}) => {
     const progress = getProgress(item?.createdDate, item?.CeremonyDate);
     const totalBarWidth = Dimensions.get('window').width * 0.82;
     const progressWidth = totalBarWidth * progress;
-    console.log('progress:', progress, 'width:', progressWidth);
+
     const {diffDays, countData} = dayCount(item?.CeremonyDate);
 
     return (
       <View style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.title1}>{item?.name}</Text>
+          <View style={{width: width * 0.4}}>
+            <Text style={styles.title1}>{item?.name}</Text>
+          </View>
+
           <View style={{flexDirection: 'row', gap: 10}}>
             <View
               style={{
@@ -352,7 +382,7 @@ const Ceremony = () => {
             </TouchableOpacity>
           </View>
         </View>
-        {console.log('XCvcxvxcvxcvxcvcxv', countData, progressWidth)}
+
         {countData > 0 && (
           <View style={styles.progressWrapper}>
             <View style={styles.unfilledBar} />
@@ -406,10 +436,23 @@ const Ceremony = () => {
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
           }}>
-          No Ceremonies Saved
+          No ceremonies data available.
         </Text>
       </View>
     );
+  };
+  const filterdata = cermonyData => {
+    let filteredData = [];
+    if (selectedHeader == 1) {
+      filteredData = cermonyData.filter(
+        item => item.CeremonyDate >= currentDat,
+      );
+    } else {
+      filteredData = cermonyData.filter(
+        item => item.CeremonyDate <= currentDat,
+      );
+    }
+    return filteredData;
   };
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
@@ -434,7 +477,7 @@ const Ceremony = () => {
               marginTop: '10%',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
-              // backgroundColor: Color?.LIGHTBROWN,
+              backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -471,17 +514,89 @@ const Ceremony = () => {
               }}>
               <Text style={styles.subText}>Ceremonies</Text>
             </View>
+            <View
+              style={{
+                width: '80%',
+                height: '10%',
+                flexDirection: 'row',
+                top: -height * 0.045,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: Color.BROWN4,
+                borderRadius: 10,
+                borderWidth: 2,
+                borderColor: Color.BROWN2,
+                // gap: 5,
+              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedHeader(0);
+                }}
+                activeOpacity={0.7}
+                style={{
+                  width: '50%',
+                  height: '100%',
 
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor:
+                    selectedHeader == 0 ? Color.BROWN3 : 'transparent',
+                  borderRadius: selectedHeader == 0 ? 10 : 0,
+                  borderWidth: selectedHeader == 0 ? 2 : 0,
+                  borderColor:
+                    selectedHeader == 0 ? Color.BROWN2 : 'transparent',
+                }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontFamily: Font.EBGaramond_Regular,
+                    // lineHeight: 24,
+                    color: Color.LIGHTGREEN,
+                  }}>
+                  Days since
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedHeader(1);
+                }}
+                activeOpacity={0.7}
+                style={{
+                  width: '50%',
+                  height: '100%',
+
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor:
+                    selectedHeader == 1 ? Color.BROWN3 : 'transparent',
+                  borderRadius: selectedHeader == 1 ? 10 : 0,
+                  borderWidth: selectedHeader == 1 ? 2 : 0,
+                  borderColor:
+                    selectedHeader == 1 ? Color.BROWN2 : 'transparent',
+                }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontFamily: Font.EBGaramond_Regular,
+                    // lineHeight: 24,
+                    color: Color.LIGHTGREEN,
+                    textAlign: 'center',
+                  }}>
+                  Days until
+                </Text>
+              </TouchableOpacity>
+            </View>
             <View
               style={{
                 width: '96%',
-                height: '63%',
+                height: '53%',
                 alignItems: 'center',
                 alignSelf: 'center',
                 top: -height * 0.03,
               }}>
               <FlatList
-                data={existingCeremonies}
+                data={filterdata(existingCeremonies)}
                 keyExtractor={(item, index) => index.toString()}
                 contentContainerStyle={{paddingBottom: 20}}
                 showsVerticalScrollIndicator={false}
@@ -496,17 +611,17 @@ const Ceremony = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'center',
-
+                top: height * 0.036,
                 flexDirection: 'row',
               }}>
               <Button2
-                width={250}
+                width={280}
                 height={50}
-                buttonTitle={'Add New Ceremony'}
+                buttonTitle={'New Ceremony'}
                 img={IconData.PLUS}
                 left={true}
                 size={20}
-                onPress={() => setModalOpen(true)}
+                onPress={() => setModalCeromonyOpen(true)}
               />
             </View>
 
@@ -540,9 +655,9 @@ const Ceremony = () => {
           </View>
         </View>
         <CeremonyModal
-          visible={modalopen}
+          visible={modalCeremonyopen}
           onClose={() => {
-            setModalOpen(false);
+            setModalCeromonyOpen(false);
           }}
         />
       </FastImage>

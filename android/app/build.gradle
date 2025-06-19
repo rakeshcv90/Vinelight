@@ -68,6 +68,7 @@ dependencies {
     implementation "com.android.billingclient:billing:$billing_version"
     implementation project(':react-native-vector-icons')
     implementation project(':react-native-iap')
+    implementation project(':react-native-keep-awake')
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

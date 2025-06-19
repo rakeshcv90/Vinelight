@@ -50,7 +50,7 @@ const Profile = ({navigation}) => {
   const getJournalData = useSelector(state => state?.user?.getJournalData);
   const getDreamData = useSelector(state => state?.user?.getDreamData);
   const customMeditation = useSelector(state => state?.user?.customeMedidation);
-  console.log('Rakesh goal', getJournalData?.length);
+
   const url = 'https://www.instagram.com/vinelightapp/';
   const url1 = 'https://arkanaapps.com/contact/';
   useEffect(() => {
@@ -129,13 +129,13 @@ const Profile = ({navigation}) => {
           setLoader(false); // ✅ Hide loader
 
           Toast.show({
-            type: 'success',
-            text1: 'Profile Updated',
-            text2: 'Your profile has been updated successfully',
-            visibilityTime: 3000,
+            type: 'custom',
             position: 'top',
+            props: {
+              icon: IconData.SUCC, // your custom image
+              text: 'Your profile has been updated successfully',
+            },
           });
-
           setName(null);
           setImage(null);
           setModalOpen(false);
@@ -146,11 +146,12 @@ const Profile = ({navigation}) => {
       }
     } else {
       Toast.show({
-        type: 'error',
-        text1: 'Data Save failed',
-        text2: 'Please enter your name and select an image',
-        visibilityTime: 3000,
-        position: 'top', // 'top' or 'bottom'
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: 'Please enter your name and select an image',
+        },
       });
     }
   };
@@ -373,7 +374,7 @@ const Profile = ({navigation}) => {
                   alignSelf: 'center',
                   alignItems: 'center',
                   gap: height * 0.01,
-                  marginTop: height * 0.03,
+                  marginTop: height * 0.01,
                   marginBottom: 10,
                   flexDirection: 'row',
                 }}>
@@ -509,7 +510,9 @@ const Profile = ({navigation}) => {
                       Guided Meditations
                     </Text>
                   </View>
-                  {subscription?.length > 0 ? (
+                  {(subscription?.length == undefined ||
+                    subscription?.length == 0) &&
+                  subscription?.subscriptionStatus == 'Active' ? (
                     <View
                       style={{
                         width: '100%',
@@ -539,19 +542,27 @@ const Profile = ({navigation}) => {
                   ) : (
                     <View style={{padding: 20}} />
                   )}
-                  <Button2
-                    width={300}
-                    height={50}
-                    buttonTitle={
-                      subscription?.length > 0
-                        ? 'Manage Subscription'
-                        : 'Upgrade'
-                    }
-                    img={IconData.UPGRADE}
-                    left={true}
-                    size={20}
-                    onPress={() => navigation.navigate('Subscription')}
-                  />
+
+                  <View
+                    style={{
+                      top: height * 0.02,
+                    }}>
+                    <Button2
+                      width={subscription?.length > 0 ? 280 : 250}
+                      height={50}
+                      buttonTitle={
+                        (subscription?.length == undefined ||
+                          subscription?.length == 0) &&
+                        subscription?.subscriptionStatus == 'Active'
+                          ? 'Manage Subscription'
+                          : 'Upgrade'
+                      }
+                      img={IconData.UPGRADE}
+                      left={true}
+                      size={20}
+                      onPress={() => navigation.navigate('Subscription')}
+                    />
+                  </View>
                 </View>
                 <View
                   style={{

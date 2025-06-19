@@ -21,7 +21,7 @@ const Meditation = () => {
   const dispatch = useDispatch();
   const meditationData = useSelector(state => state?.user?.meditationdata);
   const customMeditation = useSelector(state => state?.user?.customeMedidation);
-
+  const subscription = useSelector(state => state?.user?.subscription);
   const [selectedHeader, setSelectedHeader] = useState(0);
   const renderItem = ({item, index}) => {
     const formatDuration = totalSeconds => {
@@ -42,9 +42,11 @@ const Meditation = () => {
             style={styles.playButton}
             onPress={() => {
               navigation.navigate('MeditationPlayer', {itemData: item});
-            }}
-            >
-            <Text style={styles.icon}>▶</Text>
+            }}>
+            <Image
+              source={ImageData.PLAYBUTTON}
+              style={{width: 40, height: 40}}
+            />
           </TouchableOpacity>
           {/* <View style={styles.durationBadge}>
             <Text style={styles.durationText}>
@@ -57,7 +59,6 @@ const Meditation = () => {
   };
   const renderItem1 = ({item, index}) => {
 
-    console.log("dddddd",item)
     // const timeKeys = ['pre', 'med', 'int', 'end', 'res'];
     // let totalSeconds = 0;
 
@@ -69,13 +70,15 @@ const Meditation = () => {
     //     totalSeconds += min * 60 + sec;
     //   }
     // });
-   
+
     // const formatDuration = totalSeconds => {
     //   const minutes = Math.floor(totalSeconds / 60);
     //   const seconds = totalSeconds % 60;
     //   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     // };
-    const totalMinutes = parseInt(item?.timeData?.med?.minute) + parseInt(item?.timeData?.med?.second) / 60;
+    const totalMinutes =
+      parseInt(item?.timeData?.med?.minute) +
+      parseInt(item?.timeData?.med?.second) / 60;
 
     return (
       <View style={styles.card}>
@@ -83,24 +86,20 @@ const Meditation = () => {
           <TouchableOpacity
             // style={styles.playButton}
             onPress={() => {
-              navigation.navigate('AdvanceMediaPlayer', {itemData: item?.timeData,});
+              navigation.navigate('AdvanceMediaPlayer', {
+                itemData: item?.timeData,
+              });
             }}>
-              <Image
-                source={ImageData.PLAYBUTTON}
-                style={{width: 40, height: 40}}
-              />
-            {/* <Text style={styles.icon}>▶</Text> */}
+            <Image
+              source={ImageData.PLAYBUTTON}
+              style={{width: 40, height: 40}}
+            />
 
-              {console.log("time data", totalMinutes)}
-      
           </TouchableOpacity>
 
           <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>
-            {totalMinutes} Mins
-            </Text>
+            <Text style={styles.durationText}>{totalMinutes} Mins</Text>
           </View>
-
         </View>
         <View style={styles.content}>
           <View
@@ -134,16 +133,24 @@ const Meditation = () => {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          marginTop: 100,
+          gap: 30,
         }}>
         <Image
           source={IconData.NODATA}
           resizeMode="contain"
           style={{
-            width: width * 0.3,
-            height: height * 0.15,
+            width: width * 0.5,
+            height: height * 0.2,
           }}
         />
+        <Text
+          style={{
+            fontSize: 24,
+            fontFamily: Font.EBGaramond_SemiBold,
+            color: Color.LIGHTGREEN,
+          }}>
+          No medatation data available.
+        </Text>
       </View>
     );
   };
@@ -204,102 +211,123 @@ const Meditation = () => {
               }}>
               <Text style={styles.subText}>Meditations</Text>
             </View>
-            <View
-              style={{
-                width: '75%',
-                height: '9%',
-                flexDirection: 'row',
-                top: -height * 0.045,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: Color.BROWN4,
-                borderRadius: 10,
-                borderWidth: 2,
-                borderColor: Color.BROWN2,
-                gap: 10,
-              }}>
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedHeader(0);
-                }}
-                activeOpacity={0.7}
+            {/* {(subscription?.length > 0 ||
+              subscription?.length == undefined) && ( */}
+              <View
                 style={{
-                  width: '47%',
-                  height: '85%',
+                  width: '75%',
+                  height: '9%',
                   flexDirection: 'row',
-                  gap: 10,
+                  top: -height * 0.045,
                   justifyContent: 'center',
                   alignItems: 'center',
-                  backgroundColor:
-                    selectedHeader == 0 ? Color.BROWN3 : 'transparent',
-                  borderRadius: selectedHeader == 0 ? 10 : 0,
-                  borderWidth: selectedHeader == 0 ? 2 : 0,
-                  borderColor:
-                    selectedHeader == 0 ? Color.BROWN2 : 'transparent',
-                }}>
-                <Image
-                  source={IconData.GLOVE}
-                  style={{width: 16, height: 16}}
-                />
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontFamily: Font.EB_Garamond,
-                    lineHeight: 24,
-                    color: Color.LIGHTGREEN,
-                  }}>
-                  Guided
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedHeader(1);
-                }}
-                activeOpacity={0.7}
-                style={{
-                  width: '47%',
-                  height: '85%',
-                  flexDirection: 'row',
+                  backgroundColor: Color.BROWN4,
+                  borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor: Color.BROWN2,
                   gap: 10,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor:
-                    selectedHeader == 1 ? Color.BROWN3 : 'transparent',
-                  borderRadius: selectedHeader == 1 ? 10 : 0,
-                  borderWidth: selectedHeader == 1 ? 2 : 0,
-                  borderColor:
-                    selectedHeader == 1 ? Color.BROWN2 : 'transparent',
                 }}>
-                <Image
-                  source={IconData.DRIVE}
-                  style={{width: 16, height: 16}}
-                />
-                <Text
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedHeader(0);
+                  }}
+                  activeOpacity={0.7}
                   style={{
-                    fontSize: 16,
-                    fontFamily: Font.EB_Garamond,
-                    lineHeight: 24,
-                    color: Color.LIGHTGREEN,
+                    width: '47%',
+                    height: '85%',
+                    flexDirection: 'row',
+                    gap: 10,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor:
+                      selectedHeader == 0 ? Color.BROWN3 : 'transparent',
+                    borderRadius: selectedHeader == 0 ? 10 : 0,
+                    borderWidth: selectedHeader == 0 ? 2 : 0,
+                    borderColor:
+                      selectedHeader == 0 ? Color.BROWN2 : 'transparent',
                   }}>
-                  Custom
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={{
-                width: '96%',
-                height: '63%',
-                alignSelf: 'center',
-                top: -height * 0.04,
-              }}>
-              <FlatList
-                data={selectedHeader == 0 ? meditationData : customMeditation}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{paddingBottom: 20}}
-                ListEmptyComponent={emptyComponent}
-                renderItem={selectedHeader == 0 ? renderItem : renderItem1}
-              />
-            </View>
+                  <Image
+                    source={IconData.GLOVE}
+                    style={{width: 16, height: 16}}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontFamily: Font.EB_Garamond,
+                      lineHeight: 24,
+                      color: Color.LIGHTGREEN,
+                    }}>
+                    Guided
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedHeader(1);
+                  }}
+                  activeOpacity={0.7}
+                  style={{
+                    width: '47%',
+                    height: '85%',
+                    flexDirection: 'row',
+                    gap: 10,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor:
+                      selectedHeader == 1 ? Color.BROWN3 : 'transparent',
+                    borderRadius: selectedHeader == 1 ? 10 : 0,
+                    borderWidth: selectedHeader == 1 ? 2 : 0,
+                    borderColor:
+                      selectedHeader == 1 ? Color.BROWN2 : 'transparent',
+                  }}>
+                  <Image
+                    source={IconData.DRIVE}
+                    style={{width: 16, height: 16}}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontFamily: Font.EB_Garamond,
+                      lineHeight: 24,
+                      color: Color.LIGHTGREEN,
+                    }}>
+                    Custom
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            {/* )} */}
+            {/* {subscription?.length > 0 || subscription?.length == undefined ? ( */}
+              <View
+                style={{
+                  width: '96%',
+                  height: '63%',
+                  alignSelf: 'center',
+                  top: -height * 0.04,
+                }}>
+                <FlatList
+                  data={selectedHeader == 0 ? meditationData : customMeditation}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{paddingBottom: 20}}
+                  ListEmptyComponent={emptyComponent}
+                  renderItem={selectedHeader == 0 ? renderItem : renderItem1}
+                />
+              </View>
+            {/* ) : (
+              <View
+                style={{
+                  width: '96%',
+                  height: '72%',
+                  alignSelf: 'center',
+                  top: -height * 0.04,
+                }}>
+                <FlatList
+                  data={customMeditation}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{paddingBottom: 20}}
+                  ListEmptyComponent={emptyComponent}
+                  renderItem={renderItem1}
+                />
+              </View>
+            )} */}
             <View
               style={{
                 width: '96%',
@@ -307,11 +335,11 @@ const Meditation = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'center',
-
+                top: height * 0.008,
                 flexDirection: 'row',
               }}>
               <Button2
-                width={250}
+                width={280}
                 height={50}
                 buttonTitle={'Meditation Timer'}
                 img={IconData.PLUS}

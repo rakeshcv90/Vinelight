@@ -9,13 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import FastImage from 'react-native-fast-image';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import {deleteJournalData} from '../../redux/actions';
+import moment from 'moment';
 const {width, height} = Dimensions.get('window');
 const Journal = ({}) => {
   const dispatch = useDispatch();
@@ -25,6 +26,10 @@ const Journal = ({}) => {
   const [toolVisible, setToolVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 0});
   const [selectedJournal, setSelectedJournal] = useState(null);
+  const [currentDat, setCurrentDate] = useState(
+    moment().local().format('YYYY-MM-DD'),
+  );
+  const [editSet, setEditSet] = useState(false);
 
   const flattenDreamData = journalData => {
     const result = [];
@@ -77,13 +82,21 @@ const Journal = ({}) => {
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
           }}>
-          No Journal Data Saved
+          No journal data available.
         </Text>
       </View>
     );
   };
+  // const formatDate = dateStr => {
+  //   const date = new Date(dateStr);
+  //   return date.toLocaleDateString('en-GB', {
+  //     day: 'numeric',
+  //     month: 'long',
+  //     year: 'numeric',
+  //   });
+  // };
   const formatDate = dateStr => {
-    const date = new Date(dateStr);
+    const date = new Date(`${dateStr}T12:00:00`); // Add time to avoid timezone offset
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'long',
@@ -109,6 +122,18 @@ const Journal = ({}) => {
   const deleteDream = () => {
     dispatch(deleteJournalData(selectedJournal?.journal?.id));
   };
+  useEffect(() => {
+    const clickedDateData = getJournalData.find(
+      d => d?.currentDat === currentDat,
+    );
+    if (clickedDateData == undefined) {
+      setEditSet(false);
+    } else {
+      setEditSet(true);
+    }
+
+  }, [getJournalData]);
+  console.log('Jurnal Entry', getJournalData);
   return (
     <View style={styles.secondaryContainer}>
       <FastImage
@@ -131,7 +156,7 @@ const Journal = ({}) => {
               marginTop: '10%',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
-       
+              backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -140,6 +165,7 @@ const Journal = ({}) => {
                 flexDirection: 'row',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
+                backgroundColor: Color?.LIGHTBROWN,
               }}>
               <FastImage
                 source={ImageData.LEFT}
@@ -287,17 +313,37 @@ const Journal = ({}) => {
                 gap: 20,
                 flexDirection: 'row',
               }}>
-              <Button2
-                width={280}
-                height={50}
-                buttonTitle={'New Journal Entry'}
-                img={IconData.PLUS}
-                left={true}
-                size={20}
-                onPress={() => {
-                  navigation.navigate('CreateJournalEntry');
-                }}
-              />
+              {!editSet ? (
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'New Journal Entry'}
+                  img={IconData.PLUS}
+                  left={true}
+                  size={20}
+                  onPress={() => {
+                    navigation.navigate('CreateJournalEntry');
+                  }}
+                />
+              ) : (
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'Edit Journal Entry'}
+                  img={IconData.PLUS}
+                  left={true}
+                  size={20}
+                  onPress={() => {
+                    const clickedDateData = getJournalData.find(
+                      d => d?.currentDat === currentDat,
+                    );
+
+                    navigation.navigate('EditJournalEntry', {
+                      journalData: clickedDateData,
+                    });
+                  }}
+                />
+              )}
             </View>
 
             <View

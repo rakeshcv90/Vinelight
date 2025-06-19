@@ -89,6 +89,9 @@ export const IconData = {
   MAIL: require('../assets/Image/icon/email.png'),
   BACK1: require('../assets/Image/icon/back1.png'),
   CALENDERDROP: require('../assets/Image/icon/calenderdop.png'),
+  SUCC: require('../assets/Image/icon/succ.png'),
+  ERR: require('../assets/Image/icon/err.png'),
+  DEL: require('../assets/Image/icon/del.png'),
 };
 export const Font = {
   EB_Garamond: 'EBGaramond-Variable',

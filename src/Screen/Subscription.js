@@ -34,10 +34,19 @@ const Subscription = ({navigation}) => {
   const [loader, setLoader] = useState(false);
   const subscription = useSelector(state => state?.user?.subscription);
   const subscription_products = useSelector(state => state?.user?.getProducts);
+  const Plat = 'Ios';
   const dispatch = useDispatch();
   const url = 'https://www.instagram.com/vinelightapp/';
   const url1 = 'https://arkanaapps.com/contact/';
-  const [selectedPackege, setSelectedPackage] = useState(null);
+  const url2 = 'https://arkanaapps.com/privacy-policy';
+  const [selectedPackege, setSelectedPackage] = useState({
+    item: subscription_products[1]?.productId,
+    offerToken:
+      Platform.OS == 'android'
+        ? subscription_products[1]?.subscriptionOfferDetails[0].offerToken
+        : null,
+  });
+
   const handlePress = useCallback(async () => {
     const supported = await Linking.canOpenURL(url);
 
@@ -187,37 +196,36 @@ const Subscription = ({navigation}) => {
   //   };
   // }, []);
 
-
   useEffect(() => {
     if (Platform.OS !== 'android') return;
-  
+
     let hasHandled = false;
-  
+
     const purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
       async purchase => {
         if (hasHandled) return;
         hasHandled = true;
-  
+
         try {
           const receipt = purchase.transactionReceipt;
           const isAndroidPurchased = purchase?.purchaseStateAndroid === 1;
           const isAndroidPending = purchase?.purchaseStateAndroid === 2;
-  
+
           if (isAndroidPending) {
-            console.log('ℹ️ Purchase pending:', purchase.productId);
             Toast.show({
-              type: 'error',
-              text1: 'Subscription Purchase',
-              text2: 'Your purchase is pending completion',
-              visibilityTime: 1500,
+              type: 'custom',
               position: 'top',
+              props: {
+                icon: IconData.ERR, // your custom image
+                text: 'Your purchase is pending completion',
+              },
             });
             return;
           }
-  
+
           if (isAndroidPurchased && receipt) {
-            await RNIap.finishTransaction({ purchase, isConsumable: false });
-  
+            await RNIap.finishTransaction({purchase, isConsumable: false});
+
             const subscriptionData = {
               productId: purchase.productId,
               transactionId: purchase.transactionId,
@@ -227,45 +235,45 @@ const Subscription = ({navigation}) => {
               platform: 'android',
               purchaseToken: purchase.purchaseToken,
             };
-  
+
             Toast.show({
-              type: 'success',
-              text1: 'Subscription Purchase',
-              text2: 'Subscription activated successfully!',
-              visibilityTime: 1500,
+              type: 'custom',
               position: 'top',
+              props: {
+                icon: IconData.SUCC, // your custom image
+                text: 'Subscription activated successfully!',
+              },
             });
-  
-            console.log('✅ Subscription processed:', subscriptionData);
             dispatch(setSubscriptionDetails(subscriptionData));
           }
         } catch (err) {
           console.warn('⚠️ Error finalizing transaction', err);
         }
-      }
+      },
     );
-  
+
     const purchaseErrorSubscription = RNIap.purchaseErrorListener(error => {
       if (error.code === 'E_USER_CANCELLED' || error.responseCode === '2') {
         console.log('User cancelled the purchase');
       } else {
         Toast.show({
-          type: 'error',
-          text1: 'Subscription Purchase',
-          text2: getPurchaseErrorMessage(error),
-          visibilityTime: 1500,
+          type: 'custom',
           position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: getPurchaseErrorMessage(error),
+          },
         });
       }
     });
-  
+
     return () => {
       purchaseUpdateSubscription?.remove();
       purchaseErrorSubscription?.remove();
       hasHandled = false;
     };
   }, []);
-  
+
   function getPurchaseErrorMessage(error) {
     if (error.code === 'E_ALREADY_OWNED') {
       return 'You already own this subscription';
@@ -310,11 +318,12 @@ const Subscription = ({navigation}) => {
           );
 
           Toast.show({
-            type: 'error',
-            text1: 'Subscription Purchase',
-            text2: 'Your purchase is pending completion',
-            visibilityTime: 1500,
+            type: 'custom',
             position: 'top',
+            props: {
+              icon: IconData.ERR, // your custom image
+              text: 'Your purchase is pending completion',
+            },
           });
           return;
         }
@@ -338,12 +347,14 @@ const Subscription = ({navigation}) => {
           };
 
           Toast.show({
-            type: 'success',
-            text1: 'Subscription Purchase',
-            text2: 'Subscription activated successfully!',
-            visibilityTime: 1500,
+            type: 'custom',
             position: 'top',
+            props: {
+              icon: IconData.SUCC, // your custom image
+              text: 'Subscription activated successfully!',
+            },
           });
+
           console.log('✅ Subscription processed:', subscriptionData);
           dispatch(setSubscriptionDetails(subscriptionData));
         }
@@ -380,11 +391,12 @@ const Subscription = ({navigation}) => {
       setLoader(false);
 
       Toast.show({
-        type: 'error',
-        text1: 'Subscription',
-        text2: 'No Active Subscription Found !',
-        visibilityTime: 2000,
+        type: 'custom',
         position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: 'No Active Subscription Found !',
+        },
       });
       setLoader(false);
       dispatch(setSubscriptionDetails([]));
@@ -405,12 +417,14 @@ const Subscription = ({navigation}) => {
 
         if (!activePurchase) {
           setLoader(false);
+
           Toast.show({
-            type: 'error',
-            text1: 'Subscription',
-            text2: 'No Active Subscription Found!',
-            visibilityTime: 2000,
+            type: 'custom',
             position: 'top',
+            props: {
+              icon: IconData.ERR, // your custom image
+              text: 'No Active Subscription Found!',
+            },
           });
           dispatch(setSubscriptionDetails([]));
           return;
@@ -442,15 +456,16 @@ const Subscription = ({navigation}) => {
           : 'Yearly';
 
         Toast.show({
-          type: 'success',
-          text1: 'Subscription Restored',
-          text2: `Your ${planType} plan is active! ${
-            activePurchase.autoRenewingAndroid
-              ? '(Auto-renewing)'
-              : '(Not auto-renewing)'
-          }`,
-          visibilityTime: 2000,
+          type: 'custom',
           position: 'top',
+          props: {
+            icon: IconData.SUCC, // your custom image
+            text: `Your ${planType} plan is active! ${
+              activePurchase.autoRenewingAndroid
+                ? '(Auto-renewing)'
+                : '(Not auto-renewing)'
+            }`,
+          },
         });
         setLoader(false);
         dispatch(setSubscriptionDetails(subscriptionData));
@@ -512,32 +527,41 @@ const Subscription = ({navigation}) => {
                   }),
                 };
 
-                Toast.show({
-                  type: 'success',
-                  text1: 'Subscription Purchase',
-                  text2: 'ubscription activated successfully!',
-                  visibilityTime: 1500,
+             
+      Toast.show({
+                  type: 'custom',
                   position: 'top',
+                  props: {
+                    icon: IconData.SUCCx, // your custom image
+                    text:'Subscription activated successfully!',
+                  },
                 });
-
+                
                 dispatch(setSubscriptionDetails(subscriptionData));
               } else {
+              
                 Toast.show({
-                  type: 'error',
-                  text1: 'No Active Subscription Found!',
-                  visibilityTime: 2000,
+                  type: 'custom',
                   position: 'top',
+                  props: {
+                    icon: IconData.ERR, // your custom image
+                    text: 'No Active Subscription Found!',
+                  },
                 });
+                
                 dispatch(setSubscriptionDetails([]));
               }
             });
           } else {
-            Toast.show({
-              type: 'error',
-              text1: 'No Active Subscription Found!',
-              visibilityTime: 2000,
-              position: 'top',
-            });
+      
+                Toast.show({
+                  type: 'custom',
+                  position: 'top',
+                  props: {
+                    icon: IconData.ERR, // your custom image
+                    text: 'No Active Subscription Found!',
+                  },
+                });
           }
         } catch (error) {
           setLoader(false);
@@ -621,6 +645,7 @@ const Subscription = ({navigation}) => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 marginVertical: height * 0.2,
+                paddingBottom: 15,
               }}>
               <View
                 style={{
@@ -675,11 +700,11 @@ const Subscription = ({navigation}) => {
                       width: '100%',
                       flexDirection: 'row',
                       alignItems: 'center',
-                      top: -5,
+                      marginTop: -5,
                     }}>
                     <Image
                       source={IconData.JOURNALA}
-                      style={{width: 24, height: 24}}
+                      style={{width: 20, height: 20}}
                       tintColor={Color.LIGHTGREEN}
                     />
                     <Text
@@ -697,11 +722,11 @@ const Subscription = ({navigation}) => {
                       width: '100%',
                       flexDirection: 'row',
                       alignItems: 'center',
-                      top: 10,
+                      marginTop: 10,
                     }}>
                     <Image
                       source={IconData.DREAMA}
-                      style={{width: 24, height: 24}}
+                      style={{width: 20, height: 20}}
                       tintColor={Color.LIGHTGREEN}
                     />
                     <Text
@@ -719,11 +744,11 @@ const Subscription = ({navigation}) => {
                       width: '100%',
                       flexDirection: 'row',
                       alignItems: 'center',
-                      top: 20,
+                      marginTop: 10,
                     }}>
                     <Image
                       source={IconData.MEDITATIONA}
-                      style={{width: 24, height: 24}}
+                      style={{width: 20, height: 20}}
                       tintColor={Color.LIGHTGREEN}
                     />
                     <Text
@@ -743,8 +768,9 @@ const Subscription = ({navigation}) => {
                     justifyContent: 'center',
                     alignItems: 'center',
                     flexDirection: 'row',
-                    marginTop: height * 0.05,
+                    marginTop: height * 0.025,
                     gap: 5,
+                    // backgroundColor:'red',
                     marginBottom: height * 0.02,
                   }}>
                   {Platform.OS == 'android'
@@ -837,7 +863,7 @@ const Subscription = ({navigation}) => {
                                 });
                               }}
                               style={{
-                                width: 150,
+                                width: width * 0.37,
                                 height: 96,
                                 borderRadius: 8,
                                 borderWidth:
@@ -856,7 +882,7 @@ const Subscription = ({navigation}) => {
                                 <Text
                                   style={{
                                     color: Color.LIGHTGREEN,
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontFamily: Font.EBGaramond_Medium,
                                   }}>
                                   Trial: {trialPrice}
@@ -869,7 +895,7 @@ const Subscription = ({navigation}) => {
                                   style={{
                                     color: Color.BROWN,
                                     fontFamily: Font.EBGaramond_SemiBold,
-                                    fontSize: 25,
+                                    fontSize: 20,
                                   }}>
                                   {regularPrice}
                                 </Text>
@@ -878,7 +904,7 @@ const Subscription = ({navigation}) => {
                               <Text
                                 style={{
                                   fontFamily: Font.EBGaramond_Medium,
-                                  fontSize: 18,
+                                  fontSize: 16,
                                   color: Color.LIGHTGREEN,
                                 }}>
                                 {item?.name}
@@ -977,17 +1003,26 @@ const Subscription = ({navigation}) => {
                         );
                       })}
                 </View>
-
-                {(subscription?.length == undefined ||
-                  subscription?.length == 0) &&
-                  subscription?.subscriptionStatus == 'Active' && (
+                <View
+                  style={{
+                    width: '90%',
+                    marginTop: -10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent:
+                      Platform.OS == 'android' ? 'space-between' : 'center',
+                  }}>
+                  {(subscription?.length == undefined ||
+                    subscription?.length == 0) &&
+                  subscription?.subscriptionStatus == 'Active' ? (
                     <View
                       style={{
-                        width: '100%',
+                        width: '65%',
 
-                        justifyContent: 'center',
+                        justifyContent:
+                          Platform.OS == 'android' ? 'flex-start' : 'center',
                         alignItems: 'center',
-                        top: -5,
+
                         flexDirection: 'row',
                       }}>
                       <Text
@@ -996,23 +1031,62 @@ const Subscription = ({navigation}) => {
                           fontSize: 16,
                           color: Color.LIGHTGREEN,
                         }}>
-                        Currently Active Plan :
+                        Active Plan :
                       </Text>
                       <Text
                         style={{
                           fontFamily: Font.EB_Garamond_Bold,
                           fontSize: 16,
                           color: Color.LIGHTGREEN,
+                          textAlign: 'center',
                         }}>
                         {subscription?.productId == 'plan_yearly'
                           ? 'Yearly'
                           : 'Monthly'}
                       </Text>
                     </View>
+                  ) : (
+                    <View
+                      style={{
+                        width: '65%',
+                        justifyContent: 'flex-start',
+                        alignItems: 'center',
+
+                        flexDirection: 'row',
+                      }}
+                    />
                   )}
+
+                  {Platform.OS == 'android' &&
+                    subscription?.length == undefined && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          Linking.openURL(
+                            'https://play.google.com/store/account/subscriptions',
+                          );
+                        }}
+                        style={{
+                          width: '35%',
+                          justifyContent: 'flex-end',
+                          alignItems: 'flex-end',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: Font.EBGaramond_Medium,
+                            fontSize: 18,
+                            color: Color.LIGHTGREEN,
+                            textDecorationLine: 'underline',
+                          }}>
+                          Manage Plan
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                </View>
+
                 <View
                   style={{
-                    width: '90%',
+                    width: '85%',
+                    height: 40,
                     marginTop: 10,
                     justifyContent: 'center',
                     alignItems: 'center',
@@ -1033,19 +1107,20 @@ const Subscription = ({navigation}) => {
                           purchaseItems(selectedPackege?.item);
                         }
                       } else {
-                        Toast.show({
-                          type: 'error',
-                          text1: 'Subscription Not Selected',
-                          text2: 'Please select at least one plan.',
-                          visibilityTime: 3000,
-                          position: 'top',
-                        });
+                    
+                            Toast.show({
+                  type: 'custom',
+                  position: 'top',
+                  props: {
+                    icon: IconData.ERR, // your custom image
+                    text: 'Please select at least one plan.',
+                  },
+                });
                       }
                     }}
                     style={{
-                      // width: 150,
-                      // height: 40,
-                      padding: 13,
+                      width: '49%',
+                      height: '100%',
                       backgroundColor: Color.LIGHTGREEN,
                       borderRadius: 30,
                       justifyContent: 'center',
@@ -1055,6 +1130,7 @@ const Subscription = ({navigation}) => {
                       style={{
                         color: 'white',
                         fontSize: 16,
+                        textAlign: 'center',
                         fontFamily: Font.EBGaramond_SemiBold,
                       }}>
                       Purchase Plan
@@ -1065,9 +1141,8 @@ const Subscription = ({navigation}) => {
                       restorePurchase();
                     }}
                     style={{
-                      // width: 150,
-                      // height: 40,
-                      padding: 13,
+                      width: '49%',
+                      height: '100%',
                       backgroundColor: '#1B2112',
                       borderRadius: 30,
                       justifyContent: 'center',
@@ -1077,17 +1152,51 @@ const Subscription = ({navigation}) => {
                       style={{
                         color: Color.BROWN4,
                         fontSize: 16,
+                        textAlign: 'center',
                         fontFamily: Font.EBGaramond_SemiBold,
                       }}>
                       Restore Purchase
                     </Text>
                   </TouchableOpacity>
                 </View>
+                <View
+                  style={{
+                    width: '90%',
+                    // height: height >= 900 ? height * 0.2 : height * 0.1,
+                    // marginTop: 10,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    alignSelf: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      marginTop: 5,
+                      fontFamily: Font.EBGaramond_Medium,
+                      fontSize: 16,
+                      color: Color.LIGHTGREEN,
+                    }}>
+                    By continuing you accept our{' '}
+                    <Text
+                      onPress={async () => {
+                        await Linking.openURL(url3);
+                      }}
+                      style={{
+                        textAlign: 'center',
+                        textDecorationLine: 'underline',
+                        fontFamily: Font.EB_Garamond_Bold,
+                        fontSize: 16,
+                        color: Color.LIGHTGREEN,
+                      }}>
+                      Privacy Policy{' '}
+                    </Text>
+                  </Text>
+                </View>
 
                 <View
                   style={{
                     width: '90%',
-                    height: height >= 900 ? height * 0.2 : height * 0.13,
+                    height: height >= 900 ? height * 0.2 : height * 0.1,
                     marginTop: 10,
                     justifyContent: 'center',
                     alignItems: 'center',

@@ -54,8 +54,13 @@ const fonts = [
 ];
 
 const EditDream = ({route, navigation}) => {
+  // const [currentDat, setCurrentDate] = useState(
+  //   moment().format(route.params.dreamData?.currentDat),
+  // );
   const [currentDat, setCurrentDate] = useState(
-    moment().format(route.params.dreamData?.currentDat),
+    route.params.dreamData?.currentDat
+      ? moment(route.params.dreamData.currentDat).local().format('YYYY-MM-DD')
+      : moment().local().format('YYYY-MM-DD'),
   );
   const [colorModal, setColorModa] = useState(false);
   const subscription = useSelector(state => state?.user?.subscription);
@@ -203,11 +208,96 @@ const EditDream = ({route, navigation}) => {
       handleInsertContent();
     }, 1000);
   }, [route, navigation]);
-  const handleInsertContent = () => {
-    const htmlContent = route.params.dreamData?.dream?.dreamContent;
+  // const handleInsertContent = () => {
+  //   const htmlContent = route.params.dreamData?.dream?.dreamContent;
 
-    editorRef.current.setContentHTML(htmlContent);
-  };
+  //   editorRef.current.setContentHTML(htmlContent);
+  // };
+
+//   const handleInsertContent = () => {
+//     const rawHTML = route?.params?.dreamData?.dream?.dreamContent || '';
+
+//     const cursorMarker = `<span id="cursor-marker" style="all: unset;">&#8203;</span>`;
+
+//   // Avoid <div><br/></div> to prevent extra line
+//   const finalHTML = `${rawHTML}${cursorMarker}`;
+
+//   editorRef.current?.setContentHTML(finalHTML);
+
+//   setTimeout(() => {
+//     editorRef.current?.focusContentEditor();
+
+//     editorRef.current?.commandDOM(`
+//       var marker = document.getElementById("cursor-marker");
+//       if (marker) {
+//         var range = document.createRange();
+//         var sel = window.getSelection();
+//         range.setStartAfter(marker);
+//         range.collapse(true);
+//         sel.removeAllRanges();
+//         sel.addRange(range);
+//       }
+//     `);
+
+//     const defaultStyle = `
+//       font-family: '${style.font}';
+//       font-size: ${style.size}px;
+//       color: ${style.color};
+//       font-weight: ${style.bold ? 'bold' : 'normal'};
+//       font-style: ${style.italic ? 'italic' : 'normal'};
+//       text-decoration: ${style.underline ? 'underline' : 'none'};
+//     `.replace(/\s\s+/g, ' ').trim();
+
+//     setTimeout(() => {
+//       // Use invisible space to carry style
+//       editorRef.current?.insertHTML(`<span style="${defaultStyle}">&#8203;</span>`);
+//     }, 50);
+//   }, 200);
+// };
+
+
+
+const handleInsertContent = () => {
+ const rawHTML = route?.params?.dreamData?.dream?.dreamContent || '';
+
+  // Use inline-only span with no block element
+  const cursorMarker = `<span id="cursor-marker" style="all: unset;">&#8203;</span>`;
+
+  // Avoid <div><br/></div> to prevent extra line
+  const finalHTML = `${rawHTML}${cursorMarker}`;
+
+  editorRef.current?.setContentHTML(finalHTML);
+
+  setTimeout(() => {
+    editorRef.current?.focusContentEditor();
+
+    editorRef.current?.commandDOM(`
+      var marker = document.getElementById("cursor-marker");
+      if (marker) {
+        var range = document.createRange();
+        var sel = window.getSelection();
+        range.setStartAfter(marker);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    `);
+
+    const defaultStyle = `
+      font-family: '${style.font}';
+      font-size: ${style.size}px;
+      color: ${style.color};
+      font-weight: ${style.bold ? 'bold' : 'normal'};
+      font-style: ${style.italic ? 'italic' : 'normal'};
+      text-decoration: ${style.underline ? 'underline' : 'none'};
+    `.replace(/\s\s+/g, ' ').trim();
+
+    setTimeout(() => {
+      // Use invisible space to carry style
+      editorRef.current?.insertHTML(`<span style="${defaultStyle}">&#8203;</span>`);
+    }, 50);
+  }, 200);
+};
 
   useEffect(() => {
     const rawText = promptData;
@@ -238,7 +328,7 @@ const EditDream = ({route, navigation}) => {
         <TouchableWithoutFeedback
           onPress={() => {
             Keyboard.dismiss();
-            editorRef?.current?.blurContentEditor(); // <== Manually blur RichEditor
+            Platform.OS=='ios'&& editorRef?.current?.blurContentEditor()
           }}
           accessible={false}>
           <ImageBackground
@@ -398,7 +488,6 @@ const EditDream = ({route, navigation}) => {
                       gap: 10,
                       borderRadius: 6,
                     }}>
-                  
                     <Text
                       numberOfLines={1}
                       style={{
@@ -416,7 +505,7 @@ const EditDream = ({route, navigation}) => {
                     />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => onSizeSelect(style.size + 4)}>
+                    onPress={() => onSizeSelect(style.size + 3)}>
                     <Image
                       source={IconData.FONTPLUS}
                       style={{width: 30, height: 30}}
@@ -424,7 +513,11 @@ const EditDream = ({route, navigation}) => {
                     />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => onSizeSelect(style.size - 4)}>
+                    onPress={() => {
+                      if (style.size > 5) {
+                        onSizeSelect(style?.size - 3);
+                      }
+                    }}>
                     <Image
                       source={IconData.FONTMINUS}
                       style={{width: 30, height: 30}}
@@ -438,27 +531,7 @@ const EditDream = ({route, navigation}) => {
                       tintColor={Color.LIGHTGREEN}
                     />
                   </TouchableOpacity>
-                  {/* <TouchableOpacity onPress={onUnderLine}>
-                    <Image
-                      source={IconData.UNDERLINE}
-                      style={{width: 30, height: 30}}
-                      tintColor={Color.LIGHTGREEN}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={onBold}>
-                    <Image
-                      source={IconData.BOLD}
-                      style={{width: 30, height: 30}}
-                      tintColor={Color.LIGHTGREEN}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={onItalic}>
-                    <Image
-                      source={IconData.ITALIC}
-                      style={{width: 30, height: 30}}
-                      tintColor={Color.LIGHTGREEN}
-                    />
-                  </TouchableOpacity> */}
+
                   <TouchableOpacity
                     onPress={onUnderLine}
                     style={{
@@ -569,7 +642,6 @@ const EditDream = ({route, navigation}) => {
                       setPromptMOdalOpen(true);
                     }}
                     style={{width: '50%', zIndex: -1}}
-                    // disabled={currentPage === subTitleText?.length - 1}
                   />
                 )}
 

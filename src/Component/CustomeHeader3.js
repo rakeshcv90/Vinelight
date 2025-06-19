@@ -5,13 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import moment from 'moment';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 const {width, height} = Dimensions.get('window');
-const CustomeHeader = ({
-  onClear,
-  onDelete,
-  selectedDate,
-  setCurrentDate,
-  disable,
-}) => {
+const CustomeHeader3 = ({onClear, onDelete, selectedDate, setCurrentDate}) => {
   const navigation = useNavigation();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const showDatePicker = () => setDatePickerVisibility(true);
@@ -23,7 +17,6 @@ const CustomeHeader = ({
   };
   const [toolVisible, setToolVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 50});
-  console.log("Header Data",selectedDate)
   return (
     <View
       style={{
@@ -76,7 +69,6 @@ const CustomeHeader = ({
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => setDatePickerVisibility(true)}
-        disabled={disable}
         style={{
           width: 228,
           height: 50,
@@ -87,8 +79,15 @@ const CustomeHeader = ({
           borderWidth: 1,
           justifyContent: 'center',
           alignItems: 'center',
+          flexDirection: 'row',
+          gap: 10,
           borderColor: Color?.BROWN2,
         }}>
+        <Image
+          source={IconData.DROPDOWN}
+          tintColor={'white'}
+          style={{width: 24, height: 24, transform: [{rotate: '90deg'}]}}
+        />
         <Text
           style={{
             fontFamily: Font.EBGaramond_SemiBold,
@@ -97,6 +96,11 @@ const CustomeHeader = ({
           }}>
           {selectedDate ? moment(selectedDate).format('Do MMMM YYYY') : ''}
         </Text>
+        <Image
+          source={IconData.DROPDOWN}
+          tintColor={'white'}
+          style={{width: 24, height: 24, transform: [{rotate: '270deg'}]}}
+        />
       </TouchableOpacity>
       <TouchableOpacity
         onPress={event => {
@@ -138,90 +142,83 @@ const CustomeHeader = ({
         </View>
       </TouchableOpacity>
 
+      
       {toolVisible && (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9999,
-          }}>
-          {/* Transparent touchable background to close tooltip */}
+        <>
+          {/* Fullscreen Transparent Backdrop */}
           <TouchableOpacity
             activeOpacity={1}
-            style={{flex: 1}}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'transparent',
+              zIndex: 9998,
+            }}
             onPress={() => setToolVisible(false)}
           />
 
-          {/* Tooltip itself */}
+          {/* Tooltip Box */}
           <View
             style={{
               position: 'absolute',
               top: tooltipPosition.y + 10,
               left: tooltipPosition.x - 200,
-              //   width: 220,
               backgroundColor: Color.LIGHTGREEN,
               padding: 5,
               borderRadius: 10,
+              zIndex: 9999,
+              borderWidth: 2,
+              borderColor: Color.BROWN4,
+              width: 215,
             }}>
-            <View
-              style={{
-                width: 215,
-                backgroundColor: Color.LIGHTGREEN,
-                padding: 5,
-                alignSelf: 'center',
-                borderRadius: 10,
-                borderColor: Color.BROWN4,
-                borderWidth: 2,
-              }}>
-              <TouchableOpacity
-                onPress={() => {
-                  onClear();
-                  setToolVisible(false);
-                }}
-                style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
-                <Image
-                  source={IconData.MENU}
-                  style={{width: 20, height: 20, marginLeft: 5}}
-                  resizeMode="contain"
-                  tintColor={'#fff'}
-                />
-                <Text
-                  style={{
-                    color: '#fff',
-                    fontSize: 16,
-                    fontFamily: Font.EBGaramond_SemiBold,
-                  }}>
-                  Clear All
-                </Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                onClear();
+                setToolVisible(false);
+              }}
+              style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
+              <Image
+                source={IconData.CHECKALL}
+                style={{width: 20, height: 20, marginLeft: 5}}
+                resizeMode="contain"
+                tintColor={'#fff'}
+              />
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 16,
+                  fontFamily: Font.EBGaramond_SemiBold,
+                }}>
+                 Mark All As Complete
+              </Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => {
-                  onDelete();
-                  setToolVisible(true);
-                }}
-                style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
-                <Image
-                  source={IconData.DELETE}
-                  style={{width: 20, height: 20, marginLeft: 5}}
-                  resizeMode="contain"
-                  tintColor={'#fff'}
-                />
-                <Text
-                  style={{
-                    color: '#fff',
-                    fontSize: 16,
-                    fontFamily: Font.EBGaramond_SemiBold,
-                  }}>
-                Undo
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => {
+                onDelete();
+                setToolVisible(false); // Should close after Delete too
+              }}
+              style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
+              <Image
+                source={IconData.MENU}
+                style={{width: 20, height: 20, marginLeft: 5}}
+                resizeMode="contain"
+                tintColor={'#fff'}
+              />
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 16,
+                  fontFamily: Font.EBGaramond_SemiBold,
+                }}>
+                  Clear All
+              </Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        </>
       )}
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
@@ -235,4 +232,4 @@ const CustomeHeader = ({
   );
 };
 
-export default CustomeHeader;
+export default CustomeHeader3;

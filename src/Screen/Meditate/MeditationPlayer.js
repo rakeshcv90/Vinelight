@@ -15,6 +15,7 @@ import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import ProgressBar from '../../Component/ProgressBar';
 import Tts from 'react-native-tts';
 import {InteractionManager} from 'react-native';
+import KeepAwake from 'react-native-keep-awake';
 const {width, height} = Dimensions.get('window');
 
 const MeditationPlayer = ({route, navigation}) => {
@@ -22,7 +23,7 @@ const MeditationPlayer = ({route, navigation}) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [pauseSound, setPauseSound] = useState(false);
   const scrollRef = useRef(null);
-  const [ttsOpen, setTtsOpen] = useState(false);
+  const [ttsOpen, setTtsOpen] = useState(true);
 
   const handleUpdateTime = useCallback(time => {
     setCurrentTime(time);
@@ -39,36 +40,42 @@ const MeditationPlayer = ({route, navigation}) => {
       (_, i) => wordRefs.current[i] || React.createRef(),
     );
   }, [words]);
+  useEffect(() => {
+    KeepAwake.activate(); // Prevent screen sleep when this screen is active
 
+    return () => {
+      KeepAwake.deactivate(); // Clean up on unmount
+    };
+  }, []);
   useEffect(() => {
     const initTts = async () => {
       try {
         if (Platform.OS == 'ios') {
+          await new Promise(resolve => setTimeout(resolve, 500));
           const voices = await Tts.voices();
 
           const femaleVoice = voices.find(
             voice =>
               voice.language.startsWith('en') &&
-              voice.name === 'Samantha' && // You can try 'Karen', 'Tessa', etc.
+              voice.name === 'Samantha' &&
               !voice.notInstalled,
           );
 
-          if (femaleVoice) {
-            await Tts.setDefaultLanguage(femaleVoice.language);
-            await Tts.setDefaultVoice(femaleVoice.id);
-          } else {
-            await Tts.setDefaultLanguage('en-IN'); // fallback
-          }
+          // if (femaleVoice) {
+          //   await Tts.setDefaultLanguage(femaleVoice.language);
+          //   await Tts.setDefaultVoice(femaleVoice.id);
+          // } else {
+          //   await Tts.setDefaultLanguage('en'); // fallback
+          // }
           await Tts.setDefaultRate(0.4);
-          Tts.setDucking(true)
+          Tts.setDucking(true);
         } else {
           await Tts.setDefaultLanguage('en-IN');
           await Tts.setDefaultRate(0.35);
         }
-
         await Tts.setDucking(true);
         await Tts.setIgnoreSilentSwitch('ignore');
-      
+
         setTtsInitialized(true);
 
         if (Platform.OS === 'android') {
@@ -106,7 +113,6 @@ const MeditationPlayer = ({route, navigation}) => {
     };
   }, []);
 
-
   const scrollToWord = index => {
     InteractionManager.runAfterInteractions(() => {
       const wordRef = wordRefs.current[index];
@@ -114,7 +120,7 @@ const MeditationPlayer = ({route, navigation}) => {
         wordRef.current.measureLayout(
           scrollRef.current,
           (x, y) => {
-            scrollRef.current.scrollTo({y: y - 100, animated: true});
+            scrollRef.current.scrollTo({y: y - 80, animated: true});
           },
           err => console.log('📛 measureLayout error:', err),
         );
@@ -122,18 +128,79 @@ const MeditationPlayer = ({route, navigation}) => {
     });
   };
 
+  // useEffect(() => {
+  //   if (ttsOpen) {
+  //     setCurrentWordIndex(-1);
+  //     Tts.speak(cleanText);
+
+  //     if (Platform.OS === 'ios') {
+  //       let index = 0;
+  //       const wpm = 190;
+  //       const delay = 60000 / wpm;
+
+  //       iosIntervalRef.current = setInterval(() => {
+  //         if (index < words.length) {
+  //           setCurrentWordIndex(index);
+  //           scrollToWord(index);
+  //           index++;
+  //         } else {
+  //           clearInterval(iosIntervalRef.current);
+  //           setCurrentWordIndex(-1);
+  //         }
+  //       }, delay);
+  //     }
+  //   } else {
+  //     Platform.OS == 'android' ? Tts.stop() : Tts.stop();
+  //     //
+  //     setCurrentWordIndex(-1);
+  //     if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
+  //   }
+  // }, [ttsOpen]);
   useEffect(() => {
-
     if (ttsOpen) {
-
       setCurrentWordIndex(-1);
-      Tts.speak(cleanText);
+
+      const speakChunks = text => {
+        // Function to split string into chunks
+        const splitNChars = (txt, num) => {
+          const result = [];
+          for (let i = 0; i < txt.length; i += num) {
+            result.push(txt.substr(i, num));
+          }
+          return result;
+        };
+
+        // If too long for Android, split and speak
+        if (Platform.OS === 'android' && text.length >= 3999) {
+          const chunks = splitNChars(text, 3999);
+
+          const speakChunk = index => {
+            if (index < chunks.length) {
+              Tts.speak(chunks[index], {
+                androidParams: {
+                  KEY_PARAM_STREAM: 'STREAM_MUSIC',
+                },
+              });
+              // Wait for the current chunk to finish (basic delay approach)
+              setTimeout(() => speakChunk(index + 1), 2000); // Adjust delay based on chunk length
+            }
+          };
+
+          speakChunk(0); // Start speaking chunks
+        } else {
+          Tts.speak(text, {
+            iosVoiceId: 'com.apple.ttsbundle.Moira-compact',
+            rate: 0.5,
+          });
+        }
+      };
+
+      speakChunks(cleanText); // Call function for Android or iOS
 
       if (Platform.OS === 'ios') {
         let index = 0;
-        const wpm = 160;
-        const delay = 60000 / wpm; 
-
+        const wpm = 155;
+        const delay = 60000 / wpm;
         iosIntervalRef.current = setInterval(() => {
           if (index < words.length) {
             setCurrentWordIndex(index);
@@ -146,12 +213,12 @@ const MeditationPlayer = ({route, navigation}) => {
         }, delay);
       }
     } else {
-      Platform.OS == 'android' ?Tts.stop():Tts.stop();
-      //
+      Tts.stop();
       setCurrentWordIndex(-1);
       if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
     }
   }, [ttsOpen]);
+
   const formatDuration = totalSeconds => {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
@@ -184,9 +251,9 @@ const MeditationPlayer = ({route, navigation}) => {
           }}>
           <TouchableOpacity
             onPress={() => {
+              Tts.stop();
               setPauseSound(true);
               navigation.goBack();
-              Tts.stop()
             }}
             style={{
               width: 50,
@@ -282,7 +349,6 @@ const MeditationPlayer = ({route, navigation}) => {
                   <Text style={styles.subText}>
                     {route?.params?.itemData?.name}
                   </Text>
-                  
                 </View>
 
                 <View

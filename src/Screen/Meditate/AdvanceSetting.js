@@ -17,22 +17,22 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Color, Font, IconData, ImageData } from '../../../assets/Image';
+import React, {useEffect, useMemo, useState} from 'react';
+import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button from '../../Component/Button';
 import FastImage from 'react-native-fast-image';
-import { callApi } from '../../Component/ApiCall';
-import { Api } from '../../Api';
-import { RadioButton } from 'react-native-paper';
-import { useDispatch } from 'react-redux';
+import {callApi} from '../../Component/ApiCall';
+import {Api} from '../../Api';
+import {RadioButton} from 'react-native-paper';
+import {useDispatch} from 'react-redux';
 import uuid from 'react-native-uuid';
 import ActivityLoader from '../../Component/ActivityLoader';
 import Toast from 'react-native-toast-message';
-import { setCustomeMedidation } from '../../redux/actions';
+import {setCustomeMedidation} from '../../redux/actions';
 import DropDown from '../../Component/DropDown';
 import useNativeMusicPlayer from '../../Component/NativeusicPlayer';
 
-const { width, height } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 const SaveAdvanceSoundModal = ({
   visible,
@@ -49,7 +49,7 @@ const SaveAdvanceSoundModal = ({
         <View style={styles.overlay}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <View style={[styles.modalWrapper, { height: 350 }]}>
+            <View style={[styles.modalWrapper, {height: 350}]}>
               <ImageBackground
                 source={ImageData.MODAL}
                 style={styles.modalContainer}
@@ -61,7 +61,7 @@ const SaveAdvanceSoundModal = ({
                     style={styles.closeButton}>
                     <Image
                       source={IconData.CANCEL}
-                      style={{ width: 35, height: 35 }}
+                      style={{width: 35, height: 35}}
                     />
                   </TouchableOpacity>
                 </View>
@@ -154,15 +154,16 @@ const SaveAdvanceSoundModal = ({
                           onSave();
                         } else {
                           Toast.show({
-                            type: 'error',
-                            text1: 'Save Meditation',
-                            text2: 'Meditation name and description required',
-                            visibilityTime: 3000,
+                            type: 'custom',
                             position: 'top',
+                            props: {
+                              icon: IconData.ERR, // your custom image
+                              text: 'Meditation name and description required',
+                            },
                           });
                         }
                       }}
-                      style={{ width: '50%' }}
+                      style={{width: '50%'}}
                     />
                   </View>
                 </ImageBackground>
@@ -174,7 +175,7 @@ const SaveAdvanceSoundModal = ({
     </Modal>
   );
 };
-const AdvanceSetting = ({ navigation }) => {
+const AdvanceSetting = ({navigation}) => {
   const dispatch = useDispatch();
   const [loader, setLoader] = useState(false);
   const [modalopen, setModalOpen] = useState(false);
@@ -186,12 +187,13 @@ const AdvanceSetting = ({ navigation }) => {
   const [selectTime, setselectTime] = useState(0);
 
   const [time, setTime] = useState({
-    pre: { second: '', song: '', songName: '' },
-    med: { minute: '', second: ''},
-    int: { minute: '', second: '', song: '', songName: '' },
-    end: { song: '', songName: '' },
-    res: { second: '', song: '', songName: '' },
-    user: { name: '' },
+    pre: {second: '', song: '', songName: ''},
+    med: {minute: '', second: ''},
+    int: {minute: '', second: '', song: '', songName: ''},
+    end: {song: '', songName: ''},
+    res: {second: '', song: '', songName: ''},
+    user: {name: ''},
+    start: {song: '', songName: ''},
   });
 
   const updateTime = (key, unit, value) => {
@@ -218,19 +220,26 @@ const AdvanceSetting = ({ navigation }) => {
     });
   };
 
-  const SoundModal = ({ visible, onClose }) => {
+  const SoundModal = ({visible, onClose}) => {
     const [sound, setSound] = useState([]);
     const [music, setmusic] = useState();
     const [selectedValue, setSelectedValue] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const { pauseMusic, playMusic, stopMusic, seekTo, currentTime, stopMusicAndReset, releaseMusic } =
-      useNativeMusicPlayer({
-        song1: selectedValue?.music_path,
-        pause: false,
-        getSoundOffOn: true,
-        restStart: true,
-      });
+    const {
+      pauseMusic,
+      playMusic,
+      stopMusic,
+      seekTo,
+      currentTime,
+      stopMusicAndReset,
+      releaseMusic,
+    } = useNativeMusicPlayer({
+      song1: selectedValue?.music_path,
+      pause: false,
+      getSoundOffOn: true,
+      restStart: true,
+    });
 
     useEffect(() => {
       fetchData();
@@ -283,7 +292,6 @@ const AdvanceSetting = ({ navigation }) => {
       );
     };
 
-
     useEffect(() => {
       console.log('Selected Music Path:', selectedValue?.music_path);
       const playSelectedSound = async () => {
@@ -301,13 +309,18 @@ const AdvanceSetting = ({ navigation }) => {
 
       playSelectedSound();
     }, [selectedValue]);
-    const renderItem = ({ item, index }) => {
+    const renderItem = ({item, index}) => {
       return (
-        <View style={styles.card} key={index}>
+        <TouchableOpacity
+          key={index}
+          style={styles.card}
+          onPress={() => setSelectedValue(item)}
+          activeOpacity={0.8}>
           <View style={styles.content}>
             <TouchableOpacity
-              style={{ flexDirection: 'row' }}
-              onPress={() => setSelectedValue(item)}>
+              style={{flexDirection: 'row'}}
+              onPress={() => setSelectedValue(item)}
+              activeOpacity={0.8}>
               <RadioButton
                 value={item.id}
                 status={selectedValue?.id == item?.id ? 'checked' : 'unchecked'}
@@ -318,16 +331,15 @@ const AdvanceSetting = ({ navigation }) => {
               <Text style={styles.title}>{item?.name}</Text>
             </TouchableOpacity>
 
-
             <TouchableOpacity
               onPress={() => {
                 releaseMusic('player1'); // Stop previous
                 playMusic('player1');
               }}>
-              <Image source={IconData.SOUND} style={{ width: 24, height: 24 }} />
+              <Image source={IconData.SOUND} style={{width: 24, height: 24}} />
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       );
     };
     return (
@@ -343,7 +355,7 @@ const AdvanceSetting = ({ navigation }) => {
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                   <Image
                     source={IconData.CANCEL}
-                    style={{ width: 35, height: 35 }}
+                    style={{width: 35, height: 35}}
                   />
                 </TouchableOpacity>
               </View>
@@ -359,7 +371,7 @@ const AdvanceSetting = ({ navigation }) => {
                 <FlatList
                   data={sound}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingBottom: 20 }}
+                  contentContainerStyle={{paddingBottom: 20}}
                   ListEmptyComponent={emptyComponent}
                   renderItem={renderItem}
                 />
@@ -380,7 +392,7 @@ const AdvanceSetting = ({ navigation }) => {
                     height={40}
                     font={Font.EBGaramond_SemiBold}
                     onPress={handleSave}
-                    style={{ width: '50%' }}
+                    style={{width: '50%'}}
                   />
                 </View>
               </ImageBackground>
@@ -393,16 +405,31 @@ const AdvanceSetting = ({ navigation }) => {
 
   const saveCustomeMedidation = () => {
     const missingFields = validateFields(time);
-
+ 
     if (missingFields.length > 0) {
       Toast.show({
-        type: 'error',
-        text1: 'Meditation Data',
-        text2: `Missing: ${missingFields[0]}${missingFields.length > 1 ? ' and more' : ''
-          }`,
-        visibilityTime: 2000,
+        type: 'custom',
         position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: `Missing: ${missingFields[0]}${
+            missingFields.length > 1 ? ' and more' : ''
+          }`,
+        },
       });
+      return;
+    }
+
+    if (isIntervalGreaterThanMeditation()) {
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: 'Interval time must be less than total meditation time',
+        },
+      });
+      console.warn('Interval time must be less than meditation time');
       return;
     }
 
@@ -417,41 +444,76 @@ const AdvanceSetting = ({ navigation }) => {
 
       // Reset form
       setTime({
-        pre: { second: '', song: '', songName: '' },
-        med: { minute: '', second: '', song: '', songName: '' },
-        int: { minute: '', second: '', song: '', songName: '' },
-        end: { song: '', songName: '' },
-        res: { second: '', song: '', songName: '' },
-        user: { name: '' },
+        pre: {second: '', song: '', songName: ''},
+        med: {minute: '', second: '', song: '', songName: ''},
+        int: {minute: '', second: '', song: '', songName: ''},
+        end: {song: '', songName: ''},
+        res: {second: '', song: '', songName: ''},
+        user: {name: ''},
+        start: {song: '', songName: ''},
       });
     }, 300);
+    // navigation.navigate('Meditation');
+    navigation.navigate('MainPage', {initialTab: 'Meditation'});
   };
+
+  const isIntervalGreaterThanMeditation = () => {
+    const medMin = parseInt(time?.med?.minute || '0', 10);
+    const medSec = parseInt(time?.med?.second || '0', 10);
+    const intMin = parseInt(time?.int?.minute || '0', 10);
+    const intSec = parseInt(time?.int?.second || '0', 10);
+
+    const medTotal = medMin * 60 + medSec;
+    const intTotal = intMin * 60 + intSec;
+
+    return intTotal >= medTotal;
+  };
+
+  // const validateFields = data => {
+  //   const missingFields = [];
+
+  //   for (let section in data) {
+  //     const fields = data[section];
+  //     for (let key in fields) {
+  //       if (fields[key] === '' || fields[key] == null) {
+  //         missingFields.push(`${section} → ${key}`);
+  //       }
+  //     }
+  //   }
+
+  //   return missingFields;
+  // };
+
   const validateFields = data => {
     const missingFields = [];
 
-    for (let section in data) {
-      const fields = data[section];
-      for (let key in fields) {
-        if (fields[key] === '' || fields[key] == null) {
-          missingFields.push(`${section} → ${key}`);
-        }
-      }
+    // Validate meditation time
+    const medMin = Number(data.med?.minute || 0);
+    const medSec = Number(data.med?.second || 0);
+    if (medMin <= 0 && medSec <= 0) {
+      missingFields.push('med → minute/second');
     }
+
+    // Validate required single fields
+    if (!data.start?.song) missingFields.push('start → song');
+    if (!data.end?.song) missingFields.push('end → song');
+    if (!data.user?.name) missingFields.push('user → name');
 
     return missingFields;
   };
-
   const startMedidation = itemData => {
     const missingFields = validateFields(time);
-
+    console.log('missing fields ', missingFields);
     if (missingFields.length > 0) {
       Toast.show({
-        type: 'error',
-        text1: 'Meditation Data',
-        text2: `Missing: ${missingFields[0]}${missingFields.length > 1 ? ' and more' : ''
-          }`,
-        visibilityTime: 2000,
+        type: 'custom',
         position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: `Missing: ${missingFields[0]}${
+            missingFields.length > 1 ? ' and more' : ''
+          }`,
+        },
       });
       return;
     }
@@ -519,7 +581,7 @@ const AdvanceSetting = ({ navigation }) => {
               <Image
                 source={IconData.BACK}
                 tintColor={Color?.LIGHTGREEN}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             </View>
           </TouchableOpacity>
@@ -559,7 +621,7 @@ const AdvanceSetting = ({ navigation }) => {
                   <Image
                     source={ImageData.LEFT}
                     resizeMode="contain"
-                    style={{ width: 31, height: 31 }}
+                    style={{width: 31, height: 31}}
                   />
                   <Image
                     source={ImageData.RIGHT}
@@ -609,7 +671,7 @@ const AdvanceSetting = ({ navigation }) => {
                       onChangeText={text =>
                         setTime(prev => ({
                           ...prev,
-                          user: { ...prev.user, name: text }, // ✅ This correctly updates `user.name`
+                          user: {...prev.user, name: text}, // ✅ This correctly updates `user.name`
                         }))
                       }
                       placeholder="Name"
@@ -695,18 +757,20 @@ const AdvanceSetting = ({ navigation }) => {
                           alignItems: 'center',
                           gap: 10,
                         }}>
-                        <Text>{(() => {
-                          const name = time?.pre?.songName || 'Chime';
-                          const words = name.trim().split(' ');
-                          return words.length > 1 ? `${words[0]}...` : name;
-                        })()}</Text>
+                        <Text>
+                          {(() => {
+                            const name = time?.pre?.songName || 'Chime';
+                            const words = name.trim().split(' ');
+                            return words.length > 1 ? `${words[0]}...` : name;
+                          })()}
+                        </Text>
                         <Image
                           source={IconData.DROPDOWN}
                           style={{
                             width: 20,
                             height: 20,
                             alignSelf: 'center',
-                            transform: [{ rotate: '270deg' }],
+                            transform: [{rotate: '270deg'}],
                             tintColor: Color.LIGHTGREEN,
                           }}
                         />
@@ -750,7 +814,7 @@ const AdvanceSetting = ({ navigation }) => {
                                 .slice(0, 2);
                               setTime(prev => ({
                                 ...prev,
-                                med: { ...prev.med, minute: cleaned },
+                                med: {...prev.med, minute: cleaned},
                               }));
                             }}
                             maxLength={2}
@@ -767,7 +831,7 @@ const AdvanceSetting = ({ navigation }) => {
                             selectionColor={Color.LIGHTGREEN}
                           />
                         </View>
-                        <Text style={{ fontSize: 25, top: 0 }}>:</Text>
+                        <Text style={{fontSize: 25, top: 0}}>:</Text>
                         <View
                           style={{
                             width: '50%',
@@ -789,7 +853,7 @@ const AdvanceSetting = ({ navigation }) => {
                                 .slice(0, 2);
                               setTime(prev => ({
                                 ...prev,
-                                med: { ...prev.med, second: cleaned },
+                                med: {...prev.med, second: cleaned},
                               }));
                             }}
                             placeholder="SS"
@@ -845,6 +909,64 @@ const AdvanceSetting = ({ navigation }) => {
                         />
                       </TouchableOpacity> */}
                     </View>
+
+                    <View
+                      style={{
+                        width: '100%',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        // marginVertical: 10,
+                      }}>
+                      <View
+                        style={{
+                          height: 40,
+                          marginTop: 10,
+                        }}>
+                        <Text style={styles.headerText}>Start Chime</Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setActiveKey('start');
+                          setModalOpen(true);
+                        }}
+                        style={{
+                          // width: '40%',
+                          height: 40,
+                          backgroundColor: Color.BROWN3,
+                          alignSelf: 'center',
+                          borderRadius: 30,
+                          borderWidth: 1,
+                          padding: 10,
+                          borderColor: Color.BROWN,
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: 10,
+                        }}>
+                        <Text>
+                          {(() => {
+                            const rawName = time?.start?.songName;
+                            const name =
+                              typeof rawName === 'string' && rawName.trim()
+                                ? rawName.trim()
+                                : 'Chime';
+                            const words = name.split(' ');
+                            return words.length > 1 ? `${words[0]}...` : name;
+                          })()}
+                        </Text>
+                        <Image
+                          source={IconData.DROPDOWN}
+                          style={{
+                            width: 20,
+                            height: 20,
+                            alignSelf: 'center',
+                            transform: [{rotate: '270deg'}],
+                            tintColor: Color.LIGHTGREEN,
+                          }}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
                     <Text style={styles.headerText}>
                       Interval Chime (Repeat every)
                     </Text>
@@ -884,7 +1006,7 @@ const AdvanceSetting = ({ navigation }) => {
                                 .slice(0, 2);
                               setTime(prev => ({
                                 ...prev,
-                                int: { ...prev.int, minute: cleaned },
+                                int: {...prev.int, minute: cleaned},
                               }));
                             }}
                             placeholder="MM"
@@ -901,7 +1023,7 @@ const AdvanceSetting = ({ navigation }) => {
                             selectionColor={Color.LIGHTGREEN}
                           />
                         </View>
-                        <Text style={{ fontSize: 25, top: 0 }}>:</Text>
+                        <Text style={{fontSize: 25, top: 0}}>:</Text>
                         <View
                           style={{
                             width: '50%',
@@ -921,7 +1043,7 @@ const AdvanceSetting = ({ navigation }) => {
                                 .slice(0, 2);
                               setTime(prev => ({
                                 ...prev,
-                                int: { ...prev.int, second: cleaned },
+                                int: {...prev.int, second: cleaned},
                               }));
                             }}
                             placeholder="SS"
@@ -958,19 +1080,24 @@ const AdvanceSetting = ({ navigation }) => {
                           alignItems: 'center',
                           gap: 10,
                         }}>
-                        <Text>{(() => {
-                          const rawName = time?.int?.songName;
-                          const name = typeof rawName === 'string' && rawName.trim() ? rawName.trim() : 'Chime';
-                          const words = name.split(' ');
-                          return words.length > 1 ? `${words[0]}...` : name;
-                        })()}</Text>
+                        <Text>
+                          {(() => {
+                            const rawName = time?.int?.songName;
+                            const name =
+                              typeof rawName === 'string' && rawName.trim()
+                                ? rawName.trim()
+                                : 'Chime';
+                            const words = name.split(' ');
+                            return words.length > 1 ? `${words[0]}...` : name;
+                          })()}
+                        </Text>
                         <Image
                           source={IconData.DROPDOWN}
                           style={{
                             width: 20,
                             height: 20,
                             alignSelf: 'center',
-                            transform: [{ rotate: '270deg' }],
+                            transform: [{rotate: '270deg'}],
                             tintColor: Color.LIGHTGREEN,
                           }}
                         />
@@ -1013,7 +1140,10 @@ const AdvanceSetting = ({ navigation }) => {
                         <Text>
                           {(() => {
                             const rawName = time?.end?.songName;
-                            const name = typeof rawName === 'string' && rawName.trim() ? rawName.trim() : 'Chime';
+                            const name =
+                              typeof rawName === 'string' && rawName.trim()
+                                ? rawName.trim()
+                                : 'Chime';
                             const words = name.split(' ');
                             return words.length > 1 ? `${words[0]}...` : name;
                           })()}
@@ -1024,7 +1154,7 @@ const AdvanceSetting = ({ navigation }) => {
                             width: 20,
                             height: 20,
                             alignSelf: 'center',
-                            transform: [{ rotate: '270deg' }],
+                            transform: [{rotate: '270deg'}],
                             tintColor: Color.LIGHTGREEN,
                           }}
                         />
@@ -1099,12 +1229,13 @@ const AdvanceSetting = ({ navigation }) => {
                         <Text>
                           {(() => {
                             const rawName = time?.res?.songName;
-                            const name = typeof rawName === 'string' && rawName.trim() ? rawName.trim() : 'Chime';
+                            const name =
+                              typeof rawName === 'string' && rawName.trim()
+                                ? rawName.trim()
+                                : 'Chime';
                             const words = name.split(' ');
                             return words.length > 1 ? `${words[0]}...` : name;
                           })()}
-
-
                         </Text>
                         <Image
                           source={IconData.DROPDOWN}
@@ -1112,7 +1243,7 @@ const AdvanceSetting = ({ navigation }) => {
                             width: 20,
                             height: 20,
                             alignSelf: 'center',
-                            transform: [{ rotate: '270deg' }],
+                            transform: [{rotate: '270deg'}],
                             tintColor: Color.LIGHTGREEN,
                           }}
                         />

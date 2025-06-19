@@ -1,4 +1,4 @@
-import {View, Text} from 'react-native';
+import {View, Text, Image} from 'react-native';
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import Router from './src/Navigation/Router';
@@ -40,27 +40,44 @@ const customToastConfig = {
 
 const App = () => {
   const toastConfig = {
-    success: internalState => (
-      <View style={{height: 60, backgroundColor: 'green', padding: 10}}>
-        <Text style={{color: 'white', fontSize: 18}}>
-          {internalState.text1}
-        </Text>
-        <Text style={{color: 'white', fontSize: 16}}>
-          {internalState.text2}
+    custom: ({props}) => (
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor:Color?.LIGHTBROWN,
+          padding: 14,
+          borderRadius: 12,
+          shadowColor: '#000',
+          borderWidth:3,
+          borderColor:Color.BROWN,
+          shadowOpacity: 0.1,
+          shadowOffset: {width: 0, height: 2},
+          shadowRadius: 4,
+          elevation: 5,
+          width: '90%',
+          alignSelf: 'center',
+          marginTop: 10,
+        }}>
+        {props?.icon && (
+          <Image
+            source={props.icon}
+            style={{width: 35, height: 35, marginRight: 12}}
+            resizeMode="contain"
+          />
+        )}
+        <Text
+          style={{
+            flex: 1,
+            fontSize: 16,
+            color: '#2c2c2c',
+            fontFamily: 'System',
+            lineHeight: 22,
+          }}>
+          {props?.text || 'Default message'}
         </Text>
       </View>
     ),
-    error: internalState => (
-      <View style={{backgroundColor: '#DC3545', padding: 10, borderRadius: 10}}>
-        <Text style={{color: 'white', fontSize: 18}}>
-          {internalState.text1}
-        </Text>
-        <Text style={{color: 'white', fontSize: 16}}>
-          {internalState.text2}
-        </Text>
-      </View>
-    ),
-    // Add more custom styles for other toast types if needed
   };
 
   return (
@@ -69,7 +86,7 @@ const App = () => {
         <PersistGate loading={null} persistor={persistor}>
           <NavigationContainer>
             <Router />
-            <Toast config={customToastConfig} />
+            <Toast config={toastConfig} />
           </NavigationContainer>
         </PersistGate>
       </Provider>

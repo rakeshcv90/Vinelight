@@ -49,7 +49,10 @@ const fonts = [
 ];
 
 const CreateDream = ({navigation}) => {
-  const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
+  // const [currentDat, setCurrentDate] = useState(moment().format('YYYY-MM-DD'));
+  const [currentDat, setCurrentDate] = useState(
+    moment().local().format('YYYY-MM-DD'),
+  );
   const subscription = useSelector(state => state?.user?.subscription);
   const [propmModalOpen, setPromptMOdalOpen] = useState(false);
   const [colorModal, setColorModa] = useState(false);
@@ -187,8 +190,12 @@ const CreateDream = ({navigation}) => {
 
       if (isBlank) {
         Toast.show({
-          type: 'error',
-          text1: 'Content cannot be empty',
+          type: 'custom',
+          position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Content cannot be empty',
+          },
         });
         return;
       }
@@ -203,6 +210,14 @@ const CreateDream = ({navigation}) => {
           },
         }),
       );
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.SUCC, // your custom image
+          text: ' Dream Journal entry created successfully',
+        },
+      });
       setTimeout(() => {
         setLoader(false);
         navigation.goBack();
@@ -260,7 +275,7 @@ const CreateDream = ({navigation}) => {
         <TouchableWithoutFeedback
           onPress={() => {
             Keyboard.dismiss();
-            editorRef?.current?.blurContentEditor(); // <== Manually blur RichEditor
+            Platform.OS == 'ios' && editorRef?.current?.blurContentEditor();
           }}
           accessible={false}>
           <ImageBackground
@@ -436,7 +451,7 @@ const CreateDream = ({navigation}) => {
                     />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => onSizeSelect(style.size + 1)}>
+                    onPress={() => onSizeSelect(style.size + 3)}>
                     <Image
                       source={IconData.FONTPLUS}
                       style={{width: 30, height: 30}}
@@ -444,7 +459,11 @@ const CreateDream = ({navigation}) => {
                     />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => onSizeSelect(style.size - 1)}>
+                    onPress={() => {
+                      if (style.size > 5) {
+                        onSizeSelect(style?.size - 3);
+                      }
+                    }}>
                     <Image
                       source={IconData.FONTMINUS}
                       style={{width: 30, height: 30}}
