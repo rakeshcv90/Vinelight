@@ -259,6 +259,7 @@ const CustomMeditation = ({navigation}) => {
                             const digitsOnly = text.replace(/[^0-9]/g, '');
                             setMinute(Number(digitsOnly.slice(0, 2)));
                           }}
+                            
                           style={{
                             width: '100%',
                             height: 79,
