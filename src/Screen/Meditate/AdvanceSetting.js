@@ -192,6 +192,7 @@ const AdvanceSetting = ({ navigation }) => {
     end: { song: '', songName: '' },
     res: { second: '', song: '', songName: '' },
     user: { name: '' },
+    start: { song: '', songName: '' },
   });
 
   const updateTime = (key, unit, value) => {
@@ -398,7 +399,7 @@ const AdvanceSetting = ({ navigation }) => {
 
   const saveCustomeMedidation = () => {
     const missingFields = validateFields(time);
-
+    console.log('missing fields ', missingFields);
     if (missingFields.length > 0) {
       Toast.show({
         type: 'error',
@@ -440,6 +441,7 @@ const AdvanceSetting = ({ navigation }) => {
         end: { song: '', songName: '' },
         res: { second: '', song: '', songName: '' },
         user: { name: '' },
+        start: { song: '', songName: '' },
       });
     }, 300);
   };
@@ -456,24 +458,41 @@ const AdvanceSetting = ({ navigation }) => {
   return intTotal >= medTotal;
 };
 
-  const validateFields = data => {
-    const missingFields = [];
+  // const validateFields = data => {
+  //   const missingFields = [];
 
-    for (let section in data) {
-      const fields = data[section];
-      for (let key in fields) {
-        if (fields[key] === '' || fields[key] == null) {
-          missingFields.push(`${section} → ${key}`);
-        }
-      }
-    }
+  //   for (let section in data) {
+  //     const fields = data[section];
+  //     for (let key in fields) {
+  //       if (fields[key] === '' || fields[key] == null) {
+  //         missingFields.push(`${section} → ${key}`);
+  //       }
+  //     }
+  //   }
 
-    return missingFields;
-  };
+  //   return missingFields;
+  // };
 
+  const validateFields = (data) => {
+  const missingFields = [];
+
+  // Validate meditation time
+  const medMin = Number(data.med?.minute || 0);
+  const medSec = Number(data.med?.second || 0);
+  if (medMin <= 0 && medSec <= 0) {
+    missingFields.push('med → minute/second');
+  }
+
+  // Validate required single fields
+  if (!data.start?.song) missingFields.push('start → song');
+  if (!data.end?.song) missingFields.push('end → song');
+  if (!data.user?.name) missingFields.push('user → name');
+
+  return missingFields;
+};
   const startMedidation = itemData => {
     const missingFields = validateFields(time);
-
+    console.log('missing fields ', missingFields);
     if (missingFields.length > 0) {
       Toast.show({
         type: 'error',
@@ -875,6 +894,61 @@ const AdvanceSetting = ({ navigation }) => {
                         />
                       </TouchableOpacity> */}
                     </View>
+
+                    <View
+                      style={{
+                        width: '100%',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        // marginVertical: 10,
+                      }}>
+                      <View
+                        style={{
+                          height: 40,
+                          marginTop: 10,
+                        }}>
+                        <Text style={styles.headerText}>Start Chime</Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setActiveKey('start');
+                          setModalOpen(true);
+                        }}
+                        style={{
+                          // width: '40%',
+                          height: 40,
+                          backgroundColor: Color.BROWN3,
+                          alignSelf: 'center',
+                          borderRadius: 30,
+                          borderWidth: 1,
+                          padding: 10,
+                          borderColor: Color.BROWN,
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: 10,
+                        }}>
+                        <Text>
+                          {(() => {
+                            const rawName = time?.start?.songName;
+                            const name = typeof rawName === 'string' && rawName.trim() ? rawName.trim() : 'Chime';
+                            const words = name.split(' ');
+                            return words.length > 1 ? `${words[0]}...` : name;
+                          })()}
+                        </Text>
+                        <Image
+                          source={IconData.DROPDOWN}
+                          style={{
+                            width: 20,
+                            height: 20,
+                            alignSelf: 'center',
+                            transform: [{ rotate: '270deg' }],
+                            tintColor: Color.LIGHTGREEN,
+                          }}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
                     <Text style={styles.headerText}>
                       Interval Chime (Repeat every)
                     </Text>

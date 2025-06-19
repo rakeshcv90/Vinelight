@@ -1,218 +1,6 @@
-// import {
-//   View,
-//   Text,
-//   TouchableOpacity,
-//   StyleSheet,
-//   Dimensions,
-//   StatusBar,
-//   Image,
-// } from 'react-native';
-// import React, { useState, useEffect } from 'react';
-// import { Color, Font, IconData, ImageData } from '../../../assets/Image';
-// import FastImage from 'react-native-fast-image';
-// import Button2 from '../../Component/Button2';
-// import useNativeMusicPlayer from '../../Component/NativeusicPlayer';
-// import { useSelector } from 'react-redux';
-// const { width, height } = Dimensions.get('window');
-// const AdvanceMediaPlayer = ({ navigation, route }) => {
-//   const [song, setsong] = useState(route.params?.itemData?.pre?.song);
-//   const [song2, setsong2] = useState(route.params?.itemData?.int?.song);
-//   const [song3, setsong3] = useState(route.params?.itemData?.res?.song);
-//   const [song4, setsong4] = useState(route.params?.itemData?.end?.song);
-//   const [timeLeft, setTimeLeft] = useState(0);
-//   const [totalPhaseTime, setTotalPhaseTime] = useState(0);
-
-//   const medatationData = useSelector(
-//     state => state?.user?.advanceMeditationData,
-//   );
-
-//   const [lastIntervalSecond, setLastIntervalSecond] = useState(null);
-//   const [currentPhase, setCurrentPhase] = useState('Meditations');
-//   const [isPlaying, setIsPlaying] = useState(false);
-//   const [isPaused, setIsPaused] = useState(false);
-//   const [pauseTimestamp, setPauseTimestamp] = useState(null);
-
-//   const {
-//     pauseMusic,
-//     playMusic,
-//     releaseMusic,
-//     seekTo,
-//     duration,
-//     currentTime,
-//     stopMusic,
-//   } = useNativeMusicPlayer({
-//     song1: song,
-//     song2: route.params?.itemData?.int?.song,
-//     pause: false,
-//     getSoundOffOn: true,
-//     restStart: false,
-//   });
-
-//   const formatTime = sec => {
-//     const mins = Math.floor(sec / 60);
-//     const secs = Math.floor(sec % 60);
-//     return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
-//   };
-
-//   useEffect(() => {
-//     let timer;
-//     if (timeLeft > 0) {
-//       timer = setInterval(() => {
-//         setTimeLeft(prev => {
-//           if (prev <= 1) {
-//             clearInterval(timer);
-//             return 0; // force zero
-//           }
-//           return prev - 1;
-//         });
-//       }, 1000);
-//     }
-
-//     return () => clearInterval(timer);
-//   }, [timeLeft]);
 
 
-
-//   useEffect(() => {
-//     const int = route.params?.itemData?.int;
-//     const med = route.params?.itemData?.med;
-
-//     const medDuration = (Number(med?.minute || 0) * 60) + Number(med?.second || 0);
-//     // const intTime = Number(int?.second || 0);
-//    const intTime = (Number(int?.minute || 0) * 60) + Number(int?.second || 0)
-//     console.log('Time duration ', intTime, medDuration, int?.song);
-
-//     if (!int?.song || !intTime || !medDuration || intTime >= medDuration || !currentPhase == 'Meditation Time') return;
-
-//     const timePassed = medDuration - timeLeft;
-//     console.log('Time duration ......   ', timePassed);
-
-//     // Repeating interval logic
-//     if (
-//       timeLeft > 0 &&
-//       timePassed > 0 &&
-//       timePassed % intTime === 0 &&
-//       lastIntervalSecond !== timePassed
-//     ) {
-//       setLastIntervalSecond(timePassed);
-//       playRepeatingInterval();
-//     }
-//   }, [timeLeft]);
-
-//   const startCountdown = durationInSec => {
-//     setTimeLeft(durationInSec);
-//     setTotalPhaseTime(durationInSec);
-//   };
-
-//   const playRepeatingInterval = async () => {
-//     try {
-//       console.log('Interval SONG ... ', song2);
-//       // pauseMusic('player2'); // Pause main meditation
-//       // setsong(song2);        // Optional: update UI
-//       playMusic('player2');  // Play interval
-//       await new Promise(res => setTimeout(res, 5000)); // Play for 3 seconds
-//       stopMusic('player2');  // Stop interval
-//       // playMusic('player2');  // Resume meditation
-//     } catch (e) {
-//       console.error('Interval play error:', e);
-//     }
-//   };
-
-//   const playMeditationFlow = async () => {
-//     const { pre, med, int, res, end } = route.params?.itemData || {};
-//     const wait = seconds =>
-//       new Promise(resolve => setTimeout(resolve, seconds * 1000));
-
-//     try {
-//       if (pre?.song) {
-//         setCurrentPhase('Preparation Time');
-//         const preTime = Number(pre.second || 0);
-//         setsong(pre.song);
-//         startCountdown(preTime);
-//         setIsPlaying(true);
-//         playMusic('player1');
-//         await wait(preTime);
-//         // setIsPlaying(false);
-//         stopMusic('player1');
-//         // releaseMusic('player1');
-//       }
-
-//       const medDuration =
-//         Number(med?.minute || 0) * 60 + Number(med?.second || 0);
-//       console.log('Meditation', medDuration,med?.song);
-  
-
-//       if(medDuration >0){
-//         setCurrentPhase('Meditation Time');
-//         console.log('MED SONG');
-//         startCountdown(medDuration);
-//         // playMusic('player2');
-//         await wait(medDuration);
-//         stopMusic('player2');
-//         // }
-//       }
-
-//       const timePassed = medDuration - timeLeft;
-//       console.log('REST SONG DAta  ',res.second, song3, res);
-//       if (res?.song && timePassed === medDuration) {
-//         setCurrentPhase('Rest Time');
-//         console.log('RES SONG  ',res.second, song3);
-//         setsong('');
-//         setsong(res?.song);
-//         const resTime = Number(res.second || 0);
-//         startCountdown(resTime); // Optional: show rest countdown
-//         playMusic('player1');
-//         await wait(resTime);
-//         stopMusic('player1');
-//         if (end?.song) {
-//           setCurrentPhase('End Time');
-//           console.log('End SONG');
-//           setsong('');
-//           setsong(end?.song);
-//           playMusic('player1');
-//           const endTime = Number(3 || 0);
-//           // startCountdown(endTime); // Optional: show end countdown
-//           await wait(endTime);
-//           stopMusic('player1');
-//           setIsPlaying(false);
-//           setCurrentPhase('Meditation Completed');
-//         } else {
-//           stopMusic('player1');
-//         }
-//       }
-
-//       // ✅ Only start END after rest timer is 0
-
-//     } catch (error) {
-//       console.error('❌ Error in meditation flow:', error);
-//     }
-//   };
-
-//   const handlePauseResume = () => {
-//     console.log("paused or not ", isPaused);
-//     if (isPaused) {
-//       console.log("play...... ",pauseTimestamp);
-//       // Resume music and timer
-//       if (pauseTimestamp !== null) {
-//         setTimeLeft(pauseTimestamp); // resume countdown
-//       }
-//       playMusic('player1');
-//       playMusic('player2');
-//       setIsPaused(false);
-//       setIsPlaying(true);
-//     } else {
-//       console.log("paused...... ", timeLeft);
-//       // Pause music and timer
-//       pauseMusic('player1');
-//       pauseMusic('player2');
-//       setPauseTimestamp(timeLeft); // remember remaining time
-//       setTimeLeft(0); // will stop the timer useEffect
-//       setIsPaused(true);
-//       setIsPlaying(false);
-//     }
-//   };
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -236,12 +24,20 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
   const [pauseTimestamp, setPauseTimestamp] = useState(null);
   const [lastIntervalSecond, setLastIntervalSecond] = useState(null);
   const [currentPhase, setCurrentPhase] = useState('Meditations');
+  const [preparationDone, setPreparationDone] = useState(false);
+  const [meditationDone, setMeditationDone] = useState(false);
+  const [restDone, setRestDone] = useState(false);
+  const [endDone, setEndDone] = useState(false);
+  const [currentPlayer, setCurrentPlayer] = useState(null); // 'player1' or 'player2'
+  const [isMusicActive, setIsMusicActive] = useState(false);
+  const isPausedRef = useRef(isPaused);
 
-  const { pre, med, int, res, end, user } = route.params?.itemData || {};
+  const { pre, med, int, res, end, user,start } = route.params?.itemData || {};
   const song1 = pre?.song;
   const song2 = int?.song;
   const song3 = res?.song;
   const song4 = end?.song;
+  const song5 = start?.song;
 
   const {
     pauseMusic,
@@ -251,40 +47,28 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
     setCustomSong,
   } = useNativeMusicPlayer({ song1, song2, pause: false, getSoundOffOn: true });
 
-  const formatTime = sec =>
-    `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
-
-  // useEffect(() => {
-  //   let timer;
-  //   if (timeLeft > 0) {
-  //     timer = setInterval(() => {
-  //       setTimeLeft(prev => {
-  //         if (prev <= 1) {
-  //           clearInterval(timer);
-  //           return 0;
-  //         }
-  //         return prev - 1;
-  //       });
-  //     }, 1000);
-  //   }
-  //   return () => clearInterval(timer);
-  // }, [timeLeft]);
+  const formatTime = sec => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 
   useEffect(() => {
-  let timer;
-  if (timeLeft > 0 && !isPaused) { // 🛑 Don't run timer when paused
-    timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }
-  return () => clearInterval(timer);
-}, [timeLeft, isPaused]); // ✅ Add isPaused to dependency array
+    let timer;
+    if (timeLeft > 0 && !isPaused) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [timeLeft, isPaused]);
+
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
 
   useEffect(() => {
     const medDuration = (Number(med?.minute || 0) * 60) + Number(med?.second || 0);
@@ -293,102 +77,207 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
 
     if (song2 && intTime && medDuration > intTime && currentPhase === 'Meditation Time') {
       if (timeLeft > 0 && timePassed > 0 && timePassed % intTime === 0 && lastIntervalSecond !== timePassed) {
+        console.log('⏳ Interval music trigger');
         setLastIntervalSecond(timePassed);
         playRepeatingInterval();
       }
     }
   }, [timeLeft]);
 
-  const startCountdown = duration => setTimeLeft(duration);
+  // const startCountdown = duration => {
+  //   console.log(`⏱️ Countdown started: ${duration} seconds`);
+  //   setTimeLeft(duration);
+  // };
+
+  const startCountdown = duration => {
+    if (pauseTimestamp !== null && isPaused) {
+      console.log(`🔁 Resuming countdown from pause: ${pauseTimestamp} seconds`);
+      setTimeLeft(pauseTimestamp);
+    } else {
+      console.log(`⏱️ Countdown started: ${duration} seconds`);
+      setTimeLeft(duration);
+    }
+  };
 
   const playRepeatingInterval = async () => {
     try {
+      console.log('🎵 Playing interval music...');
+      await setCustomSong(song2, 'player2');
       playMusic('player2');
+      setIsMusicActive(true);
+      setCurrentPlayer('player2');
       await new Promise(res => setTimeout(res, 5000));
+      setIsMusicActive(false);
       stopMusic('player2');
+      console.log('🛑 Stopped interval music');
     } catch (e) {
-      console.error('Interval play error:', e);
+      console.error('⚠️ Interval play error:', e);
     }
   };
 
   const playMeditationFlow = async () => {
-  const wait = seconds => new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
-  try {
-    if (song1) {
-      setCurrentPhase('Preparation Time');
-      await setCustomSong(song1, 'player1'); // ✅ await here
-      playMusic('player1');
-      const preTime = Number(pre?.second || 0);
-      startCountdown(preTime); // ✅ after starting music
-      await wait(preTime);
-      stopMusic('player1');
+    //     const wait = async (totalSeconds) => {
+    //   console.log(`⏳ Starting wait for ${totalSeconds} seconds`);
+    //   return new Promise(resolve => {
+    //     let elapsed = 0;
+    //     const interval = setInterval(() => {
+    //       if (!isPaused) {
+    //         elapsed++;
+    //         console.log(`⏱️ Elapsed: ${elapsed}/${totalSeconds} seconds`);
+    //         if (elapsed >= totalSeconds) {
+    //           clearInterval(interval);
+    //           console.log(`✅ Wait completed after ${elapsed} seconds`);
+    //           resolve();
+    //         }
+    //       } else {
+    //         console.log('⏸️ Paused... waiting to resume');
+    //       }
+    //     }, 1000);
+    //   });
+    // };
+console.log('route data ....',route.params?.itemData);
+    const wait = async (totalSeconds) => {
+      console.log(`⏳ Starting wait for ${totalSeconds} seconds`);
+      return new Promise(resolve => {
+        let elapsed = 0;
+        const interval = setInterval(() => {
+          if (!isPausedRef.current) {
+            elapsed++;
+            console.log(`⏱️ Elapsed: ${elapsed}/${totalSeconds} seconds`);
+            if (elapsed >= totalSeconds) {
+              clearInterval(interval);
+              console.log(`✅ Wait completed after ${elapsed} seconds`);
+              resolve();
+            }
+          } else {
+            console.log('⏸️ Paused... waiting to resume');
+          }
+        }, 1000);
+      });
+    };
+
+    try {
+      if (!preparationDone && song1) {
+        console.log('🧘‍♂️ Starting Preparation Phase');
+        setCurrentPhase('Preparation Time');
+        await setCustomSong(song1, 'player1');
+        playMusic('player1');
+        setCurrentPlayer('player1');
+        setIsMusicActive(true);
+        const preTime = Number(pre?.second || 0);
+        startCountdown(preTime);
+        await wait(preTime);
+        stopMusic('player1');
+        setIsMusicActive(false);
+        setPreparationDone(true);
+        console.log('✅ Preparation Phase Completed');
+      }
+
+      const medDuration = (Number(med?.minute || 0) * 60) + Number(med?.second || 0);
+      if (!meditationDone && medDuration > 0) {
+        console.log('🧘 Starting Meditation Phase');
+        setCurrentPhase('Meditation Time');
+        console.log('start song.. ', song5);
+        await setCustomSong(song5, 'player2');
+        playMusic('player2');
+        startCountdown(medDuration);
+        setCurrentPlayer('player2');
+        setIsMusicActive(true);
+        await wait(medDuration);
+        stopMusic('player2');
+        setIsMusicActive(false);
+        setMeditationDone(true);
+        console.log('✅ Meditation Phase Completed');
+      }
+
+      if (!restDone && song3) {
+        console.log('😌 Starting Rest Phase');
+        setCurrentPhase('Rest Time');
+        await setCustomSong(song3, 'player1');
+        playMusic('player1');
+        setCurrentPlayer('player1');
+        setIsMusicActive(true);
+        const resTime = Number(res?.second || 0);
+        startCountdown(resTime);
+        await wait(resTime);
+        stopMusic('player1');
+        setIsMusicActive(true);
+        setRestDone(true);
+        console.log('✅ Rest Phase Completed');
+      }
+
+      if (!endDone && song4) {
+        console.log('🛑 Starting End Phase');
+        setCurrentPhase('End Time');
+        console.log('end song.. ', song4);
+        await setCustomSong(song4, 'player1');
+        playMusic('player1');
+        setCurrentPlayer('player1');
+        setIsMusicActive(true);
+        const endTime = 3;
+        await wait(endTime);
+        stopMusic('player1');
+        setIsMusicActive(true);
+        setEndDone(true);
+        console.log('✅ End Phase Completed');
+      }
+
+      console.log('🎉 Meditation Completed');
+      setCurrentPhase('Meditation Completed');
+      navigation.goBack();
+      setIsPlaying(false);
+    } catch (error) {
+      console.error('❌ Meditation Flow Error:', error);
     }
-
-    const medDuration = (Number(med?.minute || 0) * 60) + Number(med?.second || 0);
-    if (medDuration > 0) {
-      setCurrentPhase('Meditation Time');
-      startCountdown(medDuration);
-      // playMusic('player2');
-      await wait(medDuration);
-      stopMusic('player2');
-    }
-
-    if (song3) {
-      setCurrentPhase('Rest Time');
-      await setCustomSong(song3, 'player1'); // ✅ wait for it to be ready
-      playMusic('player1');
-      const resTime = Number(res?.second || 0);
-      startCountdown(resTime);
-      await wait(resTime);
-      stopMusic('player1');
-    }
-
-    if (song4) {
-      setCurrentPhase('End Time');
-      await setCustomSong(song4, 'player1'); // ✅ important
-      playMusic('player1');
-      const endTime = 3;
-      // startCountdown(endTime);
-      await wait(endTime);
-      stopMusic('player1');
-    }
-
-    setCurrentPhase('Meditation Completed');
-    setIsPlaying(false);
-  } catch (error) {
-    console.error('Meditation Flow Error:', error);
-  }
-};
+  };
 
   // const handlePauseResume = () => {
   //   if (isPaused) {
+  //     console.log('▶️ Resuming...');
   //     if (pauseTimestamp !== null) setTimeLeft(pauseTimestamp);
   //     playMusic('player1');
   //     playMusic('player2');
+  //     setIsPlaying(true);
   //   } else {
+  //     console.log('⏸️ Pausing...');
   //     pauseMusic('player1');
   //     pauseMusic('player2');
   //     setPauseTimestamp(timeLeft);
-  //     setTimeLeft(0);
   //   }
   //   setIsPaused(!isPaused);
-  //   setIsPlaying(!isPaused);
   // };
 
   const handlePauseResume = () => {
-  if (isPaused) {
-    if (pauseTimestamp !== null) setTimeLeft(pauseTimestamp);
-    playMusic('player1');
-    playMusic('player2');
-  } else {
-    pauseMusic('player1');
-    pauseMusic('player2');
-    setPauseTimestamp(timeLeft);
-  }
-  setIsPaused(!isPaused);
-  setIsPlaying(!isPaused);
-};
+    if (isPaused) {
+      console.log('▶️ Resuming...');
+      if (pauseTimestamp !== null) setTimeLeft(pauseTimestamp);
+
+      // ✅ Resume only if music was active before pause
+      console.log('Active player ', currentPlayer, isMusicActive)
+      if (currentPlayer && isMusicActive) {
+        playMusic(currentPlayer);
+        setIsPlaying(true);
+      } else {
+        console.log('⛔ Music was not active before pausing, so nothing to resume');
+      }
+
+      if (pauseTimestamp !== null) {
+        setPauseTimestamp(null);
+      }
+
+    } else {
+      console.log('⏸️ Pausing...');
+      if (currentPlayer && isMusicActive) {
+        pauseMusic(currentPlayer);
+        setPauseTimestamp(timeLeft);
+        setIsMusicActive(false);
+      }
+    }
+
+    setIsPaused(!isPaused);
+  };
+
 
   const handleBack = () => {
     navigation.goBack();

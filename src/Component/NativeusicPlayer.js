@@ -413,8 +413,10 @@ const useNativeMusicPlayer = ({
     }
 
     try {
-      await MusicPlayer.stop(playerId);
-      await MusicPlayer.release(playerId);
+      console.log('song ',uri, playerId);
+      // await MusicPlayer.stop(playerId);
+      // await MusicPlayer.release(playerId);
+      console.log('song...... ',uri, playerId);
       const success = await MusicPlayer.setupPlayer(playerId, uri);
       if (success) {
         console.log(`[setCustomSong] Loaded new song into ${playerId}`);
