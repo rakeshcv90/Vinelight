@@ -8,6 +8,8 @@ const initialState = {
   advanceMeditationData: [],
   customeMedidation: [],
   subscription: [],
+  appliedCoupanDetails: [],
+  coupaDetails: [],
   getProducts: [],
   getDailyPrompt: {},
   getDreamData: [],
@@ -179,8 +181,20 @@ export const userReducer = (state = initialState, action) => {
     case types.SUBSCRIPTION_DETAILS:
       return {
         ...state,
-        subscription: action.payload,
+        subscription: [action.payload],
       };
+
+    case types.COUPAN_APPLIED:
+      return {
+        ...state,
+        appliedCoupanDetails: [action.payload],
+      };
+    case types.COUPAN_DETAILS:
+      return {
+        ...state,
+        coupaDetails: [action.payload],
+      };
+
     case types.SUBSCRIPTION_PRODUCTS:
       return {
         ...state,
@@ -252,15 +266,14 @@ export const userReducer = (state = initialState, action) => {
       );
 
       if (exists1) {
-      
-              Toast.show({
-                          type: 'custom',
-                          position: 'top',
-                          props: {
-                            icon: IconData.ERR, // your custom image
-                            text: 'Data for this date already exists.',
-                          },
-                        });
+        Toast.show({
+          type: 'custom',
+          position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Data for this date already exists.',
+          },
+        });
         return state;
       }
 

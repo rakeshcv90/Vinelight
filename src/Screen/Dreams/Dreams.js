@@ -3,6 +3,7 @@ import {
   FlatList,
   Image,
   ImageBackground,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -16,6 +17,7 @@ import FastImage from 'react-native-fast-image';
 import {useDispatch, useSelector} from 'react-redux';
 import {deleteDreamData} from '../../redux/actions';
 import moment from 'moment';
+import WebView from 'react-native-webview';
 const {width, height} = Dimensions.get('window');
 const Dreams = () => {
   const navigation = useNavigation();
@@ -131,7 +133,8 @@ const Dreams = () => {
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, '');
 
     return plainText;
   };
@@ -149,11 +152,14 @@ const Dreams = () => {
     } else {
       setEditSet(true);
     }
- 
   }, [getDreamData]);
-  // console.log('Jurnal Entry', getDreamData);
+
   return (
-    <View style={styles.secondaryContainer}>
+    <View
+      style={[
+        styles.secondaryContainer,
+        {height: Platform.OS == 'android' && height >= 780 ? '90%' : '85%'},
+      ]}>
       <FastImage
         source={memoizedBackground}
         style={styles.secondaryBackground}
@@ -232,6 +238,30 @@ const Dreams = () => {
                     : `dream-${item.dream.id}`
                 }
                 renderItem={({item, index}) => {
+                  const htmlContent =
+                    item?.dream?.dreamContent || '<p>No content available</p>';
+
+                  const wrappedHtml = `
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            font-family: -apple-system, Roboto, sans-serif;
+            font-size: 16px;
+            color: #333;
+            margin: 0;
+            padding: 0;
+          }
+          p {
+            margin: 0;
+          }
+        </style>
+      </head>
+      <body>${htmlContent}</body>
+    </html>
+  `;
+
                   if (item.type === 'header') {
                     return (
                       <View
@@ -314,6 +344,13 @@ const Dreams = () => {
                           ? htmlToPlainText(dream.dreamContent)
                           : 'No content available'}
                       </Text>
+
+                      {/* <WebView
+                        originWhitelist={['*']}
+                        source={{html: wrappedHtml}}
+                        style={{height: 20, backgroundColor: 'transparent'}} // or use styles.webview
+                        scrollEnabled={false}
+                      /> */}
                     </TouchableOpacity>
                   );
                 }}
@@ -326,7 +363,13 @@ const Dreams = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'center',
-                top: height * 0.035,
+
+                top:
+                  Platform.OS == 'ios'
+                    ? height * 0.035
+                    : height >= 780
+                    ? height * 0.025
+                    : height * 0.035,
                 gap: 20,
                 flexDirection: 'row',
               }}>
@@ -347,7 +390,7 @@ const Dreams = () => {
                   width={280}
                   height={50}
                   buttonTitle={'Edit Dream Journal Entry'}
-                  img={IconData.PLUS}
+                  img={IconData.PEN2}
                   left={true}
                   size={20}
                   onPress={() => {
@@ -510,7 +553,7 @@ const styles = StyleSheet.create({
   },
   taskRow: {
     padding: 2,
-
+    height: 60,
     marginBottom: 0,
     borderRadius: 12,
   },

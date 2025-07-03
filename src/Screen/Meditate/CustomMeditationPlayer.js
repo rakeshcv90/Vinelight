@@ -21,13 +21,15 @@ const CustomMeditationPlayer = ({navigation, route}) => {
 
   const memoizedBackground = useMemo(() => ImageData.BACKGROUND, []);
   const memoizedBackground1 = useMemo(() => ImageData.MAINBACKGROUND, []);
-useEffect(() => {
-    KeepAwake.activate();   // Prevent screen sleep when this screen is active
+
+  useEffect(() => {
+    KeepAwake.activate(); // Prevent screen sleep when this screen is active
 
     return () => {
       KeepAwake.deactivate(); // Clean up on unmount
     };
   }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -179,6 +181,13 @@ useEffect(() => {
                   <ProgressBar2
                     musicTime={route?.params?.timer}
                     pauseSound={pauseSound}
+                    // onBack={() => {
+                    //   console.log("sssssss")
+                    //   navigation.goBack();
+                    // }}
+                    onEnd={() => {
+                      console.log('sssssss'), navigation.goBack();
+                    }}
                   />
                 </View>
 

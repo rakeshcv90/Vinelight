@@ -103,7 +103,7 @@
 
 //       if (results.length > 0 && results.every(r => r)) {
 //         setInitialized(true);
-        
+
 //         setTimeout(getDuration, 1000);
 //         console.log("Yogesh",)
 //       }
@@ -229,7 +229,7 @@
 // };
 
 // export default useNativeMusicPlayer;
-import { useEffect, useState } from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {
   Platform,
   NativeModules,
@@ -245,10 +245,11 @@ const useNativeMusicPlayer = ({
   getSoundOffOn,
 }) => {
   const MusicPlayer = NativeModules?.MusicPlayer;
+ 
 
   const [initialized, setInitialized] = useState(false);
-  const [duration, setDuration] = useState({ player1: 0, player2: 0 });
-  const [currentTime, setCurrentTime] = useState({ player1: 0, player2: 0 });
+  const [duration, setDuration] = useState({player1: 0, player2: 0});
+  const [currentTime, setCurrentTime] = useState({player1: 0, player2: 0});
 
   useEffect(() => {
     if (!MusicPlayer) return;
@@ -272,10 +273,12 @@ const useNativeMusicPlayer = ({
       try {
         const times = {};
         if (song1)
-          times.player1 = await MusicPlayer.getCurrentPosition('player1') || 0;
+          times.player1 =
+            (await MusicPlayer.getCurrentPosition('player1')) || 0;
         if (song2)
-          times.player2 = await MusicPlayer.getCurrentPosition('player2') || 0;
-        setCurrentTime(prev => ({ ...prev, ...times }));
+          times.player2 =
+            (await MusicPlayer.getCurrentPosition('player2')) || 0;
+        setCurrentTime(prev => ({...prev, ...times}));
       } catch (err) {
         console.warn('Error fetching current position:', err);
       }
@@ -328,7 +331,7 @@ const useNativeMusicPlayer = ({
       const durations = {};
       if (song1) durations.player1 = await waitForDuration('player1');
       if (song2) durations.player2 = await waitForDuration('player2');
-      setDuration(prev => ({ ...prev, ...durations }));
+      setDuration(prev => ({...prev, ...durations}));
     } catch (err) {
       console.error('Error getting duration:', err);
     }
@@ -381,17 +384,62 @@ const useNativeMusicPlayer = ({
     getDuration();
   };
 
-  const setVolume = (volume, playerId) => {
-    if (!MusicPlayer || typeof volume !== 'number') return;
+  // const setVolume = (volume, playerId) => {
+  //   if (!MusicPlayer || typeof volume !== 'number') return;
+
+  //   if (playerId) {
+  //     MusicPlayer.setVolume(playerId, volume);
+  //   } else {
+  //     ['player1', 'player2'].forEach(id => MusicPlayer.setVolume(id, volume));
+  //   }
+  // };
+
+  const setVolume = async (volume, playerId) => {
+    if (
+      !MusicPlayer ||
+      typeof volume !== 'number' ||
+      volume < 0 ||
+      volume > 1
+    ) {
+      throw new Error('Volume must be a number between 0 and 1');
+    }
 
     if (playerId) {
-      MusicPlayer.setVolume(playerId, volume);
+      await MusicPlayer.setVolume(playerId, volume); // ✅ Await the native call
     } else {
-      ['player1', 'player2'].forEach(id => MusicPlayer.setVolume(id, volume));
+      // Wait for all to finish
+      await Promise.all(
+        ['player1', 'player2'].map(id => MusicPlayer.setVolume(id, volume)),
+      );
     }
   };
+  // const setVolume = async (volume, playerId = null) => {
+  //   try {
+  //     if (!MusicPlayer) {
+  //       throw new Error('MusicPlayer native module not available');
+  //     }
 
-  const releaseMusic = (playerId) => {
+  //     if (typeof volume !== 'number' || volume < 0 || volume > 1) {
+  //       throw new Error('Volume must be a number between 0 and 1');
+  //     }
+
+  //     if (playerId) {
+  //       // Set volume for a specific player
+  //       await MusicPlayer.setVolume(playerId, volume);
+  //       console.log(`Volume set to ${volume} for player ${playerId}`);
+  //     } else {
+  //       // Set volume for all players
+  //       await Promise.all(
+  //         ['player1', 'player2'].map(id => MusicPlayer.setVolume(id, volume)),
+  //       );
+  //       console.log(`Volume set to ${volume} for all players`);
+  //     }
+  //   } catch (error) {
+  //     console.error('Failed to set volume:', error.message);
+  //     throw error; // Re-throw if you want calling code to handle it
+  //   }
+  // };
+  const releaseMusic = playerId => {
     if (!MusicPlayer) return;
     if (playerId) {
       MusicPlayer.release(playerId);
@@ -399,8 +447,8 @@ const useNativeMusicPlayer = ({
       ['player1', 'player2'].forEach(id => MusicPlayer.release(id));
     }
     setInitialized(false);
-    setDuration({ player1: 0, player2: 0 });
-    setCurrentTime({ player1: 0, player2: 0 });
+    setDuration({player1: 0, player2: 0});
+    setCurrentTime({player1: 0, player2: 0});
   };
 
   // ✅ Custom method to dynamically load a song to a player
@@ -417,7 +465,7 @@ const useNativeMusicPlayer = ({
       if (success) {
         console.log(`[setCustomSong] Loaded new song into ${playerId}`);
         const dur = await waitForDuration(playerId);
-        setDuration(prev => ({ ...prev, [playerId]: dur }));
+        setDuration(prev => ({...prev, [playerId]: dur}));
       } else {
         console.warn(`[setCustomSong] setupPlayer failed for ${playerId}`);
       }
@@ -448,4 +496,4 @@ const useNativeMusicPlayer = ({
   };
 };
 
-export default useNativeMusicPlayer; 
+export default useNativeMusicPlayer;

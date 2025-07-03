@@ -1,6 +1,4 @@
-
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -9,15 +7,19 @@ import {
   Dimensions,
   StatusBar,
   Image,
+  BackHandler,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 import useNativeMusicPlayer from '../../Component/NativeusicPlayer';
-import { Color, Font, IconData, ImageData } from '../../../assets/Image';
+import {Color, Font, IconData, ImageData} from '../../../assets/Image';
+import {useFocusEffect} from '@react-navigation/native';
+import NetInfo from '@react-native-community/netinfo';
+import KeepAwake from 'react-native-keep-awake';
+import Toast from 'react-native-toast-message';
+const {width, height} = Dimensions.get('window');
 
-const { width, height } = Dimensions.get('window');
-
-const AdvanceMediaPlayer = ({ navigation, route }) => {
+const AdvanceMediaPlayer = ({navigation, route}) => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -31,24 +33,42 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
   const [currentPlayer, setCurrentPlayer] = useState(null); // 'player1' or 'player2'
   const [isMusicActive, setIsMusicActive] = useState(false);
   const isPausedRef = useRef(isPaused);
+  const timerRef = useRef(null);
+  const [isActive, setIsActive] = useState(true);
+  const [isConnected, setIsConnected] = useState(true);
 
-  const { pre, med, int, res, end, user,start } = route.params?.itemData || {};
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
+
+    return () => unsubscribe();
+  }, []);
+  const medatationData = useSelector(
+    state => state?.user?.advanceMeditationData,
+  );
+
+  const {pre, med, int, res, end, user, start} = route.params?.itemData || {};
   const song1 = pre?.song;
   const song2 = int?.song;
   const song3 = res?.song;
   const song4 = end?.song;
   const song5 = start?.song;
+  const song6 = medatationData?.data;
+  const {pauseMusic, playMusic, releaseMusic, stopMusic, setCustomSong} =
+    useNativeMusicPlayer({song1, song2, pause: false, getSoundOffOn: true});
 
-  const {
-    pauseMusic,
-    playMusic,
-    releaseMusic,
-    stopMusic,
-    setCustomSong,
-  } = useNativeMusicPlayer({ song1, song2, pause: false, getSoundOffOn: true });
+  const formatTime = sec =>
+    `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(
+      sec % 60,
+    ).padStart(2, '0')}`;
+  useEffect(() => {
+    KeepAwake.activate(); // Prevent screen sleep when this screen is active
 
-  const formatTime = sec => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
-
+    return () => {
+      KeepAwake.deactivate(); // Clean up on unmount
+    };
+  }, []);
   useEffect(() => {
     let timer;
     if (timeLeft > 0 && !isPaused) {
@@ -65,18 +85,43 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
     return () => clearInterval(timer);
   }, [timeLeft, isPaused]);
 
-
   useEffect(() => {
     isPausedRef.current = isPaused;
   }, [isPaused]);
 
   useEffect(() => {
-    const medDuration = (Number(med?.minute || 0) * 60) + Number(med?.second || 0);
-    const intTime = (Number(int?.minute || 0) * 60) + Number(int?.second || 0);
+    if (!isConnected) {
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR,
+          text: 'Poor internet connection or not working',
+        },
+      });
+
+      handleBack()
+      
+    }
+  }, [isConnected]);
+  useEffect(() => {
+    const medDuration =
+      Number(med?.minute || 0) * 60 + Number(med?.second || 0);
+    const intTime = Number(int?.minute || 0) * 60 + Number(int?.second || 0);
     const timePassed = medDuration - timeLeft;
 
-    if (song2 && intTime && medDuration > intTime && currentPhase === 'Meditation Time') {
-      if (timeLeft > 0 && timePassed > 0 && timePassed % intTime === 0 && lastIntervalSecond !== timePassed) {
+    if (
+      song2 &&
+      intTime &&
+      medDuration > intTime &&
+      currentPhase === 'Meditation Time'
+    ) {
+      if (
+        timeLeft > 0 &&
+        timePassed > 0 &&
+        timePassed % intTime === 0 &&
+        lastIntervalSecond !== timePassed
+      ) {
         console.log('⏳ Interval music trigger');
         setLastIntervalSecond(timePassed);
         playRepeatingInterval();
@@ -89,9 +134,27 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
   //   setTimeLeft(duration);
   // };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        handleBack();
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove(); // ✅ this is the correct cleanup
+    }, [currentPlayer, isMusicActive, isPaused]),
+  );
+
   const startCountdown = duration => {
     if (pauseTimestamp !== null && isPaused) {
-      console.log(`🔁 Resuming countdown from pause: ${pauseTimestamp} seconds`);
+      console.log(
+        `🔁 Resuming countdown from pause: ${pauseTimestamp} seconds`,
+      );
       setTimeLeft(pauseTimestamp);
     } else {
       console.log(`⏱️ Countdown started: ${duration} seconds`);
@@ -106,8 +169,13 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
       playMusic('player2');
       setIsMusicActive(true);
       setCurrentPlayer('player2');
-      await new Promise(res => setTimeout(res, 5000));
-      setIsMusicActive(false);
+      await new Promise(res => setTimeout(res, 2000));
+      if (isActive) {
+        setIsMusicActive(true);
+        setCurrentPlayer('player1');
+      } else {
+        setIsMusicActive(false);
+      }
       stopMusic('player2');
       console.log('🛑 Stopped interval music');
     } catch (e) {
@@ -116,19 +184,17 @@ const AdvanceMediaPlayer = ({ navigation, route }) => {
   };
 
   const playMeditationFlow = async () => {
-
-
-console.log('route data ....',route.params?.itemData);
-    const wait = async (totalSeconds) => {
+    console.log('route data ....', route.params?.itemData);
+    const wait = async totalSeconds => {
       console.log(`⏳ Starting wait for ${totalSeconds} seconds`);
       return new Promise(resolve => {
         let elapsed = 0;
-        const interval = setInterval(() => {
+        timerRef.current = setInterval(() => {
           if (!isPausedRef.current) {
             elapsed++;
             console.log(`⏱️ Elapsed: ${elapsed}/${totalSeconds} seconds`);
             if (elapsed >= totalSeconds) {
-              clearInterval(interval);
+              clearInterval(timerRef.current);
               console.log(`✅ Wait completed after ${elapsed} seconds`);
               resolve();
             }
@@ -156,18 +222,23 @@ console.log('route data ....',route.params?.itemData);
         console.log('✅ Preparation Phase Completed');
       }
 
-      const medDuration = (Number(med?.minute || 0) * 60) + Number(med?.second || 0);
+      const medDuration =
+        Number(med?.minute || 0) * 60 + Number(med?.second || 0);
       if (!meditationDone && medDuration > 0) {
         console.log('🧘 Starting Meditation Phase');
         setCurrentPhase('Meditation Time');
-        console.log('start song.. ', song5);
-        await setCustomSong(song5, 'player2');
-        playMusic('player2');
-        startCountdown(medDuration);
-        setCurrentPlayer('player2');
+        console.log('start song.. ', song5, ' // med :- ', song6);
         setIsMusicActive(true);
+        await setCustomSong(song5, 'player2');
+        await setCustomSong(song6, 'player1');
+        playMusic('player2');
+        playMusic('player1');
+        startCountdown(medDuration);
+        setCurrentPlayer('player1');
         await wait(medDuration);
+        console.log('med is close or not');
         stopMusic('player2');
+        stopMusic('player1');
         setIsMusicActive(false);
         setMeditationDone(true);
         console.log('✅ Meditation Phase Completed');
@@ -230,44 +301,88 @@ console.log('route data ....',route.params?.itemData);
   //   setIsPaused(!isPaused);
   // };
 
+  const handleMusicPlayback = () => {
+    if (!isPaused) {
+      if (isActive && currentPhase === 'Meditation Time') {
+        // Music should play on player1
+        pauseMusic('player1');
+      } else {
+        playMusic('player1');
+      }
+    }
+  };
+
   const handlePauseResume = () => {
     if (isPaused) {
       console.log('▶️ Resuming...');
       if (pauseTimestamp !== null) setTimeLeft(pauseTimestamp);
 
       // ✅ Resume only if music was active before pause
-      console.log('Active player ', currentPlayer, isMusicActive)
+      console.log('Active player ', currentPlayer, isMusicActive, isPlaying);
       if (currentPlayer && isMusicActive) {
         playMusic(currentPlayer);
         setIsPlaying(true);
       } else {
-        console.log('⛔ Music was not active before pausing, so nothing to resume');
+        console.log(
+          '⛔ Music was not active before pausing, so nothing to resume',
+        );
       }
 
       if (pauseTimestamp !== null) {
         setPauseTimestamp(null);
       }
-
     } else {
       console.log('⏸️ Pausing...');
       if (currentPlayer && isMusicActive) {
         pauseMusic(currentPlayer);
         setPauseTimestamp(timeLeft);
-        setIsMusicActive(false);
+        // setIsMusicActive(false);
       }
     }
 
     setIsPaused(!isPaused);
   };
 
+  // const handleBack = () => {
+  //   navigation.goBack();
+  //   stopMusic('player1');
+  //   stopMusic('player2');
+  //   releaseMusic('player1');
+  //   releaseMusic('player2');
+  //   setIsPlaying(false);
+  // };
 
   const handleBack = () => {
-    navigation.goBack();
+    // ⏸️ Stop music only if it was active and not already paused
+    console.log('🔙 Back pressed — stopping all media and timers');
+
+    // ⏸ Pause any active music
+    if (currentPlayer && isMusicActive) {
+      console.log(`🛑 Stopping music on ${currentPlayer}`);
+      stopMusic(currentPlayer);
+      releaseMusic(currentPlayer);
+    }
+
+    // Stop both players to be extra safe
     stopMusic('player1');
     stopMusic('player2');
     releaseMusic('player1');
     releaseMusic('player2');
+
+    // 🧹 Reset state
     setIsPlaying(false);
+    setIsMusicActive(false);
+    setIsPaused(true);
+
+    // 🧨 Clear countdown or wait interval
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+      console.log('🛑 Timer cleared on back press');
+    }
+
+    // ✅ Navigate back
+    navigation.goBack();
   };
 
   return (
@@ -296,12 +411,13 @@ console.log('route data ....',route.params?.itemData);
           }}>
           <TouchableOpacity
             onPress={() => {
-              navigation.goBack();
-              stopMusic('player1');
-              stopMusic('player2');
-              releaseMusic('player1');
-              releaseMusic('player2');
-              setIsPlaying(false);
+              // navigation.goBack();
+              // stopMusic('player1');
+              // stopMusic('player2');
+              // releaseMusic('player1');
+              // releaseMusic('player2');
+              // setIsPlaying(false);
+              handleBack();
             }}
             style={{
               width: 50,
@@ -332,7 +448,7 @@ console.log('route data ....',route.params?.itemData);
               <Image
                 source={IconData.BACK}
                 tintColor={Color?.LIGHTGREEN}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             </View>
           </TouchableOpacity>
@@ -356,7 +472,7 @@ console.log('route data ....',route.params?.itemData);
                   alignItems: 'center',
                   borderWidth: 1,
                   borderColor: Color.LIGHTGREEN,
-                  // backgroundColor: Color?.LIGHTBROWN,
+                  backgroundColor: Color?.LIGHTBROWN,
                 }}>
                 <View
                   style={{
@@ -369,7 +485,7 @@ console.log('route data ....',route.params?.itemData);
                   <FastImage
                     source={ImageData.LEFT}
                     resizeMode={FastImage.resizeMode.contain}
-                    style={{ width: 31, height: 31 }}
+                    style={{width: 31, height: 31}}
                   />
                   <FastImage
                     source={ImageData.RIGHT}
@@ -389,11 +505,13 @@ console.log('route data ....',route.params?.itemData);
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}>
-                  <Text style={styles.subText}>{route.params?.itemData?.user?.name}</Text>
+                  <Text style={styles.subText}>
+                    {route.params?.itemData?.user?.name}
+                  </Text>
                   <FastImage
                     source={ImageData.MEDATATION}
                     resizeMode={FastImage.resizeMode.contain}
-                    style={{ width: width * 0.5, height: height * 0.2 }}
+                    style={{width: width * 0.5, height: height * 0.2}}
                   />
                   <Text style={styles.subText}>{currentPhase}</Text>
                 </View>
@@ -428,7 +546,7 @@ console.log('route data ....',route.params?.itemData);
                   />
                 </TouchableOpacity> */}
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   onPress={() => {
                     if (!isPlaying) {
                       playMeditationFlow();        // Start playback
@@ -452,7 +570,92 @@ console.log('route data ....',route.params?.itemData);
                     style={{ width: 40, height: 40 }}
                     resizeMode="contain"
                   />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+
+                <View
+                  style={{
+                    width: '100%',
+                    marginTop: 20,
+                    position: 'relative',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      console.log(
+                        'active players .. ',
+                        currentPlayer,
+                        ' active ? ',
+                        isMusicActive,
+                      );
+                      if (!isPlaying) {
+                        playMeditationFlow();
+                        setIsPlaying(true);
+                        setIsPaused(false);
+                      } else {
+                        handlePauseResume();
+                      }
+                    }}
+                    style={{marginRight: 0}}>
+                    <Image
+                      source={
+                        isPlaying
+                          ? isPaused
+                            ? IconData.PLAY
+                            : IconData.PAUSE
+                          : IconData.PLAY
+                      }
+                      style={{width: 40, height: 40}}
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
+
+                  {/* <TouchableOpacity
+                    onPress={() => {
+                      setIsActive(prev => !prev)
+                      handleMusicPlayback();
+                    }}
+
+                    style={{
+                      position: 'absolute',
+                      right: 70, // Adjust distance from center
+                      top: '25%',
+                      transform: [{ translateY: -12 }],
+                    }}
+                  >
+                    <Image
+                      source={!isPaused ? (isActive ? IconData.MUSIC : IconData.MUSICCLOSE) : IconData.MUSIC}
+                      style={{ width: 40, height: 40 }}
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity> */}
+
+                  {currentPhase === 'Meditation Time' && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setIsActive(prev => !prev);
+                        handleMusicPlayback();
+                      }}
+                      style={{
+                        position: 'absolute',
+                        right: 70, // Adjust distance from center
+                        top: '25%',
+                        transform: [{translateY: -12}],
+                      }}>
+                      <Image
+                        source={
+                          !isPaused
+                            ? isActive
+                              ? IconData.MUSIC
+                              : IconData.MUSICCLOSE
+                            : IconData.MUSIC
+                        }
+                        style={{width: 40, height: 40}}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
 
                 <View
                   style={{
@@ -549,7 +752,7 @@ const styles = StyleSheet.create({
     width: width * 0.2,
     alignItems: 'center',
     shadowColor: Color.LIGHTGREEN,
-    shadowOffset: { width: 2, height: 3 },
+    shadowOffset: {width: 2, height: 3},
     shadowOpacity: 0.4,
     shadowRadius: 4,
 

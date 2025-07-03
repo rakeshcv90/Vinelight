@@ -86,6 +86,7 @@ const Home = () => {
   const [editSet, setEditSet] = useState(false);
   const markedJournalDates = useMemo(() => {
     const marks = {};
+    // const todayDate = today
     const todayDate = new Date();
 
     getJournalData?.forEach(entry => {
@@ -113,8 +114,18 @@ const Home = () => {
   }, [getJournalData, selectedDate]);
 
   const getDayPresh = date => {
-    // console.log("Ccccccccccc",date)
-    // setSelectedDate(date);
+    if (date > today) {
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: 'You cannot select future date',
+        },
+      });
+      return;
+    }
+    setSelectedDate(date);
     const mood = getJournalData?.filter(item => {
       return item?.currentDat === date;
     });
@@ -132,10 +143,21 @@ const Home = () => {
       //     text: 'No journal entry data available for this selected date.',
       //   },
       // });
-      navigation.navigate('CreateJournalEntry', {
-        prompttype: false,
-        selectedDate: date,
-      });
+      if (date <= today) {
+        navigation.navigate('CreateJournalEntry', {
+          prompttype: false,
+          selectedDate: date,
+        });
+      } else {
+        Toast.show({
+          type: 'custom',
+          position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Journal entries cannot be created for future dates.',
+          },
+        });
+      }
     }
   };
 
@@ -150,7 +172,7 @@ const Home = () => {
     const mood = getJournalData?.filter(item => {
       return item?.currentDat === today;
     });
-    console.log('ddddddddddd', mood);
+
     // navigation.navigate('CreateJournalEntry', {
     //   prompttype: false,
     //   selectedDate: selectedDate,
@@ -260,13 +282,65 @@ const Home = () => {
 
                     textDayFontFamily: Font?.EBGaramond_SemiBold,
                   }}
+                  // dayComponent={({date}) => {
+                  //   const isSelected = date.dateString === selectedDate;
+                  //   const marked = markedJournalDates?.[date.dateString];
+
+                  //   const selectedStyle = marked?.selectedColor
+                  //     ? {backgroundColor: marked.selectedColor}
+                  //     : null;
+
+                  //   const dotStyle = marked?.dotColor
+                  //     ? {
+                  //         width: 6,
+                  //         height: 6,
+                  //         borderRadius: 3,
+                  //         backgroundColor: marked.dotColor,
+                  //         marginTop: 2,
+                  //         alignSelf: 'center',
+                  //       }
+                  //     : null;
+
+                  //   const moodEmoji = marked?.moodName
+                  //     ? getemojyItem(marked.moodName) || ''
+                  //     : '';
+                  //   return (
+                  //     <TouchableOpacity
+                  //       onPress={() => getDayPresh(date.dateString)}
+                  //       style={styles.dayContainer}>
+                  //       {moodEmoji ? (
+                  //         <Image
+                  //           source={moodEmoji}
+                  //           style={{width: 24, height: 24}}
+                  //           tintColor={Color.LIGHTGREEN}
+                  //         />
+                  //       ) : (
+                  //         <View
+                  //           style={[
+                  //             styles.circle,
+                  //             isSelected && styles.selectedCircle,
+                  //             selectedStyle,
+                  //           ]}>
+                  //           <Text
+                  //             style={[
+                  //               styles.dayText,
+                  //               isSelected && styles.selectedText,
+                  //             ]}>
+                  //             {date.day}
+                  //           </Text>
+                  //         </View>
+                  //       )}
+                  //     </TouchableOpacity>
+                  //   );
+                  // }}
                   dayComponent={({date}) => {
-                    const isSelected = date.dateString === selectedDate;
+                    const isToday = date.dateString === today;
                     const marked = markedJournalDates?.[date.dateString];
 
-                    const selectedStyle = marked?.selectedColor
-                      ? {backgroundColor: marked.selectedColor}
-                      : null;
+                    const selectedStyle =
+                      isToday && marked?.selectedColor
+                        ? {backgroundColor: marked.selectedColor}
+                        : null;
 
                     const dotStyle = marked?.dotColor
                       ? {
@@ -278,9 +352,11 @@ const Home = () => {
                           alignSelf: 'center',
                         }
                       : null;
+
                     const moodEmoji = marked?.moodName
                       ? getemojyItem(marked.moodName) || ''
                       : '';
+
                     return (
                       <TouchableOpacity
                         onPress={() => getDayPresh(date.dateString)}
@@ -295,13 +371,13 @@ const Home = () => {
                           <View
                             style={[
                               styles.circle,
-                              isSelected && styles.selectedCircle,
+                              isToday && styles.selectedCircle,
                               selectedStyle,
                             ]}>
                             <Text
                               style={[
                                 styles.dayText,
-                                isSelected && styles.selectedText,
+                                isToday && styles.selectedText,
                               ]}>
                               {date.day}
                             </Text>
@@ -361,13 +437,26 @@ const Home = () => {
               nestedScrollEnabled={true}
               showsVerticalScrollIndicator={false}>
               <TouchableOpacity
-                onPress={() =>
-                  // navigation.navigate('CreateJournalEntry', {prompttype: true})
-                  navigation.navigate('CreateJournalEntry', {
-                    prompttype: true,
-                    selectedDate: selectedDate,
-                  })
-                }>
+                onPress={() => {
+                  const mood = getJournalData?.filter(item => {
+                    return item?.currentDat === today;
+                  });
+                  if (mood?.length > 0) {
+                    Toast.show({
+                      type: 'custom',
+                      position: 'top',
+                      props: {
+                        icon: IconData.ERR, // your custom image
+                        text: `You already created a prompt for today's date`,
+                      },
+                    });
+                  } else {
+                    navigation.navigate('CreateJournalEntry', {
+                      prompttype: true,
+                      selectedDate: selectedDate,
+                    });
+                  }
+                }}>
                 <Text style={styles.text}>{prompt?.description}</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -398,7 +487,7 @@ const Home = () => {
                 width={250}
                 height={50}
                 buttonTitle={'Edit Journal Entry'}
-                img={IconData.PLUS}
+                img={IconData.PEN2}
                 left={true}
                 size={20}
                 onPress={() => {

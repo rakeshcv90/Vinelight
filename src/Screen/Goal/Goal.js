@@ -15,7 +15,7 @@ import {
   Keyboard,
   TouchableOpacity,
 } from 'react-native';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import ActivityLoader from '../../Component/ActivityLoader';
@@ -38,20 +38,34 @@ import {getDatesForMultipleDaysOverMonths} from '../utils';
 import Toast from 'react-native-toast-message';
 import FastImage from 'react-native-fast-image';
 import DeleteModal from '../../Component/DeleteModal';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
 
-const Goal = () => {
-  const [modalopen, setModalOpen] = useState(false);
+const Goal = ({isActive}) => {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const DataCurrent = route?.params?.modalOpenData;
+
+  const [modalopen, setModalOpen] = useState(
+    DataCurrent == undefined ? false : true,
+  );
   const dispatch = useDispatch();
   const goalData = useSelector(state => state.user?.goalByDate || []);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [deleteModalData, setDeleteModaldata] = useState(false);
   const [toolGoalVisible, setToolGoalVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 0});
   const [selectedGoal, setSelectedGoal] = useState(null);
   const [SelectedData, setSelectedData] = useState(null);
+  const goalInputRef = useRef(null);
   const [currentDAte, setCurrentDAte] = useState(
     moment().local().format('YYYY-MM-DD'),
+  );
+
+  const [currentdate, setCurrentData] = useState(
+    DataCurrent == undefined
+      ? moment().local().format('YYYY-MM-DD')
+      : DataCurrent,
   );
   const emptyComponent = () => {
     return (
@@ -82,15 +96,23 @@ const Goal = () => {
     );
   };
 
+  useEffect(() => {
+    if (!isActive) {
+      setModalVisible(false), setToolGoalVisible(false);
+    }
+  }, [isActive]);
   const GoalModal = ({visible, onClose}) => {
-    const [daysShow, setDayshow] = useState(true);
+    const [daysShow, setDayshow] = useState(new Date());
     const [goalName, setGoalName] = useState(null);
     // const [selectedDate, setSelectedDate] = useState(
     //   moment().format('YYYY-MM-DD'),
     // );
     const [selectedDate, setSelectedDate] = useState(
-      moment().local().format('YYYY-MM-DD'),
+      DataCurrent == undefined
+        ? moment().local().format('YYYY-MM-DD')
+        : route?.params?.selectedDate,
     );
+
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const showDatePicker = () => setDatePickerVisibility(true);
     const hideDatePicker = () => setDatePickerVisibility(false);
@@ -157,6 +179,25 @@ const Goal = () => {
       }
     };
 
+    // const toggleMood = mood => {
+    //   const weekDays = dayOptions.filter(d => d !== 'Daily');
+
+    //   if (mood === 'Daily') {
+    //     const allSelected = selectedMoods.length === weekDays.length;
+    //     setSelectedMoods(allSelected ? [] : weekDays);
+    //   } else {
+    //     let newSelection;
+
+    //     if (selectedMoods.includes(mood)) {
+    //       newSelection = selectedMoods.filter(m => m !== mood);
+    //     } else {
+    //       newSelection = [...selectedMoods, mood];
+    //     }
+
+    //     setSelectedMoods(newSelection);
+    //   }
+    // };
+
     const saveGoalData = () => {
       if (goalName) {
         const date = selectedDate;
@@ -172,9 +213,11 @@ const Goal = () => {
             position: 'top',
             props: {
               icon: IconData.SUCC, // your custom image
-              text: `${response} task added.`,
+              text: `Goal saved!`,
             },
           });
+          navigation.setParams({modalOpenData: null, selectedDate: null});
+          setModalOpen(false); // update local state as well
         }
       } else {
         Toast.show({
@@ -182,7 +225,7 @@ const Goal = () => {
           position: 'top',
           props: {
             icon: IconData.ERR, // your custom image
-            text: 'Please Select Goal Data',
+            text: 'Please enter the goal first to save the goal.',
           },
         });
       }
@@ -221,9 +264,16 @@ const Goal = () => {
 
       return taskCount;
     };
-
+    const isValidDate = date => {
+      return date instanceof Date && !isNaN(date);
+    };
     return (
-      <Modal visible={visible} transparent animationType="slide">
+      <Modal
+        visible={visible}
+        transparent
+        animationType="slide"
+        onRequestClose={onClose}
+        onDismiss={onClose}>
         <KeyboardAvoidingView
           style={styles.overlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -304,7 +354,7 @@ const Goal = () => {
                       </>
                     </View>
 
-                    <View
+                    {/* <View
                       style={{
                         width: '90%',
                         height: 120,
@@ -327,7 +377,32 @@ const Goal = () => {
                         }}
                         selectionColor={Color.LIGHTGREEN}
                       />
-                    </View>
+                    </View> */}
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      onPress={() => goalInputRef.current?.focus()}
+                      style={{
+                        width: '90%',
+                        height: 120,
+                        borderRadius: 12,
+                        backgroundColor: 'white',
+                      }}>
+                      <TextInput
+                        ref={goalInputRef}
+                        value={goalName}
+                        onChangeText={text => setGoalName(text)}
+                        placeholder=" Name"
+                        placeholderTextColor={Color.GREEN}
+                        multiline={true}
+                        textAlignVertical="top"
+                        style={{
+                          color: Color.LIGHTGREEN,
+                          fontSize: 16,
+                          fontFamily: Font.EBGaramond_Regular,
+                        }}
+                        // selectionColor={Color.LIGHTGREEN}
+                      />
+                    </TouchableOpacity>
                     <View
                       style={{
                         width: '100%',
@@ -502,11 +577,12 @@ const Goal = () => {
                           onClose={() => setTooltipVisible(false)}
                         />
                       </View>
-
+                     
                       <View
                         style={{
-                          right: height <= 820 ? 4 : -2,
-                        }}>
+                          right: height <= 900 ? height*0.015 : -2,
+                        }}
+                        >
                         <Button
                           img={IconData.SAVE}
                           text="Save"
@@ -533,7 +609,7 @@ const Goal = () => {
                 onConfirm={handleConfirm}
                 onCancel={hideDatePicker}
                 display={Platform.OS === 'ios' ? 'inline' : 'default'} // optional but nice
-                date={new Date()}
+                date={isValidDate(daysShow) ? new Date(daysShow) : new Date()}
               />
             </ScrollView>
           </TouchableWithoutFeedback>
@@ -582,12 +658,13 @@ const Goal = () => {
         position: 'top',
         props: {
           icon: IconData.ERR, // your custom image
-          text: 'You cannot update a goal set for a future date.',
+          text: 'You cannot mark a goal that is set for a future date.',
         },
       });
     }
   };
   const deleteGoalDate = data => {
+    setDeleteModaldata(false);
     dispatch(deleteGoalByDate(data?.date));
     Toast.show({
       type: 'custom',
@@ -599,8 +676,9 @@ const Goal = () => {
     });
   };
   const deleteTask = data => {
+    setDeleteModaldata(false);
     dispatch(deleteTaskById(data?.id));
-    setModalVisible(false);
+
     Toast.show({
       type: 'custom',
       position: 'top',
@@ -619,7 +697,7 @@ const Goal = () => {
         position: 'top',
         props: {
           icon: IconData.ERR, // your custom image
-          text: 'You cannot update a goal set for a future date.',
+          text: 'You cannot mark a goal that is set for a future date.',
         },
       });
     }
@@ -628,7 +706,11 @@ const Goal = () => {
   };
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
-    <View style={styles.secondaryContainer}>
+    <View
+      style={[
+        styles.secondaryContainer,
+        {height: Platform.OS == 'android' && height >= 780 ? '90%' : '85%'},
+      ]}>
       <FastImage
         source={memoizedBackground}
         style={styles.secondaryBackground}
@@ -783,7 +865,7 @@ const Goal = () => {
                           } else {
                             setSelectedData(task);
 
-                            setModalVisible(true);
+                            setDeleteModaldata(true);
                           }
                         }}>
                         <Image
@@ -804,7 +886,13 @@ const Goal = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'center',
-                top: height * 0.036,
+                // top: height * 0.036,
+                top:
+                  Platform.OS == 'ios'
+                    ? height * 0.036
+                    : height >= 780
+                    ? height * 0.025
+                    : height * 0.036,
                 flexDirection: 'row',
               }}>
               <Button2
@@ -939,29 +1027,125 @@ const Goal = () => {
             </View>
           </View>
         )}
-      </FastImage>
-      <DeleteModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onDeleteAll={() => {
-          Toast.show({
-            type: 'custom',
-            position: 'top',
-            props: {
-              icon: IconData.DEL, // your custom image
-              text: 'Goal deleted successfully',
-            },
-          });
-          setTimeout(() => {
-            dispatch(deleteTaskByRepetedId(SelectedData?.repeatId));
-          }, 500);
+        {deleteModalData && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              zIndex: 9999,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <ImageBackground
+              source={ImageData.MODAL}
+              style={{
+                width: 350,
+                padding: 30,
+                borderRadius: 16,
+                alignItems: 'center',
+              }}
+              imageStyle={{resizeMode: 'cover', borderRadius: 16}}>
+              <TouchableOpacity
+                onPress={() => setDeleteModaldata(null)}
+                style={{position: 'absolute', top: 12, right: 12, padding: 4}}>
+                <Image
+                  source={IconData.CANCEL}
+                  style={{width: 35, height: 35}}
+                />
+              </TouchableOpacity>
 
-          setModalVisible(false);
-        }}
-        onDeleteOne={() => {
-          deleteTask(SelectedData);
-        }}
-      />
+              <Text
+                style={{
+                  fontSize: 24,
+                  color: Color.LIGHTGREEN,
+                  fontFamily: Font.EBGaramond_SemiBold,
+                  marginTop: 12,
+                  marginBottom: 20,
+                  textAlign: 'center',
+                }}>
+                Delete Repeating Goal?
+              </Text>
+
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: Color.LIGHTGREEN,
+                  fontFamily: Font.EBGaramond_Regular,
+                  textAlign: 'center',
+                  marginBottom: 20,
+                  lineHeight: 24,
+                }}>
+                This is a repeating task. Do you want to delete just this entry
+                or all the future entries too?
+              </Text>
+
+              <View style={{flexDirection: 'row', gap: 10}}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#3e3e2e',
+                    paddingVertical: 10,
+                    paddingHorizontal: 20,
+                    borderRadius: 24,
+                  }}
+                  onPress={() => {
+                    dispatch(deleteTaskByRepetedId(SelectedData?.repeatId));
+                    setDeleteModaldata(false);
+                  }}>
+                  <Text style={styles.buttonText}>Delete All</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: Color.LIGHTGREEN,
+                    paddingVertical: 10,
+                    paddingHorizontal: 15,
+                    borderRadius: 24,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                  onPress={() => {
+                    // setdeleteModalVisible(false);
+                    deleteTask(SelectedData);
+                  }}>
+                  <Image
+                    source={IconData.DELETE}
+                    style={{width: 25, height: 25}}
+                  />
+                  <Text style={styles.buttonText}> Delete Only This</Text>
+                </TouchableOpacity>
+              </View>
+            </ImageBackground>
+          </View>
+        )}
+      </FastImage>
+
+      {/* <DeleteModal
+        visible={deleteModalData}
+        onClose={() => setDeleteModaldata(false)}
+        // onDeleteAll={() => {
+        //   Toast.show({
+        //     type: 'custom',
+        //     position: 'top',
+        //     props: {
+        //       icon: IconData.DEL, // your custom image
+        //       text: 'Goal deleted successfully',
+        //     },
+        //   });
+        //   setTimeout(() => {
+        //     dispatch(deleteTaskByRepetedId(SelectedData?.repeatId));
+        //   }, 500);
+
+        //   setModalVisible(false);
+        // }}
+        // onDeleteOne={() => {
+        //   setModalVisible(false);
+        //   deleteTask(SelectedData);
+        // }}
+      /> */}
     </View>
   );
 };
@@ -1159,5 +1343,72 @@ const styles = StyleSheet.create({
   },
   menuWrap: {
     paddingHorizontal: 8,
+  },
+
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deletemodal: {
+    padding: 40,
+    width: 350,
+    elevation: 10,
+    shadowColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    padding: 4,
+  },
+  title: {
+    fontSize: 24,
+
+    color: Color.LIGHTGREEN,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 20,
+    fontFamily: Font.EBGaramond_SemiBold,
+  },
+  message: {
+    fontSize: 16,
+    color: Color.LIGHTGREEN,
+    fontFamily: Font.EBGaramond_Regular,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    gap: 10,
+  },
+  deleteAllBtn: {
+    backgroundColor: '#3e3e2e',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+  },
+  deleteOneBtn: {
+    backgroundColor: Color.LIGHTGREEN,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 10,
+  },
+  buttonText: {
+    color: Color.BROWN3,
+    fontFamily: Font.EBGaramond_SemiBold,
+    fontSize: 16,
+  },
+  imageStyle: {
+    resizeMode: 'cover',
+    borderRadius: 16,
   },
 });

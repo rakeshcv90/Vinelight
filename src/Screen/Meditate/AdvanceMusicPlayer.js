@@ -118,6 +118,7 @@ useEffect(() => {
                     flexDirection: 'row',
                     alignItems: 'flex-start',
                     justifyContent: 'space-between',
+                    
                   }}>
                   <FastImage
                     source={ImageData.LEFT}

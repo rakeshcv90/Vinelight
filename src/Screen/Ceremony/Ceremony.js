@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   FlatList,
+  Platform,
 } from 'react-native';
 import React, {useMemo, useState, useEffect} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
@@ -26,11 +27,12 @@ import ActivityLoader from '../../Component/ActivityLoader';
 import {deleteCeromonykById, setCeremonyInfo} from '../../redux/actions';
 import FastImage from 'react-native-fast-image';
 import uuid from 'react-native-uuid';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 const {width, height} = Dimensions.get('window');
-const Ceremony = () => {
+const Ceremony = ({isActive}) => {
   const [modalCeremonyopen, setModalCeromonyOpen] = useState(false);
-
+  const navigation = useNavigation();
   const [currentDat, setCurrentDate] = useState(
     moment().local().format('YYYY-MM-DD'),
   );
@@ -40,8 +42,13 @@ const Ceremony = () => {
   );
 
   const [selectedHeader, setSelectedHeader] = useState(0);
-
+  useEffect(() => {
+    if (!isActive) {
+      setModalCeromonyOpen(false);
+    }
+  }, [isActive]);
   const CeremonyModal = ({visible, onClose}) => {
+    const [daysShow, setDayshow] = useState(new Date());
     const [isReady, setIsReady] = useState(false);
     const [ceremonyName, setCeremonyName] = useState(null);
     const [loader, setLoader] = useState(false);
@@ -70,7 +77,7 @@ const Ceremony = () => {
 
     const saveCeremony = () => {
       Keyboard.dismiss(); // dismiss keyboard
-      setLoader(true);
+      // setLoader(true);
 
       if (ceremonyName && selectedDate) {
         const ceremonyData = {
@@ -89,10 +96,10 @@ const Ceremony = () => {
               position: 'top',
               props: {
                 icon: IconData.SUCC, // your custom image
-                text: 'Cermony data save!',
+                text: 'Ceremony saved!',
               },
             });
-            onClose?.();
+
             setDatePickerVisibilityCermony(false);
           } catch (error) {
             Toast.show({
@@ -106,7 +113,9 @@ const Ceremony = () => {
           } finally {
             setLoader(false);
           }
-        }, 3000);
+        }, 2000);
+        onClose();
+        navigation.setParams({modalOpenData: null, selectedDate: null});
       } else {
         setLoader(false);
 
@@ -122,9 +131,22 @@ const Ceremony = () => {
     };
 
     if (!isReady) return null;
-
+    const isValidDate = date => {
+      return date instanceof Date && !isNaN(date);
+    };
     return (
-      <Modal visible={visible} transparent animationType="slide">
+      <Modal
+        visible={visible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+          onClose();
+        }}
+        onDismiss={() => {
+          // Hide modal and cleanup
+          onClose();
+        }}>
         <KeyboardAvoidingView
           style={{
             flex: 1,
@@ -206,7 +228,7 @@ const Ceremony = () => {
                         fontSize: 16,
                         fontFamily: Font.EBGaramond_Regular,
                       }}
-                      selectionColor={Color.LIGHTGREEN}
+                      // selectionColor={Color.LIGHTGREEN}
                     />
                   </View>
 
@@ -256,6 +278,7 @@ const Ceremony = () => {
                         justifyContent: 'center',
                         alignItems: 'flex-end',
                         overflow: 'hidden',
+                        right: height <= 900 ? height * 0.01 : -2,
                       }}>
                       <Button
                         img={IconData.SAVE}
@@ -280,7 +303,7 @@ const Ceremony = () => {
                 onConfirm={handleConfirm}
                 onCancel={hideDatePicker}
                 display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                date={selectedDate ? new Date(selectedDate) : new Date()}
+                date={isValidDate(daysShow) ? new Date(daysShow) : new Date()}
               />
             </ScrollView>
           </TouchableWithoutFeedback>
@@ -338,7 +361,7 @@ const Ceremony = () => {
       position: 'top',
       props: {
         icon: IconData.DEL, // your custom image
-        text: 'Ceremony data deleted successfully!',
+        text: 'Ceremony deleted successfully!',
       },
     });
   };
@@ -356,11 +379,17 @@ const Ceremony = () => {
             <Text style={styles.title1}>{item?.name}</Text>
           </View>
 
-          <View style={{flexDirection: 'row', gap: 10}}>
+          <View
+            style={{
+              flexDirection: 'row',
+              gap: 10,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
             <View
               style={{
                 width: 70,
-                height: 20,
+                // height: 20,
                 borderRadius: 30,
                 backgroundColor: Color.LIGHTBROWN2,
                 justifyContent: 'center',
@@ -376,14 +405,14 @@ const Ceremony = () => {
               }}>
               <Image
                 source={IconData.DELETE}
-                style={{width: 20, height: 20}}
+                style={{width: 18, height: 18}}
                 tintColor={Color.LIGHTGREEN}
               />
             </TouchableOpacity>
           </View>
         </View>
 
-        {countData > 0 && (
+        {/* {countData > 0 && (
           <View style={styles.progressWrapper}>
             <View style={styles.unfilledBar} />
 
@@ -395,11 +424,11 @@ const Ceremony = () => {
               />
             </View>
           </View>
-        )}
+        )} */}
 
         <View style={styles.footer2}>
           <Text style={styles.dateTime}>{item?.CeremonyDate}</Text>
-          <View
+          {/* <View
             style={{
               height: 2,
               paddingLeft: 5,
@@ -407,7 +436,7 @@ const Ceremony = () => {
               width: 135,
               backgroundColor: Color.LIGHTBROWN2,
             }}
-          />
+          /> */}
           <Text style={styles.countdown}>{diffDays} Days</Text>
         </View>
       </View>
@@ -436,7 +465,7 @@ const Ceremony = () => {
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
           }}>
-          No ceremonies data available.
+          No ceremony data available.
         </Text>
       </View>
     );
@@ -456,7 +485,11 @@ const Ceremony = () => {
   };
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
-    <View style={styles.secondaryContainer}>
+    <View
+      style={[
+        styles.secondaryContainer,
+        {height: Platform.OS == 'android' && height >= 780 ? '90%' : '85%'},
+      ]}>
       <FastImage
         source={memoizedBackground}
         style={styles.secondaryBackground}
@@ -611,7 +644,13 @@ const Ceremony = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'center',
-                top: height * 0.036,
+                // top: height * 0.035,
+                top:
+                  Platform.OS == 'ios'
+                    ? height * 0.035
+                    : height >= 780
+                    ? height * 0.025
+                    : height * 0.035,
                 flexDirection: 'row',
               }}>
               <Button2
@@ -749,20 +788,20 @@ const styles = StyleSheet.create({
     // width: 310,
     backgroundColor: Color.BROWN3,
     borderRadius: 10,
-    padding: 16,
+    padding: 10,
     marginVertical: 5,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   title1: {
     fontSize: 18,
     fontFamily: Font.EBGaramond_SemiBold,
     color: Color.LIGHTGREEN,
-    lineHeight: 24,
+    // lineHeight: 20,
   },
   label1: {
     fontSize: 12,
@@ -794,11 +833,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Color.BROWN4,
     width: '100%',
-    height: 16,
+    height: 13,
     backgroundColor: '#e0e0e0',
     borderRadius: 10,
     overflow: 'hidden',
-    marginVertical: 8,
+    marginVertical: 5,
     position: 'relative',
   },
   unfilledBar: {

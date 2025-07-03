@@ -308,27 +308,53 @@ class MusicPlayer: NSObject {
     })
   }
 
+//  @objc(setVolume:volume:resolver:rejecter:)
+//  func setVolume(playerId: String, volume: NSNumber, resolver: @escaping RCTPromiseResolveBlock, rejecter: @escaping RCTPromiseRejectBlock) {
+//    guard let player = players[playerId], let item = player.currentItem else {
+//      rejecter("PlayerNotFound", "Player with id \(playerId) not found", nil)
+//      return
+//    }
+//
+//    guard let track = item.asset.tracks(withMediaType: .audio).first else {
+//      rejecter("TrackError", "No audio track found", nil)
+//      return
+//    }
+//
+//    let vol = Float(volume.clamped(to: 0.0...1.0))
+//    let inputParams = AVMutableAudioMixInputParameters(track: track)
+//    inputParams.setVolume(vol, at: .zero)
+//
+//    let mix = AVMutableAudioMix()
+//    mix.inputParameters = [inputParams]
+//    item.audioMix = mix
+//
+//    resolver(true)
+//    
+//     
+//  }
   @objc(setVolume:volume:resolver:rejecter:)
-  func setVolume(playerId: String, volume: Double, resolver: @escaping RCTPromiseResolveBlock, rejecter: @escaping RCTPromiseRejectBlock) {
-    guard let player = players[playerId], let item = player.currentItem else {
-      rejecter("PlayerNotFound", "Player with id \(playerId) not found", nil)
-      return
-    }
+  func setVolume(playerId: String, volume: NSNumber, resolver: @escaping RCTPromiseResolveBlock, rejecter: @escaping RCTPromiseRejectBlock) {
+      guard let player = players[playerId], let item = player.currentItem else {
+          rejecter("PlayerNotFound", "Player with id \(playerId) not found", nil)
+          return
+      }
 
-    guard let track = item.asset.tracks(withMediaType: .audio).first else {
-      rejecter("TrackError", "No audio track found", nil)
-      return
-    }
+      guard let track = item.asset.tracks(withMediaType: .audio).first else {
+          rejecter("TrackError", "No audio track found", nil)
+          return
+      }
 
-    let vol = Float(volume.clamped(to: 0.0...1.0))
-    let inputParams = AVMutableAudioMixInputParameters(track: track)
-    inputParams.setVolume(vol, at: .zero)
+      let rawVolume = Float(truncating: volume)
+      let vol = max(0.0, min(rawVolume, 1.0)) // Clamped between 0.0 and 1.0
 
-    let mix = AVMutableAudioMix()
-    mix.inputParameters = [inputParams]
-    item.audioMix = mix
+      let inputParams = AVMutableAudioMixInputParameters(track: track)
+      inputParams.setVolume(vol, at: .zero)
 
-    resolver(true)
+      let mix = AVMutableAudioMix()
+      mix.inputParameters = [inputParams]
+      item.audioMix = mix
+
+      resolver(true)
   }
 }
 

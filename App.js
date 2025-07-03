@@ -7,6 +7,9 @@ import {Color, Font} from './assets/Image';
 import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/integration/react';
 import {store, persistor} from './src/redux/store';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {BackHandler} from 'react-native';
+import useDisableBackButton from './src/Component/useDisableBackButton';
 const customToastConfig = {
   error: props => (
     <BaseToast
@@ -39,18 +42,20 @@ const customToastConfig = {
 };
 
 const App = () => {
+
+   useDisableBackButton();
   const toastConfig = {
     custom: ({props}) => (
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor:Color?.LIGHTBROWN,
+          backgroundColor: Color?.LIGHTBROWN,
           padding: 14,
           borderRadius: 12,
           shadowColor: '#000',
-          borderWidth:3,
-          borderColor:Color.BROWN,
+          borderWidth: 3,
+          borderColor: Color.BROWN,
           shadowOpacity: 0.1,
           shadowOffset: {width: 0, height: 2},
           shadowRadius: 4,
@@ -84,10 +89,14 @@ const App = () => {
     <>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <NavigationContainer>
-            <Router />
-            <Toast config={toastConfig} />
-          </NavigationContainer>
+          <SafeAreaProvider>
+    
+         
+            <NavigationContainer>
+              <Router />
+              <Toast config={toastConfig} />
+            </NavigationContainer>
+          </SafeAreaProvider>
         </PersistGate>
       </Provider>
     </>

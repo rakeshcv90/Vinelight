@@ -71,6 +71,7 @@
 //RCT_EXTERN_METHOD(releaseMediaPlayer)
 //
 //@end
+
 #import <Foundation/Foundation.h>
 #import "React/RCTBridgeModule.h"
 
@@ -125,6 +126,7 @@ RCT_EXTERN_METHOD(seekTo:(NSString *)playerId
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 
+
 // release
 RCT_EXTERN_METHOD(release:(NSString *)playerId
                   resolver:(RCTPromiseResolveBlock)resolver
@@ -133,6 +135,8 @@ RCT_EXTERN_METHOD(release:(NSString *)playerId
 // releaseAll
 RCT_EXTERN_METHOD(releaseAll:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
+
+
 
 @end
 

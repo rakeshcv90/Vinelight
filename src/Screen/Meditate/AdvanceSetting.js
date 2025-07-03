@@ -31,7 +31,8 @@ import Toast from 'react-native-toast-message';
 import {setCustomeMedidation} from '../../redux/actions';
 import DropDown from '../../Component/DropDown';
 import useNativeMusicPlayer from '../../Component/NativeusicPlayer';
-
+import KeepAwake from 'react-native-keep-awake';
+import {SafeAreaView} from 'react-native-safe-area-context';
 const {width, height} = Dimensions.get('window');
 
 const SaveAdvanceSoundModal = ({
@@ -185,13 +186,19 @@ const AdvanceSetting = ({navigation}) => {
   const [description, setDescription] = useState(null);
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [selectTime, setselectTime] = useState(0);
+  useEffect(() => {
+    KeepAwake.activate(); // Prevent screen sleep when this screen is active
 
+    return () => {
+      KeepAwake.deactivate(); // Clean up on unmount
+    };
+  }, []);
   const [time, setTime] = useState({
-    pre: {second: '', song: '', songName: ''},
-    med: {minute: '', second: ''},
-    int: {minute: '', second: '', song: '', songName: ''},
+    pre: {second: 0, song: '', songName: ''},
+    med: {minute: '', second: 0},
+    int: {minute: '', second: 0, song: '', songName: ''},
     end: {song: '', songName: ''},
-    res: {second: '', song: '', songName: ''},
+    res: {second: 0, song: '', songName: ''},
     user: {name: ''},
     start: {song: '', songName: ''},
   });
@@ -346,10 +353,11 @@ const AdvanceSetting = ({navigation}) => {
       <Modal visible={visible} transparent animationType="slide">
         <View style={styles.overlay}>
           <View style={styles.modalWrapper}>
-            <ImageBackground
-              source={ImageData.MODAL}
+            <View
+              // source={ImageData.MODAL}
               style={styles.modalContainer}
-              imageStyle={styles.imageStyle}>
+              // imageStyle={styles.imageStyle}
+            >
               <View style={styles.header}>
                 <Text style={styles.title}>Sounds</Text>
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -396,7 +404,7 @@ const AdvanceSetting = ({navigation}) => {
                   />
                 </View>
               </ImageBackground>
-            </ImageBackground>
+            </View>
           </View>
         </View>
       </Modal>
@@ -405,7 +413,7 @@ const AdvanceSetting = ({navigation}) => {
 
   const saveCustomeMedidation = () => {
     const missingFields = validateFields(time);
- 
+
     if (missingFields.length > 0) {
       Toast.show({
         type: 'custom',
@@ -444,17 +452,25 @@ const AdvanceSetting = ({navigation}) => {
 
       // Reset form
       setTime({
-        pre: {second: '', song: '', songName: ''},
-        med: {minute: '', second: '', song: '', songName: ''},
-        int: {minute: '', second: '', song: '', songName: ''},
+        pre: {second: 0, song: '', songName: ''},
+        med: {minute: '', second: 0, song: '', songName: ''},
+        int: {minute: '', second: 0, song: '', songName: ''},
         end: {song: '', songName: ''},
-        res: {second: '', song: '', songName: ''},
+        res: {second: 0, song: '', songName: ''},
         user: {name: ''},
         start: {song: '', songName: ''},
       });
     }, 300);
     // navigation.navigate('Meditation');
-    navigation.navigate('MainPage', {initialTab: 'Meditation'});
+    Toast.show({
+      type: 'custom',
+      position: 'top',
+      props: {
+        icon: IconData.SUCC, // your custom image
+        text: 'Meditation Saved!',
+      },
+    });
+    navigation.navigate('MainPage', {initialTab: 'Meditate'});
   };
 
   const isIntervalGreaterThanMeditation = () => {
@@ -491,32 +507,52 @@ const AdvanceSetting = ({navigation}) => {
     const medMin = Number(data.med?.minute || 0);
     const medSec = Number(data.med?.second || 0);
     if (medMin <= 0 && medSec <= 0) {
-      missingFields.push('med → minute/second');
+      missingFields.push('Meditation time');
     }
 
     // Validate required single fields
-    if (!data.start?.song) missingFields.push('start → song');
-    if (!data.end?.song) missingFields.push('end → song');
-    if (!data.user?.name) missingFields.push('user → name');
+    if (!data.start?.song) missingFields.push('Start Chime');
+    if (!data.end?.song) missingFields.push('End Alert');
+    if (!data.user?.name) missingFields.push('Meditation Name');
 
     return missingFields;
   };
   const startMedidation = itemData => {
     const missingFields = validateFields(time);
-    console.log('missing fields ', missingFields);
+
     if (missingFields.length > 0) {
       Toast.show({
         type: 'custom',
         position: 'top',
         props: {
           icon: IconData.ERR, // your custom image
-          text: `Missing: ${missingFields[0]}${
-            missingFields.length > 1 ? ' and more' : ''
-          }`,
+          text: `Missing ${missingFields[0]}`,
         },
       });
       return;
     }
+    if (isIntervalGreaterThanMeditation()) {
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: 'Interval time must be less than total meditation time',
+        },
+      });
+      console.warn('Interval time must be less than meditation time');
+      return;
+    }
+
+    setTime({
+      pre: {second: '', song: '', songName: ''},
+      med: {minute: '', second: '', song: '', songName: ''},
+      int: {minute: '', second: '', song: '', songName: ''},
+      end: {song: '', songName: ''},
+      res: {second: '', song: '', songName: ''},
+      user: {name: ''},
+      start: {song: '', songName: ''},
+    });
 
     navigation.navigate('AdvanceMediaPlayer', {
       itemData: time,
@@ -524,354 +560,361 @@ const AdvanceSetting = ({navigation}) => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
-      />
-
-      <FastImage
+    <>
+      <ImageBackground
         source={ImageData.BACKGROUND}
-        style={styles.primaryBackground}
-        resizeMode={FastImage.resizeMode.cover}>
-        <ActivityLoader visible={loader} />
-        <View
-          style={{
-            width: '100%',
-            height: 70,
-            padding: 10,
-            position: 'absolute',
-            top: height * 0.05,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            zIndex: 1,
-            alignItems: 'center',
-          }}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.goBack();
-            }}
-            style={{
-              width: 50,
-              height: 50,
-              backgroundColor: Color?.LIGHTGREEN,
-              borderRadius: 25,
-              alignSelf: 'center',
-              marginVertical: '5%',
-              borderWidth: 3,
-              justifyContent: 'center',
-              alignItems: 'center',
-              zIndex: 1,
-              borderColor: Color?.BROWN2,
-            }}>
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                backgroundColor: Color?.BROWN4,
-                borderRadius: 20,
-                alignSelf: 'center',
-                marginVertical: '5%',
-                borderWidth: 3,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderColor: Color?.BROWN2,
-              }}>
-              <Image
-                source={IconData.BACK}
-                tintColor={Color?.LIGHTGREEN}
-                style={{width: 24, height: 24}}
-              />
-            </View>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.secondaryContainer}>
+        style={{flex: 1}}
+        resizeMode="cover">
+        <SafeAreaView style={styles.container}>
+          <StatusBar
+            translucent
+            backgroundColor="transparent"
+            barStyle="light-content"
+          />
+
           <FastImage
-            source={ImageData.MAINBACKGROUND}
-            style={styles.secondaryBackground}
-            resizeMode={FastImage.resizeMode.stretch}>
+            source={ImageData.BACKGROUND}
+            style={styles.primaryBackground}
+            resizeMode={FastImage.resizeMode.cover}>
+            <ActivityLoader visible={loader} />
             <View
               style={{
                 width: '100%',
-                height: '76%',
-                justifyContent: 'center',
+                height: 70,
+                padding: 10,
+                position: 'absolute',
+                top: height * 0.0,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                zIndex: 1,
                 alignItems: 'center',
-                marginVertical: height * 0.15,
-                paddingVertical: '0%',
               }}>
-              <View
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.goBack();
+                }}
                 style={{
-                  width: '90%',
-                  height: '100%',
+                  width: 50,
+                  height: 50,
+                  backgroundColor: Color?.LIGHTGREEN,
+                  borderRadius: 25,
+                  alignSelf: 'center',
+                  marginVertical: '5%',
+                  borderWidth: 3,
+                  justifyContent: 'center',
                   alignItems: 'center',
-                  marginTop: '10%',
-                  borderWidth: 1,
-                  borderColor: Color.LIGHTGREEN,
-                  // backgroundColor: Color?.LIGHTBROWN,
+                  zIndex: 1,
+                  borderColor: Color?.BROWN2,
                 }}>
                 <View
                   style={{
-                    width: '100%',
-                    height: '10%',
-                    flexDirection: 'row',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
+                    width: 40,
+                    height: 40,
+                    backgroundColor: Color?.BROWN4,
+                    borderRadius: 20,
+                    alignSelf: 'center',
+                    marginVertical: '5%',
+                    borderWidth: 3,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderColor: Color?.BROWN2,
                   }}>
                   <Image
-                    source={ImageData.LEFT}
-                    resizeMode="contain"
-                    style={{width: 31, height: 31}}
-                  />
-                  <Image
-                    source={ImageData.RIGHT}
-                    resizeMode="contain"
-                    style={{
-                      width: 31,
-                      height: 31,
-                      backgroundColor: 'transparent',
-                    }}
+                    source={IconData.BACK}
+                    tintColor={Color?.LIGHTGREEN}
+                    style={{width: 24, height: 24}}
                   />
                 </View>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.secondaryContainer}>
+              <FastImage
+                source={ImageData.MAINBACKGROUND}
+                style={styles.secondaryBackground}
+                resizeMode={FastImage.resizeMode.stretch}>
                 <View
                   style={{
                     width: '100%',
-                    height: '7%',
-
-                    flexDirection: 'row',
-                    top: -height * 0.06,
+                    height: '76%',
                     justifyContent: 'center',
                     alignItems: 'center',
-                  }}>
-                  <Text style={styles.subText}>Meditations</Text>
-                </View>
-
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  style={{
-                    width: '96%',
-                    height: '58%',
-
-                    alignSelf: 'center',
-                    // top: -height * 0.04,
+                    marginVertical: height * 0.15,
+                    paddingVertical: '0%',
                   }}>
                   <View
                     style={{
-                      width: '96%',
-                      height: 50,
-                      backgroundColor: Color.BROWN3,
-                      alignSelf: 'center',
-                      borderRadius: 8,
+                      width: '90%',
+                      height: '100%',
+                      alignItems: 'center',
+                      marginTop: '10%',
                       borderWidth: 1,
-                      paddingHorizontal: 10,
-                      borderColor: Color.BROWN,
+                      borderColor: Color.LIGHTGREEN,
+                      backgroundColor: Color?.LIGHTBROWN,
                     }}>
-                    <TextInput
-                      value={time?.user?.name}
-                      onChangeText={text =>
-                        setTime(prev => ({
-                          ...prev,
-                          user: {...prev.user, name: text}, // ✅ This correctly updates `user.name`
-                        }))
-                      }
-                      placeholder="Name"
-                      placeholderTextColor={Color.BROWN5}
-                      style={{
-                        width: '100%',
-                        height: 50,
-                        color: Color.LIGHTGREEN,
-                        fontSize: 16,
-                        fontFamily: Font.EBGaramond_Regular,
-                      }}
-                      selectionColor={Color.LIGHTGREEN}
-                    />
-                  </View>
-                  <View
-                    style={{
-                      width: '100%',
-
-                      padding: 10,
-                      borderColor: Color.BROWN,
-                    }}>
-                    <Text style={styles.headerText}>Preparation Time</Text>
                     <View
                       style={{
                         width: '100%',
+                        height: '10%',
                         flexDirection: 'row',
+                        alignItems: 'flex-start',
                         justifyContent: 'space-between',
-                        marginVertical: 10,
+                      }}>
+                      <Image
+                        source={ImageData.LEFT}
+                        resizeMode="contain"
+                        style={{width: 31, height: 31}}
+                      />
+                      <Image
+                        source={ImageData.RIGHT}
+                        resizeMode="contain"
+                        style={{
+                          width: 31,
+                          height: 31,
+                          backgroundColor: 'transparent',
+                        }}
+                      />
+                    </View>
+                    <View
+                      style={{
+                        width: '100%',
+                        height: '7%',
+
+                        flexDirection: 'row',
+                        top: -height * 0.06,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}>
+                      <Text style={styles.subText}>Meditations</Text>
+                    </View>
+
+                    <ScrollView
+                      showsVerticalScrollIndicator={false}
+                      style={{
+                        width: '96%',
+                        height: '58%',
+
+                        alignSelf: 'center',
+                        // top: -height * 0.04,
                       }}>
                       <View
                         style={{
-                          width: '30%',
-                          height: 40,
+                          width: '96%',
+                          height: 50,
                           backgroundColor: Color.BROWN3,
                           alignSelf: 'center',
                           borderRadius: 8,
                           borderWidth: 1,
-                          padding: 10,
+                          paddingHorizontal: 10,
                           borderColor: Color.BROWN,
                         }}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setActiveKey('pre');
-                            setTooltipVisible(true);
-                          }}
+                        <TextInput
+                          value={time?.user?.name}
+                          onChangeText={text =>
+                            setTime(prev => ({
+                              ...prev,
+                              user: {...prev.user, name: text}, // ✅ This correctly updates `user.name`
+                            }))
+                          }
+                          placeholder="Name"
+                          placeholderTextColor={Color.BROWN5}
                           style={{
                             width: '100%',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexDirection: 'row',
-                            paddingLeft: 10,
-                            paddingRight: 5,
-                            gap: 10,
-                          }}>
-                          <Text>{time?.pre?.second || 'Select'}</Text>
-                          <Image
-                            source={IconData.DROPDOWN}
-                            style={{
-                              width: 20,
-                              height: 20,
-                              alignSelf: 'center',
-                              tintColor: Color.LIGHTGREEN,
-                            }}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setActiveKey('pre');
-                          setModalOpen(true);
-                        }}
-                        style={{
-                          // width: '40%',
-                          height: 40,
-                          backgroundColor: Color.BROWN3,
-                          alignSelf: 'center',
-                          borderRadius: 30,
-                          borderWidth: 1,
-                          padding: 10,
-                          borderColor: Color.BROWN,
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          gap: 10,
-                        }}>
-                        <Text>
-                          {(() => {
-                            const name = time?.pre?.songName || 'Chime';
-                            const words = name.trim().split(' ');
-                            return words.length > 1 ? `${words[0]}...` : name;
-                          })()}
-                        </Text>
-                        <Image
-                          source={IconData.DROPDOWN}
-                          style={{
-                            width: 20,
-                            height: 20,
-                            alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
-                            tintColor: Color.LIGHTGREEN,
+                            height: 50,
+                            color: Color.LIGHTGREEN,
+                            fontSize: 16,
+                            fontFamily: Font.EBGaramond_Regular,
                           }}
+                          selectionColor={Color.LIGHTGREEN}
                         />
-                      </TouchableOpacity>
-                    </View>
-                    <Text style={styles.headerText}>Meditation Time</Text>
-                    <View
-                      style={{
-                        width: '100%',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        marginVertical: 10,
-                      }}>
+                      </View>
                       <View
                         style={{
-                          width: '30%',
-                          height: 40,
-                          flexDirection: 'row',
-                          gap: 5,
-                          justifyContent: 'center',
-                          alignItems: 'center',
+                          width: '100%',
+
+                          padding: 10,
+                          borderColor: Color.BROWN,
                         }}>
+                        <Text style={styles.headerText}>Preparation Time</Text>
                         <View
                           style={{
-                            width: '50%',
-                            height: 40,
-                            backgroundColor: Color.BROWN3,
-                            alignSelf: 'center',
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            paddingLeft: 5,
-                            paddingRight: 5,
-                            borderColor: Color.BROWN,
-                            marginStart: 12,
+                            width: '100%',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginVertical: 10,
                           }}>
-                          <TextInput
-                            value={time?.med?.minute}
-                            onChangeText={text => {
-                              const cleaned = text
-                                .replace(/[^0-9]/g, '')
-                                .slice(0, 2);
-                              setTime(prev => ({
-                                ...prev,
-                                med: {...prev.med, minute: cleaned},
-                              }));
-                            }}
-                            maxLength={2}
-                            placeholder="MM"
-                            placeholderTextColor={Color.BROWN5}
+                          <View
                             style={{
-                              width: '100%',
+                              width: '30%',
                               height: 40,
-                              color: Color.LIGHTGREEN,
-                              fontSize: 12,
-                              textAlign: 'center',
-                              fontFamily: Font.EBGaramond_Regular,
+                              backgroundColor: Color.BROWN3,
+                              alignSelf: 'center',
+                              borderRadius: 8,
+                              borderWidth: 1,
+                              padding: 10,
+                              borderColor: Color.BROWN,
+                            }}>
+                            <TouchableOpacity
+                              onPress={() => {
+                                setActiveKey('pre');
+                                setTooltipVisible(true);
+                              }}
+                              style={{
+                                width: '100%',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexDirection: 'row',
+                                paddingLeft: 10,
+                                paddingRight: 5,
+                                gap: 10,
+                              }}>
+                              <Text>{time?.pre?.second || 'Select'}</Text>
+                              <Image
+                                source={IconData.DROPDOWN}
+                                style={{
+                                  width: 20,
+                                  height: 20,
+                                  alignSelf: 'center',
+                                  tintColor: Color.LIGHTGREEN,
+                                }}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setActiveKey('pre');
+                              setModalOpen(true);
                             }}
-                            selectionColor={Color.LIGHTGREEN}
-                          />
+                            style={{
+                              // width: '40%',
+                              height: 40,
+                              backgroundColor: Color.BROWN3,
+                              alignSelf: 'center',
+                              borderRadius: 30,
+                              borderWidth: 1,
+                              padding: 10,
+                              borderColor: Color.BROWN,
+                              flexDirection: 'row',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: 10,
+                            }}>
+                            <Text>
+                              {(() => {
+                                const name = time?.pre?.songName || 'Chime';
+                                const words = name.trim().split(' ');
+                                return words.length > 1
+                                  ? `${words[0]}...`
+                                  : name;
+                              })()}
+                            </Text>
+                            <Image
+                              source={IconData.DROPDOWN}
+                              style={{
+                                width: 20,
+                                height: 20,
+                                alignSelf: 'center',
+                                transform: [{rotate: '270deg'}],
+                                tintColor: Color.LIGHTGREEN,
+                              }}
+                            />
+                          </TouchableOpacity>
                         </View>
-                        <Text style={{fontSize: 25, top: 0}}>:</Text>
+                        <Text style={styles.headerText}>Meditation Time</Text>
                         <View
                           style={{
-                            width: '50%',
-                            height: 40,
-                            backgroundColor: Color.BROWN3,
-                            alignSelf: 'center',
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            paddingLeft: 5,
-                            paddingRight: 5,
-                            paddingTop: 1,
-                            borderColor: Color.BROWN,
+                            width: '100%',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginVertical: 10,
                           }}>
-                          <TextInput
-                            value={time?.med?.second}
-                            onChangeText={text => {
-                              const cleaned = text
-                                .replace(/[^0-9]/g, '')
-                                .slice(0, 2);
-                              setTime(prev => ({
-                                ...prev,
-                                med: {...prev.med, second: cleaned},
-                              }));
-                            }}
-                            placeholder="SS"
-                            maxLength={2}
-                            placeholderTextColor={Color.BROWN5}
+                          <View
                             style={{
-                              width: '100%',
+                              width: '30%',
                               height: 40,
-                              color: Color.LIGHTGREEN,
-                              fontSize: 13,
-                              textAlign: 'center',
-                              fontFamily: Font.EBGaramond_Regular,
-                            }}
-                            selectionColor={Color.LIGHTGREEN}
-                          />
-                        </View>
-                      </View>
-                      {/* <TouchableOpacity
+                              flexDirection: 'row',
+                              gap: 5,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}>
+                            <View
+                              style={{
+                                width: '50%',
+                                height: 40,
+                                backgroundColor: Color.BROWN3,
+                                alignSelf: 'center',
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                paddingLeft: 5,
+                                paddingRight: 5,
+                                borderColor: Color.BROWN,
+                                marginStart: 12,
+                              }}>
+                              <TextInput
+                                value={time?.med?.minute}
+                                onChangeText={text => {
+                                  const cleaned = text
+                                    .replace(/[^0-9]/g, '')
+                                    .slice(0, 2);
+                                  setTime(prev => ({
+                                    ...prev,
+                                    med: {...prev.med, minute: cleaned},
+                                  }));
+                                }}
+                                maxLength={2}
+                                placeholder="MM"
+                                placeholderTextColor={Color.BROWN5}
+                                style={{
+                                  width: '100%',
+                                  height: 40,
+                                  color: Color.LIGHTGREEN,
+                                  fontSize: 12,
+                                  textAlign: 'center',
+                                  fontFamily: Font.EBGaramond_Regular,
+                                }}
+                                selectionColor={Color.LIGHTGREEN}
+                              />
+                            </View>
+                            <Text style={{fontSize: 25, top: 0}}>:</Text>
+                            <View
+                              style={{
+                                width: '50%',
+                                height: 40,
+                                backgroundColor: Color.BROWN3,
+                                alignSelf: 'center',
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                paddingLeft: 5,
+                                paddingRight: 5,
+                                paddingTop: 1,
+                                borderColor: Color.BROWN,
+                              }}>
+                              <TextInput
+                                value={time?.med?.second}
+                                onChangeText={text => {
+                                  const cleaned = text
+                                    .replace(/[^0-9]/g, '')
+                                    .slice(0, 2);
+                                  setTime(prev => ({
+                                    ...prev,
+                                    med: {...prev.med, second: cleaned},
+                                  }));
+                                }}
+                                placeholder="SS"
+                                maxLength={2}
+                                placeholderTextColor={Color.BROWN5}
+                                style={{
+                                  width: '100%',
+                                  height: 40,
+                                  color: Color.LIGHTGREEN,
+                                  fontSize: 13,
+                                  textAlign: 'center',
+                                  fontFamily: Font.EBGaramond_Regular,
+                                }}
+                                selectionColor={Color.LIGHTGREEN}
+                              />
+                            </View>
+                          </View>
+                          {/* <TouchableOpacity
                         onPress={() => {
                           setActiveKey('med');
                           setModalOpen(true);
@@ -908,450 +951,460 @@ const AdvanceSetting = ({navigation}) => {
                           }}
                         />
                       </TouchableOpacity> */}
-                    </View>
-
-                    <View
-                      style={{
-                        width: '100%',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        // marginVertical: 10,
-                      }}>
-                      <View
-                        style={{
-                          height: 40,
-                          marginTop: 10,
-                        }}>
-                        <Text style={styles.headerText}>Start Chime</Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setActiveKey('start');
-                          setModalOpen(true);
-                        }}
-                        style={{
-                          // width: '40%',
-                          height: 40,
-                          backgroundColor: Color.BROWN3,
-                          alignSelf: 'center',
-                          borderRadius: 30,
-                          borderWidth: 1,
-                          padding: 10,
-                          borderColor: Color.BROWN,
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          gap: 10,
-                        }}>
-                        <Text>
-                          {(() => {
-                            const rawName = time?.start?.songName;
-                            const name =
-                              typeof rawName === 'string' && rawName.trim()
-                                ? rawName.trim()
-                                : 'Chime';
-                            const words = name.split(' ');
-                            return words.length > 1 ? `${words[0]}...` : name;
-                          })()}
-                        </Text>
-                        <Image
-                          source={IconData.DROPDOWN}
-                          style={{
-                            width: 20,
-                            height: 20,
-                            alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
-                            tintColor: Color.LIGHTGREEN,
-                          }}
-                        />
-                      </TouchableOpacity>
-                    </View>
-
-                    <Text style={styles.headerText}>
-                      Interval Chime (Repeat every)
-                    </Text>
-                    <View
-                      style={{
-                        width: '100%',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        marginVertical: 10,
-                      }}>
-                      <View
-                        style={{
-                          width: '30%',
-                          height: 40,
-                          flexDirection: 'row',
-                          gap: 5,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                        }}>
-                        <View
-                          style={{
-                            width: '50%',
-                            height: 40,
-                            backgroundColor: Color.BROWN3,
-                            alignSelf: 'center',
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            paddingHorizontal: 5,
-                            borderColor: Color.BROWN,
-                            marginStart: 12,
-                          }}>
-                          <TextInput
-                            value={time?.int?.minute}
-                            onChangeText={text => {
-                              const cleaned = text
-                                .replace(/[^0-9]/g, '')
-                                .slice(0, 2);
-                              setTime(prev => ({
-                                ...prev,
-                                int: {...prev.int, minute: cleaned},
-                              }));
-                            }}
-                            placeholder="MM"
-                            maxLength={2}
-                            placeholderTextColor={Color.BROWN5}
-                            style={{
-                              width: '100%',
-                              height: 40,
-                              color: Color.LIGHTGREEN,
-                              fontSize: 12,
-                              textAlign: 'center',
-                              fontFamily: Font.EBGaramond_Regular,
-                            }}
-                            selectionColor={Color.LIGHTGREEN}
-                          />
                         </View>
-                        <Text style={{fontSize: 25, top: 0}}>:</Text>
-                        <View
-                          style={{
-                            width: '50%',
-                            height: 40,
-                            backgroundColor: Color.BROWN3,
-                            alignSelf: 'center',
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            paddingHorizontal: 5,
-                            borderColor: Color.BROWN,
-                          }}>
-                          <TextInput
-                            value={time?.int?.second}
-                            onChangeText={text => {
-                              const cleaned = text
-                                .replace(/[^0-9]/g, '')
-                                .slice(0, 2);
-                              setTime(prev => ({
-                                ...prev,
-                                int: {...prev.int, second: cleaned},
-                              }));
-                            }}
-                            placeholder="SS"
-                            maxLength={2}
-                            placeholderTextColor={Color.BROWN5}
-                            style={{
-                              width: '100%',
-                              height: 40,
-                              color: Color.LIGHTGREEN,
-                              fontSize: 12,
-                              textAlign: 'center',
-                              fontFamily: Font.EBGaramond_Regular,
-                            }}
-                            selectionColor={Color.LIGHTGREEN}
-                          />
-                        </View>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setActiveKey('int');
-                          setModalOpen(true);
-                        }}
-                        style={{
-                          // width: '40%',
-                          height: 40,
-                          backgroundColor: Color.BROWN3,
-                          alignSelf: 'center',
-                          borderRadius: 30,
-                          borderWidth: 1,
-                          padding: 10,
-                          borderColor: Color.BROWN,
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          gap: 10,
-                        }}>
-                        <Text>
-                          {(() => {
-                            const rawName = time?.int?.songName;
-                            const name =
-                              typeof rawName === 'string' && rawName.trim()
-                                ? rawName.trim()
-                                : 'Chime';
-                            const words = name.split(' ');
-                            return words.length > 1 ? `${words[0]}...` : name;
-                          })()}
-                        </Text>
-                        <Image
-                          source={IconData.DROPDOWN}
-                          style={{
-                            width: 20,
-                            height: 20,
-                            alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
-                            tintColor: Color.LIGHTGREEN,
-                          }}
-                        />
-                      </TouchableOpacity>
-                    </View>
 
-                    <View
-                      style={{
-                        width: '100%',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        marginVertical: 10,
-                      }}>
-                      <View
-                        style={{
-                          height: 40,
-                          marginTop: 10,
-                        }}>
-                        <Text style={styles.headerText}>End Alert</Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setActiveKey('end');
-                          setModalOpen(true);
-                        }}
-                        style={{
-                          // width: '40%',
-                          height: 40,
-                          backgroundColor: Color.BROWN3,
-                          alignSelf: 'center',
-                          borderRadius: 30,
-                          borderWidth: 1,
-                          padding: 10,
-                          borderColor: Color.BROWN,
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          gap: 10,
-                        }}>
-                        <Text>
-                          {(() => {
-                            const rawName = time?.end?.songName;
-                            const name =
-                              typeof rawName === 'string' && rawName.trim()
-                                ? rawName.trim()
-                                : 'Chime';
-                            const words = name.split(' ');
-                            return words.length > 1 ? `${words[0]}...` : name;
-                          })()}
-                        </Text>
-                        <Image
-                          source={IconData.DROPDOWN}
-                          style={{
-                            width: 20,
-                            height: 20,
-                            alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
-                            tintColor: Color.LIGHTGREEN,
-                          }}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                    <View></View>
-                    <Text style={styles.headerText}>Rest Time</Text>
-                    <View
-                      style={{
-                        width: '100%',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        marginVertical: 10,
-                      }}>
-                      <View
-                        style={{
-                          width: '30%',
-                          height: 40,
-                          backgroundColor: Color.BROWN3,
-                          // alignSelf: 'center',
-                          borderRadius: 8,
-                          borderWidth: 1,
-                          padding: 10,
-                          borderColor: Color.BROWN,
-                        }}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setActiveKey('res');
-                            setTooltipVisible(true);
-                          }}
+                        <View
                           style={{
                             width: '100%',
-                            alignItems: 'center',
-                            justifyContent: 'center',
                             flexDirection: 'row',
-                            paddingLeft: 10,
-                            paddingRight: 5,
-                            gap: 10,
+                            justifyContent: 'space-between',
+                            // marginVertical: 10,
                           }}>
-                          <Text>{time?.res?.second || 'Select'}</Text>
-
-                          <Image
-                            source={IconData.DROPDOWN}
+                          <View
                             style={{
-                              width: 20,
-                              height: 20,
-                              alignSelf: 'center',
-                              tintColor: Color.LIGHTGREEN,
+                              height: 40,
+                              marginTop: 10,
+                            }}>
+                            <Text style={styles.headerText}>Start Chime</Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setActiveKey('start');
+                              setModalOpen(true);
                             }}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setActiveKey('res');
-                          setModalOpen(true);
-                        }}
-                        style={{
-                          // width: '40%',
-                          height: 40,
-                          backgroundColor: Color.BROWN3,
-                          alignSelf: 'center',
-                          borderRadius: 30,
-                          borderWidth: 1,
-                          padding: 10,
-                          borderColor: Color.BROWN,
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          gap: 10,
-                        }}>
-                        <Text>
-                          {(() => {
-                            const rawName = time?.res?.songName;
-                            const name =
-                              typeof rawName === 'string' && rawName.trim()
-                                ? rawName.trim()
-                                : 'Chime';
-                            const words = name.split(' ');
-                            return words.length > 1 ? `${words[0]}...` : name;
-                          })()}
+                            style={{
+                              // width: '40%',
+                              height: 40,
+                              backgroundColor: Color.BROWN3,
+                              alignSelf: 'center',
+                              borderRadius: 30,
+                              borderWidth: 1,
+                              padding: 10,
+                              borderColor: Color.BROWN,
+                              flexDirection: 'row',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: 10,
+                            }}>
+                            <Text>
+                              {(() => {
+                                const rawName = time?.start?.songName;
+                                const name =
+                                  typeof rawName === 'string' && rawName.trim()
+                                    ? rawName.trim()
+                                    : 'Chime';
+                                const words = name.split(' ');
+                                return words.length > 1
+                                  ? `${words[0]}...`
+                                  : name;
+                              })()}
+                            </Text>
+                            <Image
+                              source={IconData.DROPDOWN}
+                              style={{
+                                width: 20,
+                                height: 20,
+                                alignSelf: 'center',
+                                transform: [{rotate: '270deg'}],
+                                tintColor: Color.LIGHTGREEN,
+                              }}
+                            />
+                          </TouchableOpacity>
+                        </View>
+
+                        <Text style={styles.headerText}>
+                          Interval Chime (Repeat every)
                         </Text>
-                        <Image
-                          source={IconData.DROPDOWN}
+                        <View
                           style={{
-                            width: 20,
-                            height: 20,
-                            alignSelf: 'center',
-                            transform: [{rotate: '270deg'}],
-                            tintColor: Color.LIGHTGREEN,
-                          }}
-                        />
-                      </TouchableOpacity>
+                            width: '100%',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginVertical: 10,
+                          }}>
+                          <View
+                            style={{
+                              width: '30%',
+                              height: 40,
+                              flexDirection: 'row',
+                              gap: 5,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}>
+                            <View
+                              style={{
+                                width: '50%',
+                                height: 40,
+                                backgroundColor: Color.BROWN3,
+                                alignSelf: 'center',
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                paddingHorizontal: 5,
+                                borderColor: Color.BROWN,
+                                marginStart: 12,
+                              }}>
+                              <TextInput
+                                value={time?.int?.minute}
+                                onChangeText={text => {
+                                  const cleaned = text
+                                    .replace(/[^0-9]/g, '')
+                                    .slice(0, 2);
+                                  setTime(prev => ({
+                                    ...prev,
+                                    int: {...prev.int, minute: cleaned},
+                                  }));
+                                }}
+                                placeholder="MM"
+                                maxLength={2}
+                                placeholderTextColor={Color.BROWN5}
+                                style={{
+                                  width: '100%',
+                                  height: 40,
+                                  color: Color.LIGHTGREEN,
+                                  fontSize: 12,
+                                  textAlign: 'center',
+                                  fontFamily: Font.EBGaramond_Regular,
+                                }}
+                                selectionColor={Color.LIGHTGREEN}
+                              />
+                            </View>
+                            <Text style={{fontSize: 25, top: 0}}>:</Text>
+                            <View
+                              style={{
+                                width: '50%',
+                                height: 40,
+                                backgroundColor: Color.BROWN3,
+                                alignSelf: 'center',
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                paddingHorizontal: 5,
+                                borderColor: Color.BROWN,
+                              }}>
+                              <TextInput
+                                value={time?.int?.second}
+                                onChangeText={text => {
+                                  const cleaned = text
+                                    .replace(/[^0-9]/g, '')
+                                    .slice(0, 2);
+                                  setTime(prev => ({
+                                    ...prev,
+                                    int: {...prev.int, second: cleaned},
+                                  }));
+                                }}
+                                placeholder="SS"
+                                maxLength={2}
+                                placeholderTextColor={Color.BROWN5}
+                                style={{
+                                  width: '100%',
+                                  height: 40,
+                                  color: Color.LIGHTGREEN,
+                                  fontSize: 12,
+                                  textAlign: 'center',
+                                  fontFamily: Font.EBGaramond_Regular,
+                                }}
+                                selectionColor={Color.LIGHTGREEN}
+                              />
+                            </View>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setActiveKey('int');
+                              setModalOpen(true);
+                            }}
+                            style={{
+                              // width: '40%',
+                              height: 40,
+                              backgroundColor: Color.BROWN3,
+                              alignSelf: 'center',
+                              borderRadius: 30,
+                              borderWidth: 1,
+                              padding: 10,
+                              borderColor: Color.BROWN,
+                              flexDirection: 'row',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: 10,
+                            }}>
+                            <Text>
+                              {(() => {
+                                const rawName = time?.int?.songName;
+                                const name =
+                                  typeof rawName === 'string' && rawName.trim()
+                                    ? rawName.trim()
+                                    : 'Chime';
+                                const words = name.split(' ');
+                                return words.length > 1
+                                  ? `${words[0]}...`
+                                  : name;
+                              })()}
+                            </Text>
+                            <Image
+                              source={IconData.DROPDOWN}
+                              style={{
+                                width: 20,
+                                height: 20,
+                                alignSelf: 'center',
+                                transform: [{rotate: '270deg'}],
+                                tintColor: Color.LIGHTGREEN,
+                              }}
+                            />
+                          </TouchableOpacity>
+                        </View>
+
+                        <View
+                          style={{
+                            width: '100%',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginVertical: 10,
+                          }}>
+                          <View
+                            style={{
+                              height: 40,
+                              marginTop: 10,
+                            }}>
+                            <Text style={styles.headerText}>End Alert</Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setActiveKey('end');
+                              setModalOpen(true);
+                            }}
+                            style={{
+                              // width: '40%',
+                              height: 40,
+                              backgroundColor: Color.BROWN3,
+                              alignSelf: 'center',
+                              borderRadius: 30,
+                              borderWidth: 1,
+                              padding: 10,
+                              borderColor: Color.BROWN,
+                              flexDirection: 'row',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: 10,
+                            }}>
+                            <Text>
+                              {(() => {
+                                const rawName = time?.end?.songName;
+                                const name =
+                                  typeof rawName === 'string' && rawName.trim()
+                                    ? rawName.trim()
+                                    : 'Chime';
+                                const words = name.split(' ');
+                                return words.length > 1
+                                  ? `${words[0]}...`
+                                  : name;
+                              })()}
+                            </Text>
+                            <Image
+                              source={IconData.DROPDOWN}
+                              style={{
+                                width: 20,
+                                height: 20,
+                                alignSelf: 'center',
+                                transform: [{rotate: '270deg'}],
+                                tintColor: Color.LIGHTGREEN,
+                              }}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        <View></View>
+                        <Text style={styles.headerText}>Rest Time</Text>
+                        <View
+                          style={{
+                            width: '100%',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginVertical: 10,
+                          }}>
+                          <View
+                            style={{
+                              width: '30%',
+                              height: 40,
+                              backgroundColor: Color.BROWN3,
+                              // alignSelf: 'center',
+                              borderRadius: 8,
+                              borderWidth: 1,
+                              padding: 10,
+                              borderColor: Color.BROWN,
+                            }}>
+                            <TouchableOpacity
+                              onPress={() => {
+                                setActiveKey('res');
+                                setTooltipVisible(true);
+                              }}
+                              style={{
+                                width: '100%',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexDirection: 'row',
+                                paddingLeft: 10,
+                                paddingRight: 5,
+                                gap: 10,
+                              }}>
+                              <Text>{time?.res?.second || 'Select'}</Text>
+
+                              <Image
+                                source={IconData.DROPDOWN}
+                                style={{
+                                  width: 20,
+                                  height: 20,
+                                  alignSelf: 'center',
+                                  tintColor: Color.LIGHTGREEN,
+                                }}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setActiveKey('res');
+                              setModalOpen(true);
+                            }}
+                            style={{
+                              // width: '40%',
+                              height: 40,
+                              backgroundColor: Color.BROWN3,
+                              alignSelf: 'center',
+                              borderRadius: 30,
+                              borderWidth: 1,
+                              padding: 10,
+                              borderColor: Color.BROWN,
+                              flexDirection: 'row',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: 10,
+                            }}>
+                            <Text>
+                              {(() => {
+                                const rawName = time?.res?.songName;
+                                const name =
+                                  typeof rawName === 'string' && rawName.trim()
+                                    ? rawName.trim()
+                                    : 'Chime';
+                                const words = name.split(' ');
+                                return words.length > 1
+                                  ? `${words[0]}...`
+                                  : name;
+                              })()}
+                            </Text>
+                            <Image
+                              source={IconData.DROPDOWN}
+                              style={{
+                                width: 20,
+                                height: 20,
+                                alignSelf: 'center',
+                                transform: [{rotate: '270deg'}],
+                                tintColor: Color.LIGHTGREEN,
+                              }}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+
+                      <SoundModal
+                        visible={modalopen}
+                        onClose={() => {
+                          setModalOpen(false);
+                        }}
+                      />
+                    </ScrollView>
+                    <View
+                      style={{
+                        width: '96%',
+                        height: '10%',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        alignSelf: 'center',
+                        top: height * 0.04,
+                        gap: 20,
+                        flexDirection: 'row',
+                      }}>
+                      <Button
+                        img={IconData.SAVE}
+                        text="Save"
+                        left={true}
+                        width={100}
+                        height={40}
+                        size={16}
+                        color={Color.BROWN3}
+                        tintColor={Color.BROWN3}
+                        backgroundColor={Color.LIGHTGREEN}
+                        font={Font.EBGaramond_SemiBold}
+                        onPress={() => {
+                          // setActiveKey('user');
+                          // setModalOpen1(true);
+                          // console.log('XCvcxvcxvxcvxcvxcvcxv', time);
+                          saveCustomeMedidation();
+                        }}
+                      />
+                      <Button
+                        img={IconData.MED}
+                        text="Start"
+                        left={true}
+                        width={100}
+                        height={40}
+                        size={16}
+                        color={Color.BROWN3}
+                        tintColor={Color.BROWN3}
+                        font={Font.EBGaramond_SemiBold}
+                        backgroundColor={Color.LIGHTGREEN}
+                        onPress={() => {
+                          startMedidation(time);
+                        }}
+                      />
+                    </View>
+
+                    <View
+                      style={{
+                        width: '100%',
+                        height: '10%',
+                        flexDirection: 'row',
+
+                        alignItems: 'flex-end',
+                        justifyContent: 'space-between',
+                      }}>
+                      <Image
+                        source={ImageData.BACKLEFT}
+                        resizeMode="contain"
+                        style={{
+                          width: 31,
+                          height: 31,
+                        }}
+                      />
+
+                      <Image
+                        source={ImageData.BACKRIGHT}
+                        resizeMode="contain"
+                        style={{
+                          width: 31,
+                          height: 31,
+                        }}
+                      />
                     </View>
                   </View>
-
-                  <SoundModal
-                    visible={modalopen}
-                    onClose={() => {
-                      setModalOpen(false);
-                    }}
-                  />
-                </ScrollView>
-                <View
-                  style={{
-                    width: '96%',
-                    height: '10%',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    alignSelf: 'center',
-                    top: height * 0.04,
-                    gap: 20,
-                    flexDirection: 'row',
-                  }}>
-                  <Button
-                    img={IconData.SAVE}
-                    text="Save"
-                    left={true}
-                    width={100}
-                    height={40}
-                    size={16}
-                    color={Color.BROWN3}
-                    tintColor={Color.BROWN3}
-                    backgroundColor={Color.LIGHTGREEN}
-                    font={Font.EBGaramond_SemiBold}
-                    onPress={() => {
-                      // setActiveKey('user');
-                      // setModalOpen1(true);
-                      // console.log('XCvcxvcxvxcvxcvxcvcxv', time);
-                      saveCustomeMedidation();
-                    }}
-                  />
-                  <Button
-                    img={IconData.MED}
-                    text="Start"
-                    left={true}
-                    width={100}
-                    height={40}
-                    size={16}
-                    color={Color.BROWN3}
-                    tintColor={Color.BROWN3}
-                    font={Font.EBGaramond_SemiBold}
-                    backgroundColor={Color.LIGHTGREEN}
-                    onPress={() => {
-                      startMedidation(time);
-                    }}
-                  />
                 </View>
-
-                <View
-                  style={{
-                    width: '100%',
-                    height: '10%',
-                    flexDirection: 'row',
-
-                    alignItems: 'flex-end',
-                    justifyContent: 'space-between',
-                  }}>
-                  <Image
-                    source={ImageData.BACKLEFT}
-                    resizeMode="contain"
-                    style={{
-                      width: 31,
-                      height: 31,
-                    }}
-                  />
-
-                  <Image
-                    source={ImageData.BACKRIGHT}
-                    resizeMode="contain"
-                    style={{
-                      width: 31,
-                      height: 31,
-                    }}
-                  />
-                </View>
-              </View>
+              </FastImage>
             </View>
+            <DropDown
+              visible={tooltipVisible}
+              selectedOptions={selectTime}
+              onSelect={option => {
+                setTime(prev => ({
+                  ...prev,
+                  [activeKey]: {
+                    ...prev[activeKey],
+                    second: option, // or `minute` or another field as needed
+                  },
+                }));
+                setTooltipVisible(false);
+              }}
+              onClose={() => setTooltipVisible(false)}
+            />
           </FastImage>
-        </View>
-        <DropDown
-          visible={tooltipVisible}
-          selectedOptions={selectTime}
-          onSelect={option => {
-            setTime(prev => ({
-              ...prev,
-              [activeKey]: {
-                ...prev[activeKey],
-                second: option, // or `minute` or another field as needed
-              },
-            }));
-            setTooltipVisible(false);
-          }}
-          onClose={() => setTooltipVisible(false)}
-        />
-      </FastImage>
-    </View>
+        </SafeAreaView>
+      </ImageBackground>
+    </>
   );
 };
 
@@ -1368,7 +1421,7 @@ const styles = StyleSheet.create({
   secondaryContainer: {
     width: '90%',
     height: '90%',
-    marginTop: height * 0.03,
+    marginTop: height * 0.0,
   },
   secondaryBackground: {
     width: '100%', // Fills the parent container
@@ -1414,6 +1467,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     position: 'relative',
+    backgroundColor: Color?.LIGHTBROWN,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   imageStyle: {
     resizeMode: 'cover',

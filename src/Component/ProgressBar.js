@@ -6,13 +6,14 @@
 //   TouchableOpacity,
 //   Image,
 // } from 'react-native';
-// import React, {use, useEffect, useRef, useState} from 'react';
+// import React, {use, useEffect, useState} from 'react';
 // import {Color, IconData, PLATFORM_IOS} from '../../assets/Image';
-// import * as Progress from 'react-native-progress';
 // import LinearGradient from 'react-native-linear-gradient';
 // import useNativeMusicPlayer from './NativeusicPlayer';
+// import {useSelector} from 'react-redux';
 
 // const {width} = Dimensions.get('window');
+
 // const ProgressBar = ({
 //   type,
 //   data,
@@ -20,88 +21,117 @@
 //   setDefaultMusic,
 //   onUpdateTime,
 //   pauseSound,
+//   // stopMusic,
+//   ttsOpen,
+//   setTtsOpen,
+//   totalDUration,
+//   musicTime,
 // }) => {
+//   const [isPlaying, setIsPlaying] = useState(true);
+//   const [musicPlay, setMusicPlay] = useState(true);
+//   const [musicPlay2, setMusicPlay2] = useState(true);
 //   const [position, setPosition] = useState(0);
-//   const [isPlaying, setIsPlaying] = useState(false);
-//   const intervalRef = useRef(null);
-//   const scrollRef = useRef();
-//   const plainText = data?.description;
-
-//   useEffect(() => {
-//     return () => clearInterval(intervalRef.current);
-//   }, []);
+//   const [timer, setTimer] = useState(0);
+//   const medatationData = useSelector(
+//     state => state?.user?.advanceMeditationData,
+//   );
 //   const {
 //     pauseMusic,
 //     playMusic,
 //     releaseMusic,
-//     stopMusic,
 //     seekTo,
+//     stopMusic,
 //     duration,
 //     currentTime,
 //   } = useNativeMusicPlayer({
-//     song: defaultMusic ? data?.lyrics_path : data?.music_path,
+//     song1: medatationData?.data,
+//     song2: data?.lyrics_path,
 //     pause: isPlaying,
 //     getSoundOffOn: true,
 //     restStart: false,
 //   });
 
 //   useEffect(() => {
-//   if (defaultMusic) {
-//     if (onUpdateTime) {
-//       onUpdateTime(currentTime);
+//     if (pauseSound) {
+//       pauseMusic('player1');
 //     }
-//     setPosition(currentTime);
-//   }
-// }, [currentTime, onUpdateTime, defaultMusic]);
-//   // Cleanup on unmount
+//   }, [pauseSound, pauseMusic]);
+
 //   useEffect(() => {
 //     return () => {
-//       clearInterval(intervalRef.current);
-//       releaseMusic(); // Clean up the music player
+//       releaseMusic();
 //     };
-//   }, [defaultMusic]);
+//   }, []);
+//   useEffect(() => {
+
+//     if (isPlaying) {
+//       if (isPlaying && musicPlay && timer > 10) {
+//         playMusic('player1');
+//       }
+
+//       playMusic('player2');
+//     }
+//   }, [isPlaying, timer]);
+//   useEffect(() => {
+//     if (onUpdateTime) {
+//       onUpdateTime(currentTime.player2);
+//       setTimer(currentTime.player2);
+//     }
+//   }, [currentTime.player2]);
+//   useEffect(() => {
+//     // if (onUpdateTime) {
+//     //   onUpdateTime(currentTime.player2);
+//     // }
+//     totalDUration(duration.player2);
+//   }, [duration.player2]);
+
 //   const formatTime = sec => {
 //     const mins = Math.floor(sec / 60);
 //     const secs = Math.floor(sec % 60);
 //     return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
 //   };
-//   const progressWidth = (position / duration) * 300;
+
+//   // const progressWidth =
+//   //   duration.player1 > 0 ? (currentTime.player1 / duration.player1) * 300 : 0;
+//   const progressWidth = musicTime > 0 ? (position / musicTime) * 300 : 0;
+
 //   const handlePlayPause = () => {
 //     if (isPlaying) {
-//       clearInterval(intervalRef.current);
-//       intervalRef.current = null;
+//       pauseMusic('player1');
+//       pauseMusic('player2');
+//       setTtsOpen(false);
 //     } else {
-//       intervalRef.current = setInterval(() => {
-//         setPosition(prev => {
-//           const next = prev + 1;
-//           // if (onUpdateTime) onUpdateTime(next); // ✅ update parent
-//           if (next < duration) return next;
-//           clearInterval(intervalRef.current);
-//           return duration;
-//         });
-//       }, 1000);
+//       if (position >= musicTime) {
+//         seekTo(0);
+//         setPosition(0);
+//       }
+//       if (musicPlay) {
+//         playMusic('player1');
+//       }
+//       // playMusic('player1');
+//       playMusic('player2');
+//       setTtsOpen(true);
 //     }
 //     setIsPlaying(!isPlaying);
 //   };
-//   const lines = plainText.trim().split('\n');
-
-//   const lineDuration = duration / lines?.length;
-
-//   const lyrics = lines.map((text, i) => ({
-//     time: Math.floor(i * lineDuration),
-//     text,
-//   }));
 //   useEffect(() => {
-//     if (pauseSound) {
-//       pauseMusic();
+//     setPosition(currentTime.player2 || 0);
+//   }, [currentTime.player2]);
+//   useEffect(() => {
+//     if (currentTime.player2 >= musicTime) {
+//       // stopMusic();
+//       stopMusic('player1');
+//       stopMusic('player2');
+//       setIsPlaying(false);
+//       seekTo(0);
 //     }
-//   }, [pauseSound, pauseMusic]);
+//   }, [currentTime.player1]);
 //   return (
 //     <View style={styles.container}>
 //       {/* Time Row */}
 //       <View style={styles.timeRow}>
 //         <Text style={styles.timeText}>{formatTime(position)}</Text>
-//         <Text style={styles.timeText}>{formatTime(duration)}</Text>
+//         <Text style={styles.timeText}>{formatTime(musicTime)}</Text>
 //       </View>
 
 //       <View style={styles.progressWrapper}>
@@ -126,20 +156,28 @@
 //           </View>
 //         )}
 //       </View>
+
 //       {/* Controls */}
 //       <View style={styles.controls}>
-//         <TouchableOpacity
+//         <View
 //           style={styles.iconCircle}
-//           activeOpacity={0.7}
-//           onPress={() => {
-//             setDefaultMusic(true);
-//           }}>
-//           <Image
+//           // activeOpacity={0.7}
+//           // onPress={() => {
+//           //   if (musicPlay2) {
+//           //     pauseMusic('player2');
+//           //   } else {
+//           //     playMusic('player2');
+//           //   }
+//           //   setMusicPlay2(!musicPlay2);
+//           //    setTtsOpen(!ttsOpen);
+//           // }}
+//         >
+//           {/* <Image
 //             resizeMode="contain"
-//             source={defaultMusic ? IconData.SPEAK : IconData.SPEAKCLOSE}
+//             source={musicPlay2 ? IconData.SPEAK : IconData.SPEAKCLOSE}
 //             style={styles.icon}
-//           />
-//         </TouchableOpacity>
+//           /> */}
+//         </View>
 
 //         <TouchableOpacity
 //           style={styles.mainCircle}
@@ -156,10 +194,15 @@
 //           style={styles.iconCircle}
 //           activeOpacity={0.7}
 //           onPress={() => {
-//             setDefaultMusic(false);
+//             if (musicPlay) {
+//               pauseMusic('player1');
+//             } else {
+//               playMusic('player1');
+//             }
+//             setMusicPlay(!musicPlay);
 //           }}>
 //           <Image
-//             source={defaultMusic ? IconData.MUSICCLOSE : IconData.MUSIC}
+//             source={musicPlay ? IconData.MUSIC : IconData.MUSICCLOSE}
 //             style={styles.icon}
 //             resizeMode="contain"
 //           />
@@ -171,7 +214,6 @@
 
 // const styles = StyleSheet.create({
 //   container: {
-//     // backgroundColor: '#E8E0CE',
 //     flex: 1,
 //     justifyContent: 'center',
 //     alignItems: 'center',
@@ -186,12 +228,6 @@
 //     fontSize: 16,
 //     color: '#3B4F2C',
 //     fontWeight: '600',
-//   },
-//   slider: {
-//     width: '85%',
-//     height: 10,
-//     borderRadius: 20,
-//     backgroundColor: '#E8E0CE',
 //   },
 //   controls: {
 //     flexDirection: 'row',
@@ -209,7 +245,6 @@
 //   mainCircle: {
 //     width: 80,
 //     height: 80,
-
 //     justifyContent: 'center',
 //     alignItems: 'center',
 //   },
@@ -247,7 +282,6 @@
 // });
 
 // export default ProgressBar;
-
 import {
   View,
   Text,
@@ -256,11 +290,16 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import React, {use, useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Color, IconData, PLATFORM_IOS} from '../../assets/Image';
 import LinearGradient from 'react-native-linear-gradient';
 import useNativeMusicPlayer from './NativeusicPlayer';
 import {useSelector} from 'react-redux';
+import {AppState} from 'react-native';
+import ActivityLoader from './ActivityLoader';
+import Toast from 'react-native-toast-message';
+import NetInfo from '@react-native-community/netinfo';
+import {useNavigation} from '@react-navigation/native';
 
 const {width} = Dimensions.get('window');
 
@@ -271,25 +310,70 @@ const ProgressBar = ({
   setDefaultMusic,
   onUpdateTime,
   pauseSound,
-  stopMusic,
   ttsOpen,
   setTtsOpen,
+  totalDUration,
+  musicTime,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [musicPlay, setMusicPlay] = useState(true);
+  const [musicPlay2, setMusicPlay2] = useState(true);
+  const [position, setPosition] = useState(0);
+  const intervalRef = useRef(null);
+  const [timer, setTimer] = useState(0);
+  const appState = useRef(AppState.currentState);
+  const [userPaused, setUserPaused] = useState(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const [isLoadingMusic, setIsLoadingMusic] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
+  const navigation = useNavigation();
+
   const medatationData = useSelector(
     state => state?.user?.advanceMeditationData,
   );
-  const {pauseMusic, playMusic, releaseMusic, seekTo, duration, currentTime} =
-    useNativeMusicPlayer({
-      song1: medatationData?.data,
-      // song1:
-      //   'https://arkanaapps.com/crm/public/storage/lyrics/djfm5uGpAroCNoEUbuRBagVHEtRoOg3ThxV8qmnl.mp3', // Plays alongside
-      pause: isPlaying,
-      getSoundOffOn: true,
-      restStart: false,
+
+  const {
+    pauseMusic,
+    playMusic,
+    releaseMusic,
+    seekTo,
+    stopMusic,
+    duration,
+    currentTime,
+  } = useNativeMusicPlayer({
+    song1: medatationData?.data,
+    song2: data?.lyrics_path,
+    pause: isPlaying,
+    getSoundOffOn: true,
+    restStart: false,
+  });
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/active/) &&
+        nextAppState.match(/inactive|background/)
+      ) {
+        console.log('App moved to background');
+        pauseMusic('player1');
+        pauseMusic('player2');
+      } else if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App moved to foreground');
+        if (!userPaused) {
+          if (musicPlay) playMusic('player1');
+          playMusic('player2');
+        }
+      }
+      appState.current = nextAppState;
     });
 
+    return () => {
+      subscription.remove();
+    };
+  }, [musicPlay, playMusic, pauseMusic, userPaused]);
   useEffect(() => {
     if (pauseSound) {
       pauseMusic('player1');
@@ -297,21 +381,130 @@ const ProgressBar = ({
   }, [pauseSound, pauseMusic]);
 
   useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isConnected) {
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR,
+          text: 'Poor internet connection or not working',
+        },
+      });
+
+      // Navigate back after short delay to allow toast to show
+      setTimeout(() => {
+        stopMusic('player1');
+        stopMusic('player2');
+        navigation.goBack();
+      }, 1000); // adjust delay if needed
+    }
+  }, [isConnected]);
+
+  useEffect(() => {
     return () => {
       releaseMusic();
+      clearInterval(intervalRef.current);
     };
   }, []);
   useEffect(() => {
     if (isPlaying) {
-     playMusic('player1');
+      if (isPlaying && musicPlay) {
+        playMusic('player1');
+      }
+
       playMusic('player2');
     }
-  }, [isPlaying]);
+  }, [isPlaying, timer, isConnected]);
+
+  // Toast.show({
+  //   type: 'custom',
+  //   position: 'top',
+  //   props: {
+  //     icon: IconData.ERR, // ✅ Your image source
+  //     text: `isPlaying: ${isPlaying}, initialLoadDone: ${initialLoadDone}, isPlayerReady: ${isPlayerReady}`,
+  //   },
+  // });
+  // useEffect(() => {
+  //   if (isPlaying) {
+  //     if (intervalRef.current) clearInterval(intervalRef.current);
+
+  //     intervalRef.current = setInterval(() => {
+  //       setPosition(prev => {
+  //         const next = prev + 1;
+  //         setTimer(next);
+  //         return next;
+  //       });
+  //     }, 1000);
+  //   } else {
+  //     clearInterval(intervalRef.current);
+  //   }
+
+  //   return () => {
+  //     clearInterval(intervalRef.current);
+  //   };
+  // }, [isPlaying]);
+  useEffect(() => {
+    if (
+      isPlaying &&
+      isPlayerReady &&
+      initialLoadDone &&
+      isConnected
+    ) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+
+      intervalRef.current = setInterval(() => {
+        setPosition(prev => {
+          const next = prev + 1;
+          setTimer(next);
+          return next;
+        });
+      }, 1000);
+    } else {
+      clearInterval(intervalRef.current);
+    }
+
+    return () => {
+      clearInterval(intervalRef.current);
+    };
+  }, [
+    isPlaying,
+    isPlayerReady,
+    initialLoadDone,
+    isConnected,
+  ]);
+
+  useEffect(() => {
+    if (position >= musicTime) {
+      clearInterval(intervalRef.current);
+      try {
+        stopMusic('player1');
+        stopMusic('player2');
+        setIsPlaying(false);
+        setTtsOpen(false);
+        seekTo(0);
+        setPosition(0);
+      } catch (err) {
+        console.warn('Error stopping music:', err);
+      }
+    }
+  }, [position, musicTime]);
   useEffect(() => {
     if (onUpdateTime) {
-      onUpdateTime(currentTime.player1);
+      onUpdateTime(position);
     }
-  }, [currentTime.player1]);
+  }, [position]);
+
+  useEffect(() => {
+    totalDUration(duration.player2);
+  }, [duration.player2]);
 
   const formatTime = sec => {
     const mins = Math.floor(sec / 60);
@@ -320,32 +513,79 @@ const ProgressBar = ({
   };
 
   const progressWidth =
-    duration.player1 > 0 ? (currentTime.player1 / duration.player1) * 300 : 0;
+    musicTime > 0 ? (position / musicTime) * width * 0.75 : 0;
 
-  const handlePlayPause = () => {
+  const loadSongAndCheckReady = async (songPath, playerKey) => {
+    try {
+      await playMusic(playerKey); // you might need to use `setCustomSong` if applicable
+      setIsPlayerReady(true);
+      setInitialLoadDone(true);
+    } catch (err) {
+      console.error('Error loading song:', err);
+      setIsPlayerReady(false);
+    }
+  };
+
+  const handlePlayPause = async () => {
     if (isPlaying) {
       pauseMusic('player1');
-       setTtsOpen(false)
+      pauseMusic('player2');
+      setTtsOpen(false);
+      clearInterval(intervalRef.current);
     } else {
-      playMusic('player1');
-      playMusic('player2');
-       setTtsOpen(true)
+      if (position >= musicTime) {
+        seekTo(0);
+        setPosition(0);
+      }
+
+      if (!initialLoadDone) {
+        setIsLoadingMusic(true); // 👈 Start loading
+        setIsPlayerReady(false);
+
+        await loadSongAndCheckReady(data?.lyrics_path, 'player2');
+        setIsLoadingMusic(false); // 👈 Done loading
+        setIsPlaying(true);
+      } else {
+        if (musicPlay) {
+          playMusic('player1');
+        }
+        playMusic('player2');
+        setTtsOpen(true);
+      }
     }
+
     setIsPlaying(!isPlaying);
-   
   };
+  // const handlePlayPause = () => {
+  //   if (isPlaying) {
+  //     pauseMusic('player1');
+  //     pauseMusic('player2');
+  //     setTtsOpen(false);
+  //     clearInterval(intervalRef.current);
+  //   } else {
+  //     if (position >= musicTime) {
+  //       seekTo(0);
+  //       setPosition(0);
+  //     }
+  //     if (musicPlay) {
+  //       playMusic('player1');
+  //     }
+  //     playMusic('player2');
+  //     setTtsOpen(true);
+  //   }
+  //   setIsPlaying(!isPlaying);
+  // };
 
   return (
     <View style={styles.container}>
       {/* Time Row */}
       <View style={styles.timeRow}>
-        <Text style={styles.timeText}>{formatTime(currentTime.player1)}</Text>
-        <Text style={styles.timeText}>{formatTime(duration.player1)}</Text>
+        <Text style={styles.timeText}>{formatTime(position)}</Text>
+        <Text style={styles.timeText}>{formatTime(musicTime)}</Text>
       </View>
 
       <View style={styles.progressWrapper}>
         <View style={styles.unfilledBar} />
-
         {PLATFORM_IOS ? (
           <View style={[styles.filledBar, {width: progressWidth}]}>
             <Image
@@ -366,18 +606,11 @@ const ProgressBar = ({
         )}
       </View>
 
+      {/* <ActivityLoader visible={isLoadingMusic} /> */}
+      <ActivityLoader visible={!isConnected || (!isPlayerReady && isPlaying)} />
       {/* Controls */}
       <View style={styles.controls}>
-        <TouchableOpacity
-          style={styles.iconCircle}
-          activeOpacity={0.7}
-          onPress={() => setTtsOpen(!ttsOpen)}>
-          <Image
-            resizeMode="contain"
-            source={ttsOpen ? IconData.SPEAK : IconData.SPEAKCLOSE}
-            style={styles.icon}
-          />
-        </TouchableOpacity>
+        <View style={styles.iconCircle}></View>
 
         <TouchableOpacity
           style={styles.mainCircle}
@@ -402,7 +635,7 @@ const ProgressBar = ({
             setMusicPlay(!musicPlay);
           }}>
           <Image
-            source={musicPlay ?  IconData.MUSIC:IconData.MUSICCLOSE }
+            source={musicPlay ? IconData.MUSIC : IconData.MUSICCLOSE}
             style={styles.icon}
             resizeMode="contain"
           />
@@ -457,7 +690,7 @@ const styles = StyleSheet.create({
     height: 55,
   },
   progressWrapper: {
-    width: 300,
+    width: width * 0.75,
     height: 24,
     borderRadius: 36,
     overflow: 'hidden',

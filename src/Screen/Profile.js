@@ -29,6 +29,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import ActivityLoader from '../Component/ActivityLoader';
 import {setSubscriptionProducts, setUserInfo} from '../redux/actions';
 import * as RNIap from 'react-native-iap';
+import {isCoupanValid, isSubscriptionValid} from './utils';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const products = Platform.select({
   ios: ['plan_monthly', 'plan_yearly'],
@@ -46,6 +48,7 @@ const Profile = ({navigation}) => {
   const [modalopen, setModalOpen] = useState(false);
   const userInfo = useSelector(state => state?.user?.userInfo);
   const subscription = useSelector(state => state?.user?.subscription);
+  const coupaDetails = useSelector(state => state?.user?.coupaDetails);
   const goalData = useSelector(state => state.user?.goalByDate || []);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
   const getDreamData = useSelector(state => state?.user?.getDreamData);
@@ -187,129 +190,93 @@ const Profile = ({navigation}) => {
       await Linking.openURL(url1);
     }
   }, [url1]);
+
+  const getText = () => {
+    if (isSubscriptionValid(subscription)) {
+      return subscription[0]?.productId === 'plan_monthly'
+        ? 'Monthly'
+        : 'Yearly';
+    } else if (isCoupanValid(coupaDetails)) {
+      return 'Lifetime Access';
+    } else {
+      return 'No Active Plan';
+    }
+  };
   return (
-    <View style={styles.container}>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
-      />
-      <ActivityLoader visible={loader} />
+    <>
       <ImageBackground
         source={ImageData.BACKGROUND}
-        style={styles.primaryBackground}
+        style={{flex: 1}}
         resizeMode="cover">
-        <View
-          style={{
-            width: '100%',
-            height: 70,
-            padding: 10,
-            position: 'absolute',
-            top: height * 0.05,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            zIndex: 1,
-            alignItems: 'center',
-          }}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.goBack();
-            }}
-            style={{
-              width: 50,
-              height: 50,
-              backgroundColor: Color?.LIGHTGREEN,
-              borderRadius: 25,
-              alignSelf: 'center',
-              marginVertical: '5%',
-              borderWidth: 3,
-              justifyContent: 'center',
-              alignItems: 'center',
-              zIndex: 1,
-              borderColor: Color?.BROWN2,
-            }}>
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                backgroundColor: Color?.BROWN4,
-                borderRadius: 20,
-                alignSelf: 'center',
-                marginVertical: '5%',
-                borderWidth: 3,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderColor: Color?.BROWN2,
-              }}>
-              <Image
-                source={IconData.BACK}
-                tintColor={Color?.LIGHTGREEN}
-                style={{width: 24, height: 24}}
-              />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              setModalOpen(!modalopen);
-            }}
-            style={{
-              width: 50,
-              height: 50,
-              backgroundColor: Color?.LIGHTGREEN,
-              borderRadius: 25,
-              alignSelf: 'center',
-              marginVertical: '5%',
-              borderWidth: 3,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderColor: Color?.BROWN2,
-            }}>
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                backgroundColor: Color?.BROWN4,
-                borderRadius: 20,
-                alignSelf: 'center',
-                marginVertical: '5%',
-                borderWidth: 3,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderColor: Color?.BROWN2,
-              }}>
-              <Image
-                source={IconData.PEN}
-                tintColor={Color?.LIGHTGREEN}
-                style={{width: 24, height: 24}}
-              />
-            </View>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.secondaryContainer}>
+        <SafeAreaView style={styles.container}>
+          <StatusBar
+            translucent
+            backgroundColor="transparent"
+            barStyle="light-content"
+          />
+          <ActivityLoader visible={loader} />
           <ImageBackground
-            source={ImageData.PROFILEBACK1}
-            style={styles.secondaryBackground}
-            resizeMode="stretch">
+            source={ImageData.BACKGROUND}
+            style={styles.primaryBackground}
+            resizeMode="cover">
             <View
               style={{
-                width: 120,
-                height: 120,
-                backgroundColor: Color?.BROWN4,
-                borderRadius: 60,
-                alignSelf: 'center',
-                // marginVertical: '%',
-                marginTop: 30,
-                borderWidth: 3,
-                justifyContent: 'center',
+                width: '100%',
+                height: 70,
+                padding: 10,
+                position: 'absolute',
+                top: height * 0.0,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                zIndex: 1,
                 alignItems: 'center',
-                borderColor: Color?.BROWN2,
               }}>
-              <View
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.goBack();
+                }}
                 style={{
-                  width: 100,
-                  height: 100,
-                  backgroundColor: Color?.BROWN4,
-                  borderRadius: 50,
+                  width: 50,
+                  height: 50,
+                  backgroundColor: Color?.LIGHTGREEN,
+                  borderRadius: 25,
+                  alignSelf: 'center',
+                  marginVertical: '5%',
+                  borderWidth: 3,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 1,
+                  borderColor: Color?.BROWN2,
+                }}>
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    backgroundColor: Color?.BROWN4,
+                    borderRadius: 20,
+                    alignSelf: 'center',
+                    marginVertical: '5%',
+                    borderWidth: 3,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderColor: Color?.BROWN2,
+                  }}>
+                  <Image
+                    source={IconData.BACK}
+                    tintColor={Color?.LIGHTGREEN}
+                    style={{width: 24, height: 24}}
+                  />
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setModalOpen(!modalopen);
+                }}
+                style={{
+                  width: 50,
+                  height: 50,
+                  backgroundColor: Color?.LIGHTGREEN,
+                  borderRadius: 25,
                   alignSelf: 'center',
                   marginVertical: '5%',
                   borderWidth: 3,
@@ -317,115 +284,76 @@ const Profile = ({navigation}) => {
                   alignItems: 'center',
                   borderColor: Color?.BROWN2,
                 }}>
-                <Image
-                  source={
-                    image?.base64
-                      ? {uri: `data:${image.type};base64,${image.base64}`}
-                      : image?.uri
-                      ? {uri: image.uri}
-                      : ImageData.NOIMAGE
-                  }
-                  resizeMode="cover"
-                  style={{
-                    width: 95,
-                    height: 95,
-
-                    borderRadius: 47.5,
-                  }}
-                />
-              </View>
-            </View>
-            <View
-              style={{
-                width: '100%',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-              <Text style={styles.title}>{name ? name : 'Guest'}</Text>
-            </View>
-            <ScrollView
-              contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}
-              showsVerticalScrollIndicator={false}>
-              <View
-                style={{
-                  width: '100%',
-                  justifyContent: 'center',
-                  alignSelf: 'center',
-                  alignItems: 'center',
-                  gap: height * 0.01,
-                  marginTop: 10,
-                  flexDirection: 'row',
-                }}>
-                <ProfileGoalComponent
-                  count={customMeditation?.length}
-                  title={'Meditation Created'}
-                  image={IconData.MEDITATIONA}
-                />
-                <ProfileGoalComponent
-                  count={completedCount}
-                  title={'Goals Completed'}
-                  image={IconData.GOALA}
-                />
-              </View>
-              <View
-                style={{
-                  width: '95%',
-                  justifyContent: 'center',
-                  alignSelf: 'center',
-                  alignItems: 'center',
-                  gap: height * 0.01,
-                  marginTop: height * 0.01,
-                  marginBottom: 10,
-                  flexDirection: 'row',
-                }}>
-                <ProfileGoalComponent
-                  count={getJournalData?.length}
-                  title={'Journal Streak'}
-                  image={IconData.JOURNALA}
-                />
-                <ProfileGoalComponent
-                  count={getDreamData?.length}
-                  title={'Dream Journal Streak'}
-                  image={IconData.DREAMA}
-                />
-              </View>
-
-              <View
-                style={{
-                  width: '95%',
-
-                  alignItems: 'center',
-                  marginTop: '2%',
-
-                  borderWidth: 1,
-                  alignSelf: 'center',
-                  borderColor: Color.LIGHTGREEN,
-                  backgroundColor: Color?.LIGHTBROWN,
-                }}>
                 <View
                   style={{
-                    width: '100%',
-                    // height: '10%',
-                    flexDirection: 'row',
-
-                    justifyContent: 'space-between',
+                    width: 40,
+                    height: 40,
+                    backgroundColor: Color?.BROWN4,
+                    borderRadius: 20,
+                    alignSelf: 'center',
+                    marginVertical: '5%',
+                    borderWidth: 3,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderColor: Color?.BROWN2,
                   }}>
-                  <>
+                  <Image
+                    source={IconData.PEN}
+                    tintColor={Color?.LIGHTGREEN}
+                    style={{width: 24, height: 24}}
+                  />
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.secondaryContainer}>
+              <ImageBackground
+                source={ImageData.PROFILEBACK1}
+                style={styles.secondaryBackground}
+                resizeMode="stretch">
+                <View
+                  style={{
+                    width: 120,
+                    height: 120,
+                    backgroundColor: Color?.BROWN4,
+                    borderRadius: 60,
+                    alignSelf: 'center',
+                    // marginVertical: '%',
+                    marginTop: 30,
+                    borderWidth: 3,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderColor: Color?.BROWN2,
+                  }}>
+                  <View
+                    style={{
+                      width: 100,
+                      height: 100,
+                      backgroundColor: Color?.BROWN4,
+                      borderRadius: 50,
+                      alignSelf: 'center',
+                      marginVertical: '5%',
+                      borderWidth: 3,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderColor: Color?.BROWN2,
+                    }}>
                     <Image
-                      source={ImageData.LEFT}
-                      resizeMode="contain"
-                      style={{width: 31, height: 31}}
-                    />
-                    <Image
-                      source={ImageData.RIGHT}
-                      resizeMode="contain"
+                      source={
+                        image?.base64
+                          ? {uri: `data:${image.type};base64,${image.base64}`}
+                          : image?.uri
+                          ? {uri: image.uri}
+                          : ImageData.NOIMAGE
+                      }
+                      resizeMode="cover"
                       style={{
-                        width: 31,
-                        height: 31,
-                        backgroundColor: 'transparent',
+                        width: 95,
+                        height: 95,
+
+                        borderRadius: 47.5,
                       }}
                     />
-                  </>
+                  </View>
                 </View>
                 <View
                   style={{
@@ -433,367 +361,476 @@ const Profile = ({navigation}) => {
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}>
-                  <Text style={styles.subtitle}>Unlock Extra Features</Text>
-                  {/* <Text style={styles.subText}>
-                    Lorem ipsum dolor sit amet, consectetur.
-                  </Text> */}
+                  <Text style={styles.title}>{name ? name : 'Guest'}</Text>
                 </View>
-                <View
-                  style={{
-                    width: '90%',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
+                <ScrollView
+                  contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}
+                  showsVerticalScrollIndicator={false}>
                   <View
                     style={{
                       width: '100%',
-                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      alignSelf: 'center',
                       alignItems: 'center',
-                      top: -5,
+                      gap: height * 0.01,
+                      marginTop: 10,
+                      flexDirection: 'row',
                     }}>
-                    <Image
-                      source={IconData.JOURNALA}
-                      style={{width: 24, height: 24}}
-                      tintColor={Color.LIGHTGREEN}
+                    <ProfileGoalComponent
+                      count={customMeditation?.length}
+                      title={'Meditation Created'}
+                      image={IconData.MEDITATIONA}
                     />
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        color: Color.LIGHTGREEN,
-                        marginLeft: 20,
-                        fontFamily: Font.EB_Garamond_Bold,
-                      }}>
-                      250+ Integration Journal Prompts
-                    </Text>
+                    <ProfileGoalComponent
+                      count={completedCount}
+                      title={'Goals Completed'}
+                      image={IconData.GOALA}
+                    />
                   </View>
                   <View
                     style={{
-                      width: '100%',
-                      flexDirection: 'row',
+                      width: '95%',
+                      justifyContent: 'center',
+                      alignSelf: 'center',
                       alignItems: 'center',
-                      top: 10,
+                      gap: height * 0.01,
+                      marginTop: height * 0.01,
+                      marginBottom: 10,
+                      flexDirection: 'row',
                     }}>
-                    <Image
-                      source={IconData.DREAMA}
-                      style={{width: 24, height: 24}}
-                      tintColor={Color.LIGHTGREEN}
+                    <ProfileGoalComponent
+                      count={getJournalData?.length}
+                      title={'Journal Streak'}
+                      image={IconData.JOURNALA}
                     />
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        color: Color.LIGHTGREEN,
-                        marginLeft: 20,
-                        fontFamily: Font.EB_Garamond_Bold,
-                      }}>
-                      100+ Dream Journal Prompts
-                    </Text>
+                    <ProfileGoalComponent
+                      count={getDreamData?.length}
+                      title={'Dream Journal Streak'}
+                      image={IconData.DREAMA}
+                    />
                   </View>
+
                   <View
                     style={{
-                      width: '100%',
-                      flexDirection: 'row',
+                      width: '95%',
+
                       alignItems: 'center',
-                      top: 20,
+                      marginTop: '2%',
+
+                      borderWidth: 1,
+                      alignSelf: 'center',
+                      borderColor: Color.LIGHTGREEN,
+                      backgroundColor: Color?.LIGHTBROWN,
                     }}>
-                    <Image
-                      source={IconData.MEDITATIONA}
-                      style={{width: 24, height: 24}}
-                      tintColor={Color.LIGHTGREEN}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        color: Color.LIGHTGREEN,
-                        marginLeft: 20,
-                        fontFamily: Font.EB_Garamond_Bold,
-                      }}>
-                      Guided Meditations
-                    </Text>
-                  </View>
-                  {(subscription?.length == undefined ||
-                    subscription?.length == 0) &&
-                  subscription?.subscriptionStatus == 'Active' ? (
                     <View
                       style={{
                         width: '100%',
-                        marginVertical: height * 0.03,
+                        // height: '10%',
+                        flexDirection: 'row',
+
+                        justifyContent: 'space-between',
+                      }}>
+                      <>
+                        <Image
+                          source={ImageData.LEFT}
+                          resizeMode="contain"
+                          style={{width: 31, height: 31}}
+                        />
+                        <Image
+                          source={ImageData.RIGHT}
+                          resizeMode="contain"
+                          style={{
+                            width: 31,
+                            height: 31,
+                            backgroundColor: 'transparent',
+                          }}
+                        />
+                      </>
+                    </View>
+                    <View
+                      style={{
+                        width: '100%',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        top: 10,
-                        flexDirection: 'row',
                       }}>
-                      <Text
-                        style={{
-                          fontFamily: Font.EB_Garamond_Bold,
-                          fontSize: 16,
-                          color: Color.LIGHTGREEN,
-                        }}>
-                        Currently Active Plan :
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: Font.EB_Garamond_Bold,
-                          fontSize: 16,
-                          color: Color.LIGHTGREEN,
-                        }}>
-                        Monthly
-                      </Text>
+                      <Text style={styles.subtitle}>Unlock Extra Features</Text>
+                      {/* <Text style={styles.subText}>
+                    Lorem ipsum dolor sit amet, consectetur.
+                  </Text> */}
                     </View>
-                  ) : (
-                    <View style={{padding: 20}} />
-                  )}
+                    <View
+                      style={{
+                        width: '90%',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}>
+                      <View
+                        style={{
+                          width: '100%',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          top: -5,
+                        }}>
+                        <Image
+                          source={IconData.JOURNALA}
+                          style={{width: 24, height: 24}}
+                          tintColor={Color.LIGHTGREEN}
+                        />
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            color: Color.LIGHTGREEN,
+                            marginLeft: 20,
+                            fontFamily: Font.EB_Garamond_Bold,
+                          }}>
+                          250+ Integration Journal Prompts
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '100%',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          top: 10,
+                        }}>
+                        <Image
+                          source={IconData.DREAMA}
+                          style={{width: 24, height: 24}}
+                          tintColor={Color.LIGHTGREEN}
+                        />
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            color: Color.LIGHTGREEN,
+                            marginLeft: 20,
+                            fontFamily: Font.EB_Garamond_Bold,
+                          }}>
+                          100+ Dream Journal Prompts
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '100%',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          top: 20,
+                        }}>
+                        <Image
+                          source={IconData.MEDITATIONA}
+                          style={{width: 24, height: 24}}
+                          tintColor={Color.LIGHTGREEN}
+                        />
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            color: Color.LIGHTGREEN,
+                            marginLeft: 20,
+                            fontFamily: Font.EB_Garamond_Bold,
+                          }}>
+                          Guided Meditations
+                        </Text>
+                      </View>
+                      {isSubscriptionValid(subscription) ||
+                      isCoupanValid(coupaDetails) ? (
+                        <View
+                          style={{
+                            width: '100%',
+                            marginVertical: height * 0.03,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            top: 10,
+                            flexDirection: 'row',
+                          }}>
+                          <Text
+                            style={{
+                              fontFamily: Font.EB_Garamond_Bold,
+                              fontSize: 16,
+                              color: Color.LIGHTGREEN,
+                            }}>
+                            Active Plan:
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: Font.EB_Garamond_Bold,
+                              fontSize: 16,
+                              color: Color.LIGHTGREEN,
+                            }}>
+                            {' '}
+                            {getText()}
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={{padding: 20}} />
+                      )}
 
+                      <View
+                        style={{
+                          top: height * 0.02,
+                        }}>
+                        {isSubscriptionValid(subscription) &&
+                        !isCoupanValid(coupaDetails) ? (
+                          <Button2
+                            width={
+                              isSubscriptionValid(subscription) ? 280 : 250
+                            }
+                            height={50}
+                            buttonTitle={'Manage Subscription'}
+                            img={IconData.UPGRADE}
+                            left={true}
+                            size={20}
+                            onPress={() => navigation.navigate('Subscription')}
+                          />
+                        ) : (
+                          !isSubscriptionValid(subscription) &&
+                          !isCoupanValid(coupaDetails) && (
+                            <Button2
+                              width={
+                                isSubscriptionValid(subscription) ? 280 : 250
+                              }
+                              height={50}
+                              buttonTitle={'Upgrade'}
+                              img={IconData.UPGRADE}
+                              left={true}
+                              size={20}
+                              onPress={() =>
+                                navigation.navigate('Subscription')
+                              }
+                            />
+                          )
+                        )}
+                      </View>
+                    </View>
+                    <View
+                      style={{
+                        width: '100%',
+                        // height: '10%',
+                        flexDirection: 'row',
+
+                        justifyContent: 'space-between',
+                      }}>
+                      <>
+                        <Image
+                          source={ImageData.BACKLEFT}
+                          resizeMode="contain"
+                          style={{
+                            width: 31,
+                            height: 31,
+                          }}
+                        />
+
+                        <Image
+                          source={ImageData.BACKRIGHT}
+                          resizeMode="contain"
+                          style={{
+                            width: 31,
+                            height: 31,
+                          }}
+                        />
+                      </>
+                    </View>
+                  </View>
+                </ScrollView>
+              </ImageBackground>
+            </View>
+            <View
+              style={{
+                width: '95%',
+                height: 56,
+                position: 'absolute',
+                bottom: height * 0.01,
+                alignSelf: 'center',
+                zIndex: 1,
+              }}>
+              <ImageBackground
+                source={ImageData.TABBACKGROUND}
+                style={styles.thirdBackground}
+                resizeMode="stretch">
+                {modalopen ? (
                   <View
                     style={{
-                      top: height * 0.02,
+                      width: '95%',
+                      height: '100%',
+
+                      justifyContent: 'center',
+                      alignItems: 'flex-end',
+                      overflow: 'hidden',
                     }}>
-                    <Button2
-                      width={subscription?.length > 0 ? 280 : 250}
-                      height={50}
-                      buttonTitle={
-                        (subscription?.length == undefined ||
-                          subscription?.length == 0) &&
-                        subscription?.subscriptionStatus == 'Active'
-                          ? 'Manage Subscription'
-                          : 'Upgrade'
-                      }
-                      img={IconData.UPGRADE}
+                    <Button
+                      img={IconData.SAVE}
+                      text="Save"
                       left={true}
-                      size={20}
-                      onPress={() => navigation.navigate('Subscription')}
+                      width={91}
+                      height={40}
+                      backgroundColor={Color.BROWN4}
+                      size={16}
+                      font={Font.EBGaramond_SemiBold}
+                      onPress={() => {
+                        updateProfile();
+                      }}
+                      style={{width: '50%', zIndex: -1}}
+                      // disabled={currentPage === subTitleText?.length - 1}
                     />
                   </View>
-                </View>
-                <View
-                  style={{
-                    width: '100%',
-                    // height: '10%',
-                    flexDirection: 'row',
+                ) : (
+                  <View
+                    style={{
+                      width: '95%',
+                      height: '100%',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
 
-                    justifyContent: 'space-between',
-                  }}>
-                  <>
-                    <Image
-                      source={ImageData.BACKLEFT}
-                      resizeMode="contain"
+                      alignItems: 'center',
+                    }}>
+                    <View
                       style={{
-                        width: 31,
-                        height: 31,
+                        width: '40%',
+                        flexDirection: 'row',
+
+                        justifyContent: 'space-between',
+                      }}>
+                      <Pressable onPress={handlePress}>
+                        <Image
+                          source={IconData.INSTA}
+                          style={{width: 24, height: 24, left: 10}}
+                        />
+                      </Pressable>
+                    </View>
+
+                    <Button
+                      img={IconData.MAIL}
+                      text="Contact Us"
+                      left={true}
+                      width={140}
+                      height={40}
+                      size={15}
+                      backgroundColor={Color.BROWN4}
+                      font={Font.EBGaramond_SemiBold}
+                      onPress={() => {
+                        handlePress1();
                       }}
                     />
-
-                    <Image
-                      source={ImageData.BACKRIGHT}
-                      resizeMode="contain"
-                      style={{
-                        width: 31,
-                        height: 31,
-                      }}
-                    />
-                  </>
-                </View>
-              </View>
-            </ScrollView>
-          </ImageBackground>
-        </View>
-        <View
-          style={{
-            width: '95%',
-            height: 56,
-            position: 'absolute',
-            bottom: height * 0.02,
-            alignSelf: 'center',
-
-            zIndex: 1,
-          }}>
-          <ImageBackground
-            source={ImageData.TABBACKGROUND}
-            style={styles.thirdBackground}
-            resizeMode="stretch">
-            {modalopen ? (
-              <View
-                style={{
-                  width: '95%',
-                  height: '100%',
-
-                  justifyContent: 'center',
-                  alignItems: 'flex-end',
-                  overflow: 'hidden',
-                }}>
-                <Button
-                  img={IconData.SAVE}
-                  text="Save"
-                  left={true}
-                  width={91}
-                  height={40}
-                  backgroundColor={Color.BROWN4}
-                  size={16}
-                  font={Font.EBGaramond_SemiBold}
-                  onPress={() => {
-                    updateProfile();
-                  }}
-                  style={{width: '50%', zIndex: -1}}
-                  // disabled={currentPage === subTitleText?.length - 1}
-                />
-              </View>
-            ) : (
-              <View
-                style={{
-                  width: '95%',
-                  height: '100%',
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-
-                  alignItems: 'center',
-                }}>
-                <View
-                  style={{
-                    width: '40%',
-                    flexDirection: 'row',
-
-                    justifyContent: 'space-between',
-                  }}>
-                  <Pressable onPress={handlePress}>
-                    <Image
-                      source={IconData.INSTA}
-                      style={{width: 24, height: 24, left: 10}}
-                    />
-                  </Pressable>
-                </View>
-
-                <Button
-                  img={IconData.MAIL}
-                  text="Contact Us"
-                  left={true}
-                  width={140}
-                  height={40}
-                  size={15}
-                  backgroundColor={Color.BROWN4}
-                  font={Font.EBGaramond_SemiBold}
-                  onPress={() => {
-                    handlePress1();
-                  }}
-                />
-              </View>
-            )}
-          </ImageBackground>
-        </View>
-        {modalopen && (
-          <KeyboardAvoidingView
-            style={styles.backdrop}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <TouchableWithoutFeedback
-              onPress={Keyboard.dismiss}
-              accessible={false}>
-              {/* <ScrollView
+                  </View>
+                )}
+              </ImageBackground>
+            </View>
+            {modalopen && (
+              <KeyboardAvoidingView
+                style={styles.backdrop}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                <TouchableWithoutFeedback
+                  onPress={Keyboard.dismiss}
+                  accessible={false}>
+                  {/* <ScrollView
                 contentContainerStyle={{
                   flexGrow: 1,
                   justifyContent: 'flex-end',
                 }}> */}
-              <ImageBackground
-                source={ImageData.MODAL}
-                style={styles.modalSheet}
-                imageStyle={styles.imageStyle} // apply radius to image
-                resizeMode="cover">
-                <View
-                  style={{
-                    width: '95%',
+                  <ImageBackground
+                    source={ImageData.MODAL}
+                    style={styles.modalSheet}
+                    imageStyle={styles.imageStyle} // apply radius to image
+                    resizeMode="cover">
+                    <View
+                      style={{
+                        width: '95%',
 
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignSelf: 'center',
-                    paddingVertical: 10,
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    position: 'relative',
-                  }}>
-                  <Text
-                    style={{
-                      fontSize: 24,
-                      fontFamily: Font.EBGaramond_SemiBold,
-                      textAlign: 'center',
-                    }}>
-                    Edit Profile
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => setModalOpen(false)}
-                    style={{position: 'absolute', right: 10}}>
-                    <Image
-                      source={IconData.CANCEL}
-                      style={{width: 35, height: 35}}
-                    />
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity
-                  onPress={() => {
-                    openLibrary();
-                  }}
-                  style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 60,
-                    alignSelf: 'center',
-                    borderWidth: 3,
-                    padding: 2,
-                    borderColor: Color.BROWN2,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    // backgroundColor: Color.BROWN2,
-                  }}>
-                  <Image
-                    source={
-                      image?.base64
-                        ? {uri: `data:${image.type};base64,${image.base64}`}
-                        : image?.uri
-                        ? {uri: image.uri}
-                        : ImageData.NOIMAGE
-                    }
-                    style={{
-                      width: 110,
-                      height: 110,
-                      borderRadius: 55,
-                      alignSelf: 'center',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignSelf: 'center',
+                        paddingVertical: 10,
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        position: 'relative',
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 24,
+                          fontFamily: Font.EBGaramond_SemiBold,
+                          textAlign: 'center',
+                        }}>
+                        Edit Profile
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setModalOpen(false)}
+                        style={{position: 'absolute', right: 10}}>
+                        <Image
+                          source={IconData.CANCEL}
+                          style={{width: 35, height: 35}}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        openLibrary();
+                      }}
+                      style={{
+                        width: 120,
+                        height: 120,
+                        borderRadius: 60,
+                        alignSelf: 'center',
+                        borderWidth: 3,
+                        padding: 2,
+                        borderColor: Color.BROWN2,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        // backgroundColor: Color.BROWN2,
+                      }}>
+                      <Image
+                        source={
+                          image?.base64
+                            ? {uri: `data:${image.type};base64,${image.base64}`}
+                            : image?.uri
+                            ? {uri: image.uri}
+                            : ImageData.NOIMAGE
+                        }
+                        style={{
+                          width: 110,
+                          height: 110,
+                          borderRadius: 55,
+                          alignSelf: 'center',
 
-                      // backgroundColor: Color.BROWN2,
-                    }}
-                  />
-                </TouchableOpacity>
-                <View
-                  style={{
-                    width: '90%',
-                    height: 52,
-                    borderRadius: 12,
-                    borderWidth: 2,
-                    borderColor: Color.BROWN2,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginVertical: height * 0.02,
-                    marginHorizontal: width * 0.03,
-                    backgroundColor: Color.BROWN3,
-                  }}>
-                  <TextInput
-                    value={name}
-                    onChangeText={text => setName(text)}
-                    placeholder="Enter your name"
-                    placeholderTextColor={Color.GREEN}
-                    style={{
-                      width: '90%',
-                      height: '100%',
-                      color: Color.LIGHTGREEN,
-                      fontSize: 16,
-                      fontFamily: Font.EBGaramond_Regular,
-                    }}
-                    selectionColor={Color.LIGHTGREEN}
-                  />
-                </View>
-              </ImageBackground>
-              {/* </ScrollView> */}
-            </TouchableWithoutFeedback>
-          </KeyboardAvoidingView>
-        )}
+                          // backgroundColor: Color.BROWN2,
+                        }}
+                      />
+                    </TouchableOpacity>
+                    <View
+                      style={{
+                        width: '90%',
+                        height: 52,
+                        borderRadius: 12,
+                        borderWidth: 2,
+                        borderColor: Color.BROWN2,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginVertical: height * 0.02,
+                        marginHorizontal: width * 0.03,
+                        backgroundColor: Color.BROWN3,
+                      }}>
+                      <TextInput
+                        value={name}
+                        onChangeText={text => setName(text)}
+                        placeholder="Enter your name"
+                        placeholderTextColor={Color.GREEN}
+                        style={{
+                          width: '90%',
+                          height: '100%',
+                          color: Color.LIGHTGREEN,
+                          fontSize: 16,
+                          fontFamily: Font.EBGaramond_Regular,
+                        }}
+                        selectionColor={Color.LIGHTGREEN}
+                      />
+                    </View>
+                  </ImageBackground>
+                  {/* </ScrollView> */}
+                </TouchableWithoutFeedback>
+              </KeyboardAvoidingView>
+            )}
+          </ImageBackground>
+        </SafeAreaView>
       </ImageBackground>
-    </View>
+    </>
   );
 };
 
@@ -809,7 +846,7 @@ const styles = StyleSheet.create({
   },
   secondaryContainer: {
     width: '90%',
-    height: '85%',
+    height: '90%',
   },
   secondaryBackground: {
     width: '100%', // Fills the parent container

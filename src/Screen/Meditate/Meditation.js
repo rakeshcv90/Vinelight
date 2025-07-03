@@ -3,18 +3,23 @@ import {
   FlatList,
   Image,
   ImageBackground,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import FastImage from 'react-native-fast-image';
 import {deleteCustomMeditation} from '../../redux/actions';
+import {Consumer} from 'react-native-paper/lib/typescript/core/settings';
+import Toast from 'react-native-toast-message';
+import {isCoupanValid, isSubscriptionValid} from '../utils';
+import NetInfo from '@react-native-community/netinfo';
 const {width, height} = Dimensions.get('window');
 const Meditation = () => {
   const navigation = useNavigation();
@@ -22,7 +27,17 @@ const Meditation = () => {
   const meditationData = useSelector(state => state?.user?.meditationdata);
   const customMeditation = useSelector(state => state?.user?.customeMedidation);
   const subscription = useSelector(state => state?.user?.subscription);
+  const coupaDetails = useSelector(state => state?.user?.coupaDetails);
   const [selectedHeader, setSelectedHeader] = useState(0);
+  const [isConnected, setIsConnected] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
+
+    return () => unsubscribe();
+  }, []);
   const renderItem = ({item, index}) => {
     const formatDuration = totalSeconds => {
       const minutes = Math.floor(totalSeconds / 60);
@@ -32,96 +47,104 @@ const Meditation = () => {
     return (
       <View style={styles.card}>
         <View style={styles.content}>
-          <Text style={styles.title}>{item?.name}</Text>
-          <Text style={styles.description} numberOfLines={3}>
-            {item?.description}
+          <Text style={[styles.title, {width: width * 0.55}]}>
+            {item?.name}
           </Text>
-        </View>
-        <View style={styles.rightSide}>
           <TouchableOpacity
             style={styles.playButton}
             onPress={() => {
-              navigation.navigate('MeditationPlayer', {itemData: item});
+              if (item?.lyrics_path == null) {
+                Toast.show({
+                  type: 'custom',
+                  position: 'top',
+                  props: {
+                    icon: IconData.ERR, // your custom image
+                    text: 'There are no songs to play.',
+                  },
+                });
+              } else {
+                if (isConnected) {
+                  navigation.navigate('MeditationPlayer', {itemData: item});
+                } else {
+                  Toast.show({
+                    type: 'custom',
+                    position: 'top',
+                    props: {
+                      icon: IconData.ERR,
+                      text: 'Poor internet connection or not working',
+                    },
+                  });
+                }
+              }
+
+              //
             }}>
             <Image
               source={ImageData.PLAYBUTTON}
               style={{width: 40, height: 40}}
             />
           </TouchableOpacity>
-          {/* <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>
-              {formatDuration(item?.time)}
-            </Text>
-          </View> */}
         </View>
       </View>
     );
   };
   const renderItem1 = ({item, index}) => {
-
-    // const timeKeys = ['pre', 'med', 'int', 'end', 'res'];
-    // let totalSeconds = 0;
-
-    // timeKeys.forEach(key => {
-    //   const section = item[key];
-    //   if (section) {
-    //     const min = parseInt(section.minute || '0', 10);
-    //     const sec = parseInt(section.second || '0', 10);
-    //     totalSeconds += min * 60 + sec;
-    //   }
-    // });
-
-    // const formatDuration = totalSeconds => {
-    //   const minutes = Math.floor(totalSeconds / 60);
-    //   const seconds = totalSeconds % 60;
-    //   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    // };
     const totalMinutes =
       parseInt(item?.timeData?.med?.minute) +
       parseInt(item?.timeData?.med?.second) / 60;
 
     return (
       <View style={styles.card}>
-        <View style={styles.rightSide}>
-          <TouchableOpacity
-            // style={styles.playButton}
-            onPress={() => {
-              navigation.navigate('AdvanceMediaPlayer', {
-                itemData: item?.timeData,
-              });
-            }}>
-            <Image
-              source={ImageData.PLAYBUTTON}
-              style={{width: 40, height: 40}}
-            />
-
-          </TouchableOpacity>
-
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>{totalMinutes} Mins</Text>
-          </View>
-        </View>
-        <View style={styles.content}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+          }}>
           <View
             style={{
+              //  width: '100%',
               flexDirection: 'row',
-              justifyContent: 'space-between',
+              justifyContent: 'flex-start',
               alignItems: 'center',
             }}>
-            <Text style={styles.title}> {item?.timeData?.user?.name}</Text>
             <TouchableOpacity
-              onPress={() => dispatch(deleteCustomMeditation(item?.id))}>
+              style={styles.playButton}
+              onPress={() => {
+                if (isConnected) {
+                  navigation.navigate('AdvanceMediaPlayer', {
+                    itemData: item?.timeData,
+                  });
+                } else {
+                  Toast.show({
+                    type: 'custom',
+                    position: 'top',
+                    props: {
+                      icon: IconData.ERR,
+                      text: 'Poor internet connection or not working',
+                    },
+                  });
+                }
+              }}>
               <Image
-                source={IconData.DELETE}
-                style={{width: 20, height: 20}}
-                tintColor={Color.LIGHTGREEN}
+                source={ImageData.PLAYBUTTON}
+                style={{width: 40, height: 40, justifyContent: 'center'}}
               />
             </TouchableOpacity>
+            <Text style={[styles.title, {width: width * 0.55}]}>
+              {' '}
+              {item?.timeData?.user?.name}
+            </Text>
           </View>
-
-          {/* <Text style={styles.description} numberOfLines={3}>
-           Meditation is created by user
-          </Text> */}
+          <TouchableOpacity
+            onPress={() => dispatch(deleteCustomMeditation(item?.id))}>
+            <Image
+              source={IconData.DELETE}
+              style={{width: 20, height: 20}}
+              tintColor={Color.LIGHTGREEN}
+            />
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -141,6 +164,7 @@ const Meditation = () => {
           style={{
             width: width * 0.5,
             height: height * 0.2,
+            marginTop: height * 0.03,
           }}
         />
         <Text
@@ -148,15 +172,20 @@ const Meditation = () => {
             fontSize: 24,
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
+            textAlign: 'center',
           }}>
-          No medatation data available.
+          No meditation data available.
         </Text>
       </View>
     );
   };
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
-    <View style={styles.secondaryContainer}>
+    <View
+      style={[
+        styles.secondaryContainer,
+        {height: Platform.OS == 'android' && height >= 780 ? '90%' : '85%'},
+      ]}>
       <FastImage
         source={memoizedBackground}
         style={styles.secondaryBackground}
@@ -211,8 +240,8 @@ const Meditation = () => {
               }}>
               <Text style={styles.subText}>Meditations</Text>
             </View>
-            {/* {(subscription?.length > 0 ||
-              subscription?.length == undefined) && ( */}
+            {(isSubscriptionValid(subscription) ||
+              isCoupanValid(coupaDetails)) && (
               <View
                 style={{
                   width: '75%',
@@ -294,8 +323,9 @@ const Meditation = () => {
                   </Text>
                 </TouchableOpacity>
               </View>
-            {/* )} */}
-            {/* {subscription?.length > 0 || subscription?.length == undefined ? ( */}
+            )}
+            {isSubscriptionValid(subscription) ||
+            isCoupanValid(coupaDetails) ? (
               <View
                 style={{
                   width: '96%',
@@ -311,7 +341,7 @@ const Meditation = () => {
                   renderItem={selectedHeader == 0 ? renderItem : renderItem1}
                 />
               </View>
-            {/* ) : (
+            ) : (
               <View
                 style={{
                   width: '96%',
@@ -327,7 +357,7 @@ const Meditation = () => {
                   renderItem={renderItem1}
                 />
               </View>
-            )} */}
+            )}
             <View
               style={{
                 width: '96%',
@@ -335,7 +365,13 @@ const Meditation = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'center',
-                top: height * 0.008,
+
+                top:
+                  Platform.OS == 'ios'
+                    ? height * 0.009
+                    : height >= 780
+                    ? height * 0.0
+                    : height * 0.009,
                 flexDirection: 'row',
               }}>
               <Button2
@@ -403,19 +439,22 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: Color.BROWN3,
-    paddingTop: 8,
+    paddingTop: 10,
     paddingLeft: 12,
-    paddingRight: 13,
-    paddingBottom: 8,
+    paddingRight: 12,
+    paddingBottom: 5,
     borderRadius: 8,
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    margin: 1,
+    // margin: 1,
     marginTop: 10,
   },
   content: {
     flex: 1,
-    paddingLeft: 12,
+    // paddingLeft: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
   },
   title: {
     fontSize: 18,
@@ -432,7 +471,7 @@ const styles = StyleSheet.create({
   },
   rightSide: {
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    // justifyContent: 'flex-start',
   },
   playButton: {
     width: 44,
@@ -445,17 +484,15 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   durationBadge: {
-    backgroundColor: Color.LIGHTBROWN2,
-    paddingLeft: 6,
-    paddingRight: 6,
-    gap: 10,
-    paddingVertical: 3,
-    borderRadius: 12,
+    alignItems: 'center',
+    // justifyContent: 'flex-start',
+    gap: 5,
+    flexDirection: 'row',
     marginTop: 5,
   },
   durationText: {
-    fontSize: 12,
-    color: Color.LIGHTGREEN,
+    fontSize: 14,
+    color: '#A37F53',
     fontFamily: Font.EBGaramond_SemiBold,
   },
   icon: {

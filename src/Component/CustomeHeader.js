@@ -23,7 +23,7 @@ const CustomeHeader = ({
   };
   const [toolVisible, setToolVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 50});
-  console.log("Header Data",selectedDate)
+
   return (
     <View
       style={{
@@ -205,7 +205,7 @@ const CustomeHeader = ({
                 }}
                 style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
                 <Image
-                  source={IconData.DELETE}
+                  source={IconData.UNDO}
                   style={{width: 20, height: 20, marginLeft: 5}}
                   resizeMode="contain"
                   tintColor={'#fff'}
@@ -216,7 +216,7 @@ const CustomeHeader = ({
                     fontSize: 16,
                     fontFamily: Font.EBGaramond_SemiBold,
                   }}>
-                Undo
+                  Undo
                 </Text>
               </TouchableOpacity>
             </View>

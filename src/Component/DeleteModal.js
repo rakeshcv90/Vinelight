@@ -10,9 +10,17 @@ import {
 } from 'react-native';
 import {Color, Font, IconData, ImageData} from '../../assets/Image';
 
-const DeleteModal = ({visible, onClose, onDeleteAll, onDeleteOne}) => {
+const DeleteModal = ({visible, onClose,
+  //  onDeleteAll, onDeleteOne
+  }) => {
+ console.log("Testsss")
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      onDismiss={onClose}>
       <View style={styles.backdrop}>
         <ImageBackground
           source={ImageData.MODAL}
@@ -25,16 +33,20 @@ const DeleteModal = ({visible, onClose, onDeleteAll, onDeleteOne}) => {
           <Text style={styles.title}>Delete Repeating Goal?</Text>
 
           <Text style={styles.message}>
-            This is a repeating task. Do you want to delete just this entry
-            or all the future entries too?
+            This is a repeating task. Do you want to delete just this entry or
+            all the future entries too?
           </Text>
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.deleteAllBtn} onPress={onDeleteAll}>
+            <TouchableOpacity style={styles.deleteAllBtn} 
+            // onPress={onDeleteAll}
+            >
               <Text style={styles.buttonText}>Delete All</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.deleteOneBtn} onPress={onDeleteOne}>
+            <TouchableOpacity style={styles.deleteOneBtn}
+            //  onPress={onDeleteOne}
+             >
               <Image source={IconData.DELETE} style={{width: 25, height: 25}} />
               <Text style={styles.buttonText}> Delete Only This</Text>
             </TouchableOpacity>

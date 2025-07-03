@@ -8,5 +8,7 @@ export const Api = {
   GET_SUBCATEGORIES: 'get-subcategories',
   MEDITATION_MUSIC: 'meditations_music',
   SOUND: 'sound',
-  SUBCATEGORIES_PRMPTS:'subcategories_prompt'
+  SUBCATEGORIES_PRMPTS: 'subcategories_prompt',
+  APPLY_COUPAN: 'apply-coupon',
+  COUPAN_STATUS: 'coupon-status',
 };

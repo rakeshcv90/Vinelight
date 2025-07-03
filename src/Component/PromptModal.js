@@ -14,10 +14,11 @@ import {Color, Font, IconData, ImageData} from '../../assets/Image';
 import {callApi, callApi1} from './ApiCall';
 import {Api} from '../Api';
 import Toast from 'react-native-toast-message';
+import FastImage from 'react-native-fast-image';
 const {width, height} = Dimensions.get('window');
 const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
   const [header, setHeader] = useState('Categories');
-  const [header2, setHeader2] = useState('Sub Categories');
+  const [header2, setHeader2] = useState('Subcategories');
   const [header3, setHeader3] = useState('Prompts');
 
   const [categories, setCategories] = useState([]);
@@ -27,11 +28,10 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [visible]);
   const fetchData = async () => {
     try {
       const data = await callApi(Api.CATEGORIES);
-
       setCategories(data?.categories?.journal_prompt);
     } catch (error) {
       console.error('Error:', error.message);
@@ -44,6 +44,7 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
       if (data?.success) {
         if (data?.sub_category == 'true') {
           setSubCategories(data?.data);
+          setPrompts(null);
           setListOpen(1);
         } else {
           setPrompts(data?.data);
@@ -58,6 +59,8 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
             text: 'Sub-Categories Data Not Found',
           },
         });
+        setSubCategories([]); // Clear subcategories when going directly to prompts
+        setPrompts(data?.data);
       }
     } catch (error) {
       console.error('Error:', error.message);
@@ -102,11 +105,12 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
         onPress={() => {
           openSubList(item?.id);
         }}>
-        <Image
+        <FastImage
           source={{uri: item?.image_path}}
           style={{width: 24, height: 24}}
-          resizeMode="contain"
-        />
+          // resizeMode="¸"
+          resizeMode={FastImage.resizeMode.contain}></FastImage>
+
         <Text style={styles.title}>{item?.name}</Text>
       </TouchableOpacity>
     );
@@ -120,11 +124,10 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
         onPress={() => {
           openPropmptsList(item?.sub_category);
         }}>
-        <Image
+        <FastImage
           source={{uri: item?.image_url}}
           style={{width: 24, height: 24}}
-          resizeMode="contain"
-        />
+          resizeMode={FastImage.resizeMode.contain}></FastImage>
         <Text style={styles.title}>{item?.sub_category}</Text>
       </TouchableOpacity>
     );
@@ -144,18 +147,32 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
       </TouchableOpacity>
     );
   };
+  // const backScreen = dataItem => {
+  //   if (dataItem == 1) {
+  //     setListOpen(0);
+  //     fetchData();
+  //   } else if (dataItem == 2 && subcategories?.length == 0) {
+  //     setListOpen(0);
+  //     fetchData();
+  //   } else {
+  //     setListOpen(1);
+  //   }
+  // };
   const backScreen = dataItem => {
-    if (dataItem == 1) {
+    if (dataItem === 2) {
+      setPrompts(null);
+      if (subcategories?.length > 0) {
+        setListOpen(1);
+      } else {
+        setListOpen(0);
+        fetchData();
+      }
+    } else if (dataItem === 1) {
+      setSubCategories([]);
       setListOpen(0);
       fetchData();
-    } else if (dataItem == 2 && subcategories?.length == 0) {
-      setListOpen(0);
-      fetchData();
-    } else {
-      setListOpen(1);
     }
   };
-
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
@@ -271,7 +288,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: Font.EBGaramond_Regular,
-    textAlign: 'center',
+    textAlign: 'left',
     color: Color.LIGHTGREEN,
     lineHeight: 24,
   },
