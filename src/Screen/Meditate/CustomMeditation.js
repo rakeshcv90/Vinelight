@@ -243,7 +243,7 @@ const CustomMeditation = ({navigation}) => {
                             color: Color.LIGHTGREEN,
                             fontSize: 40,
                             borderRadius: 8,
-                            left: -10,
+                            left: -5,
 
                             textAlign: 'center',
                             fontFamily: Font.EB_Garamond_Bold,
@@ -265,7 +265,7 @@ const CustomMeditation = ({navigation}) => {
                             textAlign: 'center',
                             fontFamily: Font.EB_Garamond_Bold,
                           }}>
-                          M
+                          m
                         </Text>
                       </View>
                       <Text style={styles.timerText}>:</Text>
@@ -298,7 +298,7 @@ const CustomMeditation = ({navigation}) => {
                             justifyContent: 'center',
                             textAlign: 'center',
                             alignItems: 'center',
-                            left: -10,
+                            // left: -10,
                             fontFamily: Font.EB_Garamond_Bold,
                           }}
                           keyboardType="numeric"
@@ -318,7 +318,7 @@ const CustomMeditation = ({navigation}) => {
                             textAlign: 'center',
                             fontFamily: Font.EB_Garamond_Bold,
                           }}>
-                          S
+                          s
                         </Text>
                       </View>
                     </View>

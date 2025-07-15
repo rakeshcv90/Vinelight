@@ -577,10 +577,13 @@ const Goal = ({isActive}) => {
                           onClose={() => setTooltipVisible(false)}
                         />
                       </View>
-                     
+                     {console.log("dddddddd",height)}
                       <View
-                        style={{
-                          right: height <= 900 ? height*0.015 : -2,
+                        // style={{
+                        //   right: height <= 900 ? height*0.0045 : 0,
+                        // }}
+                            style={{
+                          right: height <= 800 ? height*0.0045 : 0,
                         }}
                         >
                         <Button

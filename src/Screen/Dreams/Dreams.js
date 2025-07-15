@@ -339,7 +339,7 @@ const Dreams = () => {
                           dreaItem: clickedDateData,
                         });
                       }}>
-                      <Text style={styles.taskText} numberOfLines={3}>
+                      <Text style={styles.taskText} numberOfLines={2}>
                         {dream?.dreamContent
                           ? htmlToPlainText(dream.dreamContent)
                           : 'No content available'}

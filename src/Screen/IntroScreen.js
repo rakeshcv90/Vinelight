@@ -157,16 +157,21 @@ const IntroScreen = ({navigation}) => {
   };
   return (
     <>
-      {Platform.OS == 'ios' ? (
-        <View style={styles.container}>
+      {/* {Platform.OS == 'ios' ? ( */}
+
+           <ImageBackground
+            source={ImageData.BACKGROUND}
+            style={{flex: 1}}
+            resizeMode="cover">
+        <SafeAreaView style={styles.container}>
           <StatusBar
             translucent
             backgroundColor="transparent"
             barStyle="light-content"
           />
           <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             style={{flex: 1}}>
             <ScrollView
               contentContainerStyle={{flexGrow: 1}}
@@ -425,8 +430,8 @@ const IntroScreen = ({navigation}) => {
               </ImageBackground>
             </ScrollView>
           </KeyboardAvoidingView>
-        </View>
-      ) : (
+        </SafeAreaView></ImageBackground>
+      {/* ) : (
         <>
           <ImageBackground
             source={ImageData.BACKGROUND}
@@ -705,7 +710,7 @@ const IntroScreen = ({navigation}) => {
             </SafeAreaView>
           </ImageBackground>
         </>
-      )}
+      )} */}
     </>
   );
 };

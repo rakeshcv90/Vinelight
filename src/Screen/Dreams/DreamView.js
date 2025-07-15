@@ -232,7 +232,7 @@ const DreamView = ({route, navigation}) => {
                   imageStyle={{borderRadius: 10}}
                   style={{
                     width: '95%',
-
+                    marginTop: height >= 850 ? -height * 0.025 : 0,
                     alignSelf: 'center',
 
                     alignItems: 'center',
@@ -559,7 +559,7 @@ const DreamView = ({route, navigation}) => {
                   imageStyle={{borderRadius: 10}}
                   style={{
                     width: '95%',
-
+                    marginTop: height >= 850 ? -height * 0.025 : 0,
                     alignSelf: 'center',
 
                     alignItems: 'center',
@@ -624,7 +624,12 @@ const DreamView = ({route, navigation}) => {
             )}
             <ImageBackground
               source={ImageData.TABBACKGROUND}
-              style={styles.thirdBackground}
+              style={[
+                styles.thirdBackground,
+                {
+                  bottom: height <=900&& height >=800 ? 40 : 15,
+                },
+              ]}
               resizeMode="contain">
               <View
                 style={{

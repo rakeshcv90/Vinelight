@@ -74,7 +74,7 @@ const MainPage = ({navigation, route}) => {
 
   return (
     <>
-      {Platform.OS == 'ios' ? (
+      {/* {Platform.OS == 'ios' ? (
         <View style={styles.container}>
           <StatusBar
             translucent
@@ -153,7 +153,7 @@ const MainPage = ({navigation, route}) => {
             </View>
           </ImageBackground>
         </View>
-      ) : (
+      ) : ( */}
         <>
           <ImageBackground
             source={ImageData.BACKGROUND}
@@ -239,7 +239,7 @@ const MainPage = ({navigation, route}) => {
             </SafeAreaView>
           </ImageBackground>
         </>
-      )}
+      {/* )} */}
     </>
   );
 };

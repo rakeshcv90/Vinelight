@@ -838,7 +838,7 @@ const AdvanceSetting = ({navigation}) => {
                             }}>
                             <View
                               style={{
-                                width: '50%',
+                                width: '53%',
                                 height: 40,
                                 backgroundColor: Color.BROWN3,
                                 alignSelf: 'center',
@@ -1033,7 +1033,7 @@ const AdvanceSetting = ({navigation}) => {
                             }}>
                             <View
                               style={{
-                                width: '50%',
+                                width: '53%',
                                 height: 40,
                                 backgroundColor: Color.BROWN3,
                                 alignSelf: 'center',

@@ -326,7 +326,7 @@ const Journal = ({}) => {
                               journal: clickedDateData,
                             });
                           }}>
-                          <Text style={styles.taskText} numberOfLines={3}>
+                          <Text style={styles.taskText} numberOfLines={2}>
                             {journal?.journalContent
                               ? htmlToPlainText(journal?.journalContent)
                               : 'No content available'}
@@ -718,7 +718,7 @@ const Journal = ({}) => {
                                 journal: clickedDateData,
                               });
                             }}>
-                            <Text style={styles.taskText} numberOfLines={3}>
+                            <Text style={styles.taskText} numberOfLines={2}>
                               {journal?.journalContent
                                 ? htmlToPlainText(journal?.journalContent)
                                 : 'No content available'}

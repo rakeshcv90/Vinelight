@@ -1897,6 +1897,30 @@ PODS:
     - React-Core
     - SDWebImage (~> 5.11.1)
     - SDWebImageWebPCoder (~> 0.8.4)
+  - RNGestureHandler (2.27.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNIap (12.16.2):
     - RCT-Folly
     - RCTRequired
@@ -2220,6 +2244,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNFastImage (from `../node_modules/react-native-fast-image`)
+  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNIap (from `../node_modules/react-native-iap`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -2398,6 +2423,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/datetimepicker"
   RNFastImage:
     :path: "../node_modules/react-native-fast-image"
+  RNGestureHandler:
+    :path: "../node_modules/react-native-gesture-handler"
   RNIap:
     :path: "../node_modules/react-native-iap"
   RNPermissions:
@@ -2496,6 +2523,7 @@ SPEC CHECKSUMS:
   ReactCommon: aa48e4fddbc6a0afa19dca39a1b6016c150b5db4
   RNDateTimePicker: 43ee3de2bc639bc0d9b77564961060a54dfc7111
   RNFastImage: 462a183c4b0b6b26fdfd639e1ed6ba37536c3b87
+  RNGestureHandler: e9dfbf95010aa6aa3212dcdefb0d38a42006cbab
   RNIap: d73cedfb73b396cad75f90f4ed7d64352d6381cf
   RNPermissions: 3a7d5252a79dc81fbd144b261e9b247ab03b2e2b
   RNReanimated: 722d67dfde539bfe29b572878f4bc805f727726b

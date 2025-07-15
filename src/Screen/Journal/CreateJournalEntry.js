@@ -68,7 +68,7 @@ const CreateJournalEntry = ({navigation, route}) => {
       ? moment().local().format('YYYY-MM-DD')
       : DataCurrent,
   );
-  console.log('Journal', currentDat);
+
   const [propmModalOpen, setPromptMOdalOpen] = useState(false);
   const [colorModal, setColorModa] = useState(false);
   const dispatch = useDispatch();
@@ -137,22 +137,22 @@ const CreateJournalEntry = ({navigation, route}) => {
   //   }).start();
   // };
   const handleShow = () => {
-  setKeyboardVisible(true);
-  Animated.timing(animatedMarginTop, {
-    toValue: -height * 0.035, // move up
-    duration: 250,
-    useNativeDriver: false,
-  }).start();
-};
+    setKeyboardVisible(true);
+    Animated.timing(animatedMarginTop, {
+      toValue: -height * 0.035, // move up
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  };
 
-const handleHide = () => {
-  setKeyboardVisible(false);
-  Animated.timing(animatedMarginTop, {
-    toValue: 0, // back to normal
-    duration: 250,
-    useNativeDriver: false,
-  }).start();
-};
+  const handleHide = () => {
+    setKeyboardVisible(false);
+    Animated.timing(animatedMarginTop, {
+      toValue: 0, // back to normal
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  };
   useEffect(() => {
     const timer = setTimeout(() => {
       applyStyle();
@@ -324,7 +324,12 @@ const handleHide = () => {
   const handleInsertContent = () => {
     const rawText = prompt?.description || '';
 
-    const htmlContent = `<p>${rawText}</p><span id="cursor-marker">&#8203;</span>`;
+    // const htmlContent = `<p>${rawText}</p><span id="cursor-marker">&#8203;</span>`;
+       const htmlContent = `
+      <div>${rawText}</div>
+      <div><br></div> <!-- Ensures one empty line -->
+      <span id="cursor-marker">&#8203;</span>
+    `;
     editorRef.current.insertHTML(htmlContent);
     // editorRef.current.setContentHTML(htmlContent);
     setIsTyping(true);
@@ -342,9 +347,12 @@ const handleHide = () => {
   useEffect(() => {
     if (promptData) {
       // const htmlContent = `<p>${promptData}</p><span id="cursor-marker">&#8203;</span>`;
-        //  const htmlContent = `<p>${promptData}</p><br/><span id="cursor-marker">&#8203;</span>`;
-
-    const htmlContent = `<p>${promptData}</p><span id="cursor-marker">&#8203;</span>`;
+      //  const htmlContent = `<p>${promptData}</p><br/><span id="cursor-marker">&#8203;</span>`;
+      const htmlContent = `
+      <div>${promptData}</div>
+      <div><br></div> <!-- Ensures one empty line -->
+      <span id="cursor-marker">&#8203;</span>
+    `;
       editorRef.current.insertHTML(htmlContent);
 
       setTimeout(() => {
@@ -364,8 +372,11 @@ const handleHide = () => {
 
   return (
     <>
-      {Platform.OS == 'ios' ? (
-        <View style={styles.container}>
+      <ImageBackground
+        source={ImageData.BACKGROUND}
+        style={{flex: 1}}
+        resizeMode="cover">
+        <SafeAreaView style={styles.container}>
           <StatusBar
             translucent
             backgroundColor="transparent"
@@ -373,20 +384,18 @@ const handleHide = () => {
           />
           <KeyboardAvoidingView
             style={{flex: 1}}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0} // adjust if your header overlaps
-          >
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Changed from undefined to 'height'
+            keyboardVerticalOffset={-height * 0.05}>
             <TouchableWithoutFeedback
               onPress={() => {
                 Keyboard.dismiss();
-                Platform.OS == 'ios' && editorRef?.current?.blurContentEditor();
               }}
               accessible={false}>
               <ImageBackground
                 source={ImageData.BACKGROUND}
                 style={styles.primaryBackground}
                 resizeMode="cover">
-                <View style={{flex: 0.13, marginTop: 5}}>
+                <View style={{flex: 0.13, marginTop: -height * 0.04}}>
                   <CustomeHeader
                     onClear={() => {
                       clearEditorContent();
@@ -416,7 +425,11 @@ const handleHide = () => {
                       width: '95%',
                       // height: isKeyboardVisible?100:'100%',
                       alignSelf: 'center',
-                      marginTop: isKeyboardVisible ? 0 : -height * 0.035,
+                      marginTop: isKeyboardVisible
+                        ? height >= 800
+                          ? -20
+                          : 0
+                        : -height * 0.035,
                       alignItems: 'center',
                       borderRadius: 10,
                       marginLeft: 20,
@@ -458,20 +471,12 @@ const handleHide = () => {
                         </>
                       </View>
                       <ActivityLoader visible={loader} />
-                      {/* <ScrollView
+                      <ScrollView
                         ref={scrollRef}
                         style={styles.editorContainer}
                         keyboardShouldPersistTaps="handled"
                         contentInsetAdjustmentBehavior="automatic"
-                        contentContainerStyle={{flexGrow: 1}}> */}
-                      <ScrollView
-                        ref={scrollRef}
-                        style={styles.editorContainer}
-                        contentContainerStyle={{
-                          flexGrow: 1,
-                          padding: 10,
-                          paddingBottom: 10,
-                        }}>
+                        contentContainerStyle={{flexGrow: 1}}>
                         <View
                           onStartShouldSetResponder={() => true} // to make this View respond to touches
                           onResponderStart={() => {
@@ -497,7 +502,7 @@ const handleHide = () => {
                               contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
                               placeholderColor: '*000',
                             }}
-                            style={{minHeight: 500, paddingBottom: 0}}
+                            style={styles.richEditor}
                           />
                         </View>
                       </ScrollView>
@@ -688,7 +693,16 @@ const handleHide = () => {
                 </View>
                 <ImageBackground
                   source={ImageData.TABBACKGROUND}
-                  style={styles.thirdBackground}
+                  style={[
+                    styles.thirdBackground,
+                    {
+                      bottom: isKeyboardVisible
+                        ? height <= 800
+                          ? 30
+                          : 40
+                        : 10,
+                    },
+                  ]}
                   resizeMode="contain">
                   <View
                     style={{
@@ -804,451 +818,11 @@ const handleHide = () => {
             }}
             onClose={() => setColorModa(false)}
           />
-        </View>
-      ) : (
-        <>
-          <ImageBackground
-            source={ImageData.BACKGROUND}
-            style={{flex: 1}}
-            resizeMode="cover">
-            <SafeAreaView style={styles.container}>
-              <StatusBar
-                translucent
-                backgroundColor="transparent"
-                barStyle="light-content"
-              />
-              <KeyboardAvoidingView
-                style={{flex: 1}}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Changed from undefined to 'height'
-                keyboardVerticalOffset={-height * 0.05}>
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    Keyboard.dismiss();
-                  }}
-                  accessible={false}>
-                  <ImageBackground
-                    source={ImageData.BACKGROUND}
-                    style={styles.primaryBackground}
-                    resizeMode="cover">
-                    <View style={{flex: 0.13, marginTop: -height * 0.04}}>
-                      <CustomeHeader
-                        onClear={() => {
-                          clearEditorContent();
-                        }}
-                        onDelete={() => {
-                          clearEditorContent();
-                          navigation.goBack();
-                        }}
-                        selectedDate={currentDat}
-                        setCurrentDate={setCurrentDate}
-                        disable={false}
-                      />
-                    </View>
-
-                    <View
-                      style={{
-                        flex: 1,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}>
-                      <ImageBackground
-                        source={ImageData.DREAMBACKGROUND}
-                        resizeMode="stretch"
-                        imageStyle={{borderRadius: 10}}
-                        style={{
-                          width: '95%',
-                          // height: isKeyboardVisible?100:'100%',
-                          alignSelf: 'center',
-                          marginTop: isKeyboardVisible ? 10 : -height * 0.035,
-                          alignItems: 'center',
-                          borderRadius: 10,
-                          marginLeft: 20,
-                        }}>
-                        <View
-                          style={{
-                            width: '90%',
-                            maxHeight: isKeyboardVisible ? '70%' : '82%',
-                            marginTop: '2%',
-                            borderWidth: 1,
-
-                            borderColor: Color.LIGHTGREEN,
-                            backgroundColor: 'white',
-                            right: 10,
-                          }}>
-                          <View
-                            style={{
-                              width: '100%',
-                              // height: '10%',
-                              flexDirection: 'row',
-
-                              justifyContent: 'space-between',
-                            }}>
-                            <>
-                              <Image
-                                source={ImageData.LEFT}
-                                resizeMode="contain"
-                                style={{width: 31, height: 31}}
-                              />
-                              <Image
-                                source={ImageData.RIGHT}
-                                resizeMode="contain"
-                                style={{
-                                  width: 31,
-                                  height: 31,
-                                  backgroundColor: 'transparent',
-                                }}
-                              />
-                            </>
-                          </View>
-                          <ActivityLoader visible={loader} />
-                          <ScrollView
-                            ref={scrollRef}
-                            style={styles.editorContainer}
-                            keyboardShouldPersistTaps="handled"
-                            contentInsetAdjustmentBehavior="automatic"
-                            contentContainerStyle={{flexGrow: 1}}>
-                            <View
-                              onStartShouldSetResponder={() => true} // to make this View respond to touches
-                              onResponderStart={() => {
-                                editorRef.current?.focusContentEditor();
-                              }}
-                              style={{flex: 1}}>
-                              <RichEditor
-                                ref={editorRef}
-                                initialContentHTML=""
-                                initialFocus={false}
-                                onCursorPosition={handleCursorPosition}
-                                placeholder="Start writing here..."
-                                androidHardwareAccelerationDisabled
-                                androidLayerType="software"
-                                onInitialized={() => {
-                                  console.log('Editor is ready');
-                                  setEditorReady(true);
-                                }}
-                                onChange={text => {
-                                  handleTypingStart(text);
-                                }}
-                                editorStyle={{
-                                  contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
-                                  placeholderColor: '*000',
-                                }}
-                                style={styles.richEditor}
-                              />
-                            </View>
-                          </ScrollView>
-                          <View
-                            style={{
-                              width: '100%',
-                              // height: '10%',
-                              flexDirection: 'row',
-
-                              justifyContent: 'space-between',
-                            }}>
-                            <>
-                              <Image
-                                source={ImageData.BACKLEFT}
-                                resizeMode="contain"
-                                style={{
-                                  width: 31,
-                                  height: 31,
-                                }}
-                              />
-
-                              <Image
-                                source={ImageData.BACKRIGHT}
-                                resizeMode="contain"
-                                style={{
-                                  width: 31,
-                                  height: 31,
-                                }}
-                              />
-                            </>
-                          </View>
-                        </View>
-
-                        <View
-                          style={{
-                            width: '90%',
-                            height: 40,
-                            marginTop: '2%',
-                            marginLeft: -20,
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                          }}>
-                          <TouchableOpacity
-                            onPress={() => setShowFontDropdown(true)}
-                            style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              paddingHorizontal: -10,
-                              // width: 150,
-                              height: 36,
-                              gap: 10,
-                              borderRadius: 6,
-                            }}>
-                            <Text
-                              numberOfLines={1}
-                              style={{
-                                fontSize: 16,
-                                maxWidth: 100,
-                                color: Color.LIGHTGREEN,
-                              }}>
-                              {selectedFont?.label || 'Font'}
-                            </Text>
-                            <Image
-                              source={IconData.DROP}
-                              resizeMode="contain"
-                              style={{width: 12, height: 12, marginLeft: 4}}
-                              tintColor={Color.LIGHTGREEN}
-                            />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => {
-                              if (style?.size < 36) {
-                                onSizeSelect(style?.size + 3);
-                              }
-                            }}>
-                            <Image
-                              source={IconData.FONTPLUS}
-                              style={{width: 30, height: 30}}
-                              tintColor={Color.LIGHTGREEN}
-                            />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => {
-                              if (style.size > 12) {
-                                onSizeSelect(style?.size - 2);
-                              }
-                            }}>
-                            <Image
-                              source={IconData.FONTMINUS}
-                              style={{width: 30, height: 30}}
-                              tintColor={Color.LIGHTGREEN}
-                            />
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            onPress={() => {
-                              setColorModa(true);
-                            }}>
-                            <Image
-                              source={IconData.FONTCOLOR}
-                              style={{width: 30, height: 30}}
-                              tintColor={Color.LIGHTGREEN}
-                            />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={onUnderLine}
-                            style={{
-                              backgroundColor: !style.underline
-                                ? 'transparent'
-                                : Color.LIGHTBROWN2,
-                              padding: 5,
-                              borderRadius: 100,
-                            }}>
-                            <Image
-                              source={IconData.UNDERLINE}
-                              style={{width: 30, height: 30}}
-                              tintColor={Color.LIGHTGREEN}
-                            />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={onBold}
-                            style={{
-                              backgroundColor: !style.bold
-                                ? 'transparent'
-                                : Color.LIGHTBROWN2,
-                              padding: 5,
-                              borderRadius: 100,
-                            }}>
-                            <Image
-                              source={IconData.BOLD}
-                              style={{width: 25, height: 25}}
-                              tintColor={Color.LIGHTGREEN}
-                            />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={onItalic}
-                            style={{
-                              backgroundColor: !style.italic
-                                ? 'transparent'
-                                : Color.LIGHTBROWN2,
-                              padding: 5,
-                              borderRadius: 100,
-                            }}>
-                            <Image
-                              source={IconData.ITALIC}
-                              style={{width: 25, height: 25}}
-                              tintColor={Color.LIGHTGREEN}
-                            />
-                          </TouchableOpacity>
-                        </View>
-                        <Modal
-                          visible={showFontDropdown}
-                          transparent
-                          animationType="fade">
-                          <TouchableOpacity
-                            style={styles.modalOverlay}
-                            activeOpacity={1}
-                            onPressOut={() => setShowFontDropdown(false)}>
-                            <View style={styles.centeredDropdownWrapper}>
-                              <TouchableOpacity activeOpacity={1}>
-                                <View style={styles.fontDropdown}>
-                                  <ScrollView
-                                    showsVerticalScrollIndicator={false}>
-                                    {fonts.map((font, index) => (
-                                      <TouchableOpacity
-                                        key={index}
-                                        onPress={() => {
-                                          onFontSelect(font.value);
-                                          setSelectedFont(font);
-                                        }}
-                                        style={styles.fontOption}>
-                                        <Text
-                                          style={{
-                                            fontFamily: font.value,
-                                            fontSize: 16,
-                                          }}>
-                                          {font.label}
-                                        </Text>
-                                      </TouchableOpacity>
-                                    ))}
-                                  </ScrollView>
-                                </View>
-                              </TouchableOpacity>
-                            </View>
-                          </TouchableOpacity>
-                        </Modal>
-                      </ImageBackground>
-                    </View>
-                    <ImageBackground
-                      source={ImageData.TABBACKGROUND}
-                      style={[
-                        styles.thirdBackground,
-                        {bottom: isKeyboardVisible ? 30 : 10},
-                      ]}
-                      resizeMode="contain">
-                      <View
-                        style={{
-                          width: '95%',
-                          height: 70,
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          overflow: 'hidden',
-                        }}>
-                        {(isSubscriptionValid(subscription) ||
-                          isCoupanValid(coupaDetails)) && (
-                          <Button
-                            img={IconData.PROMPT}
-                            text="Prompts"
-                            left={true}
-                            width={100}
-                            backgroundColor={Color.BROWN4}
-                            height={40}
-                            size={16}
-                            font={Font.EBGaramond_SemiBold}
-                            onPress={() => {
-                              setPromptMOdalOpen(true);
-                            }}
-                            style={{width: '50%', zIndex: -1}}
-                          />
-                        )}
-
-                        <TouchableOpacity
-                          style={{
-                            flexDirection: 'row',
-                            gap: 2,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginLeft:
-                              isSubscriptionValid(subscription) ||
-                              isCoupanValid(coupaDetails)
-                                ? -15
-                                : 5,
-                          }}
-                          onPress={() => {
-                            setTooltipVisible(true);
-                          }}>
-                          <Image
-                            source={
-                              selectedMoods != null
-                                ? selectedMoods?.Image
-                                : IconData.HAPPY
-                            }
-                            style={{width: 20, height: 20}}
-                            resizeMode="contain"
-                          />
-
-                          <Text
-                            style={{
-                              color: Color.BROWN4,
-                              fontSize: 14,
-                              fontFamily: Font.EB_Garamond,
-                            }}>
-                            {selectedMoods != null
-                              ? selectedMoods?.name
-                              : 'Select Mood'}
-                          </Text>
-                          <Image
-                            source={IconData.DROP}
-                            resizeMode="contain"
-                            style={{width: 12, height: 12}}
-                            // tintColor={'red'}
-                          />
-                        </TouchableOpacity>
-                        <View style={{right: 12}}>
-                          <Button
-                            img={IconData.SAVE}
-                            text="Save"
-                            left={true}
-                            width={91}
-                            backgroundColor={Color.BROWN4}
-                            height={40}
-                            size={16}
-                            font={Font.EBGaramond_SemiBold}
-                            onPress={saveJournalData}
-                            style={{width: '40%', zIndex: -1}}
-                          />
-                        </View>
-
-                        <TooltipModal2
-                          visible={tooltipVisible}
-                          selectedOptions={selectedMoods}
-                          onSelect={option => {
-                            setSelectedMoods(option);
-                          }}
-                          onClose={() => setTooltipVisible(false)}
-                        />
-                      </View>
-                    </ImageBackground>
-                  </ImageBackground>
-                </TouchableWithoutFeedback>
-              </KeyboardAvoidingView>
-              <PromptModal
-                visible={propmModalOpen}
-                promptData={promptData}
-                setPromptData={setPromptData}
-                onClose={() => {
-                  setPromptMOdalOpen(false);
-                }}
-              />
-              <ColorToolModal
-                visible={colorModal}
-                selectedColor={style.color}
-                onSelect={hex => {
-                  onColorSelect(hex);
-                  setColorModa(false);
-                }}
-                onClose={() => setColorModa(false)}
-              />
-            </SafeAreaView>
-          </ImageBackground>
-        </>
-      )}
+        </SafeAreaView>
+      </ImageBackground>
     </>
+    //   )}
+    // </>
   );
 };
 const styles = StyleSheet.create({

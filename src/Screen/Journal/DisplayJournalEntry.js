@@ -45,6 +45,7 @@ const DisplayJournalEntry = ({route, navigation}) => {
   const getJournalData = useSelector(state => state?.user?.getJournalData);
   const getDreamData = useSelector(state => state?.user?.getDreamData);
   const goalData = useSelector(state => state.user?.goalByDate || []);
+  console.log('dddddddd', currentDream);
 
   useEffect(() => {
     const filteredData = getJournalData?.filter(dream => {
@@ -182,7 +183,7 @@ const DisplayJournalEntry = ({route, navigation}) => {
             source={ImageData.BACKGROUND}
             style={styles.primaryBackground}
             resizeMode="cover">
-            <View style={{flex: 0.13, marginTop: -height*0.045}}>
+            <View style={{flex: 0.13, marginTop: -height * 0.045}}>
               {selectedButton == 3 ? (
                 <CustomeHeader3
                   onClear={() => {
@@ -242,7 +243,8 @@ const DisplayJournalEntry = ({route, navigation}) => {
                     width: '95%',
 
                     alignSelf: 'center',
-                    marginTop: -height * 0.035,
+                    marginTop:
+                      height >= 800 ? -height * 0.045 : -height * 0.035,
                     alignItems: 'center',
                     borderRadius: 10,
                     marginLeft: 20,
@@ -628,7 +630,12 @@ const DisplayJournalEntry = ({route, navigation}) => {
             )}
             <ImageBackground
               source={ImageData.TABBACKGROUND}
-              style={styles.thirdBackground}
+              style={[
+                styles.thirdBackground,
+                {
+                  bottom: height <= 900 && height >= 800 ? 40 : 15,
+                },
+              ]}
               resizeMode="contain">
               <View
                 style={{
