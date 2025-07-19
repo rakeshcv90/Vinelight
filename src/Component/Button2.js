@@ -1,6 +1,7 @@
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import React from 'react';
 import {Color, Font, ImageData} from '../../assets/Image';
+import FastImage from 'react-native-fast-image';
 
 const Button2 = ({width, height, onPress, buttonTitle, img, left, size}) => {
   return (
@@ -10,9 +11,10 @@ const Button2 = ({width, height, onPress, buttonTitle, img, left, size}) => {
         activeOpacity={0.8}
         onPress={() => onPress()}>
         {left && (
-          <Image
+          <FastImage
             source={img}
-            resizeMode="contain"
+           
+             resizeMode={FastImage.resizeMode.contain}
             style={{width: 24, height: 24}}
           />
         )}

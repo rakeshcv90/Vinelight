@@ -16,16 +16,16 @@ import Button2 from '../../Component/Button2';
 import FastImage from 'react-native-fast-image';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
-import {deleteJournalData} from '../../redux/actions';
+import {deleteJournalData, setJournalEdit} from '../../redux/actions';
 import moment from 'moment';
 import WebView from 'react-native-webview';
 const {width, height} = Dimensions.get('window');
 const Journal = ({}) => {
-  console.log('cccccccc', height);
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
+
   const [toolVisible, setToolVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 0});
   const [selectedJournal, setSelectedJournal] = useState(null);
@@ -132,8 +132,10 @@ const Journal = ({}) => {
     );
     if (clickedDateData == undefined) {
       setEditSet(false);
+      dispatch(setJournalEdit(false));
     } else {
       setEditSet(true);
+      dispatch(setJournalEdit(true));
     }
   }, [getJournalData]);
 
@@ -326,11 +328,11 @@ const Journal = ({}) => {
                               journal: clickedDateData,
                             });
                           }}>
-                          <Text style={styles.taskText} numberOfLines={2}>
+                          {/* <Text style={styles.taskText} numberOfLines={2}>
                             {journal?.journalContent
                               ? htmlToPlainText(journal?.journalContent)
                               : 'No content available'}
-                          </Text>
+                          </Text> */}
                           {/* <RenderHtml
                         contentWidth={journal?.journalContent}
                         source={{html: content}}
@@ -339,12 +341,12 @@ const Journal = ({}) => {
                           // text styles here
                         }}
                       /> */}
-                          {/* <WebView
-                        originWhitelist={['*']}
-                        source={{html: wrappedHtml}}
-                        style={{height: 20, backgroundColor: 'transparent'}} // or use styles.webview
-                        scrollEnabled={false}
-                      /> */}
+                          <WebView
+                            originWhitelist={['*']}
+                            source={{html: wrappedHtml}}
+                            style={{height: 20, backgroundColor: 'transparent'}} // or use styles.webview
+                            scrollEnabled={false}
+                          />
                         </TouchableOpacity>
                       );
                     }}
@@ -384,7 +386,7 @@ const Journal = ({}) => {
                       width={280}
                       height={50}
                       buttonTitle={'Edit Journal Entry'}
-                     img={IconData.PEN2}
+                      img={IconData.PEN2}
                       left={true}
                       size={20}
                       onPress={() => {
@@ -621,24 +623,32 @@ const Journal = ({}) => {
                           '<p>No content available</p>';
 
                         const wrappedHtml = `
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body {
-            font-family: -apple-system, Roboto, sans-serif;
-            font-size: 16px;
-            color: #333;
-            margin: 0;
-            padding: 0;
-          }
-          p {
-            margin: 0;
-          }
-        </style>
-      </head>
-      <body>${htmlContent}</body>
-    </html>
+  
+
+      <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-size: 16px;
+        }
+        .clamp {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="clamp">
+        ${htmlContent}
+      </div>
+    </body>
+  </html>
   `;
 
                         if (item.type === 'header') {
@@ -718,11 +728,11 @@ const Journal = ({}) => {
                                 journal: clickedDateData,
                               });
                             }}>
-                            <Text style={styles.taskText} numberOfLines={2}>
+                            {/* <Text style={styles.taskText} numberOfLines={2}>
                               {journal?.journalContent
                                 ? htmlToPlainText(journal?.journalContent)
                                 : 'No content available'}
-                            </Text>
+                            </Text> */}
                             {/* <RenderHtml
                         contentWidth={journal?.journalContent}
                         source={{html: content}}
@@ -731,12 +741,15 @@ const Journal = ({}) => {
                           // text styles here
                         }}
                       /> */}
-                            {/* <WebView
-                        originWhitelist={['*']}
-                        source={{html: wrappedHtml}}
-                        style={{height: 20, backgroundColor: 'transparent'}} // or use styles.webview
-                        scrollEnabled={false}
-                      /> */}
+                            <WebView
+                              originWhitelist={['*']}
+                              source={{html: wrappedHtml}}
+                              style={{
+                                height: 20,
+                                backgroundColor: 'transparent',
+                              }} // or use styles.webview
+                              scrollEnabled={false}
+                            />
                           </TouchableOpacity>
                         );
                       }}
@@ -776,7 +789,7 @@ const Journal = ({}) => {
                         width={280}
                         height={50}
                         buttonTitle={'Edit Journal Entry'}
-                         img={IconData.PEN2}
+                        img={IconData.PEN2}
                         left={true}
                         size={20}
                         onPress={() => {

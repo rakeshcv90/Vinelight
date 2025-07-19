@@ -892,10 +892,10 @@ const Goal = ({isActive}) => {
                 // top: height * 0.036,
                 top:
                   Platform.OS == 'ios'
-                    ? height * 0.036
+                    ? height * 0.035
                     : height >= 780
                     ? height * 0.025
-                    : height * 0.036,
+                    : height * 0.035,
                 flexDirection: 'row',
               }}>
               <Button2

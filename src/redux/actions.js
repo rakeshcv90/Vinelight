@@ -100,3 +100,7 @@ export const setCoupanDetails = data => ({
   type: types.COUPAN_DETAILS,
   payload: data,
 });
+export const setJournalEdit = data => ({
+  type: types.EDIT_JAURNAL_ENTRY,
+  payload: data,
+});

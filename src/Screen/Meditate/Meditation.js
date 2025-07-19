@@ -368,10 +368,10 @@ const Meditation = () => {
 
                 top:
                   Platform.OS == 'ios'
-                    ? height * 0.009
+                    ? height * 0.011
                     : height >= 780
-                    ? height * 0.0
-                    : height * 0.009,
+                    ? -height * 0.005
+                    : height * 0.01,
                 flexDirection: 'row',
               }}>
               <Button2

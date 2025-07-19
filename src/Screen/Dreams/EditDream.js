@@ -84,7 +84,7 @@ const EditDream = ({route, navigation}) => {
   const [propmModalOpen, setPromptMOdalOpen] = useState(false);
   const [promptData, setPromptData] = useState(null);
   const [style, setStyle] = useState({
-    font: 'EB Garamond',
+    font: 'Georgia',
     size: 16,
     color: '#000000',
     bold: false,
@@ -94,6 +94,16 @@ const EditDream = ({route, navigation}) => {
   const [showFontDropdown, setShowFontDropdown] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [keyboardHeight] = useState(new Animated.Value(0));
+  const [promptReady, setPromptReady] = useState(false);
+
+  useEffect(() => {
+    if (propmModalOpen) {
+      setPromptReady(false);
+      InteractionManager.runAfterInteractions(() => {
+        setPromptReady(true);
+      });
+    }
+  }, [propmModalOpen]);
   useEffect(() => {
     const showListener =
       Platform.OS === 'ios'
@@ -333,7 +343,12 @@ const EditDream = ({route, navigation}) => {
         editorRef.current?.insertHTML(
           `<span style="${defaultStyle}">&#8203;</span>`,
         );
-      }, 50);
+      }, 100);
+      if (Platform.OS === 'android') {
+        setTimeout(() => {
+          scrollRef.current?.scrollToEnd({animated: true});
+        }, 200);
+      }
     };
 
     if (Platform.OS === 'ios') {
@@ -359,10 +374,26 @@ const EditDream = ({route, navigation}) => {
 `;
       editorRef.current.insertHTML(htmlContent);
 
+      // setTimeout(() => {
+      //   editorRef.current?.blurContentEditor();
+      //   editorRef.current?.focusContentEditor();
+      // }, 100);
       setTimeout(() => {
         editorRef.current?.blurContentEditor();
         editorRef.current?.focusContentEditor();
-      }, 100);
+
+        editorRef.current?.commandDOM(
+          "setTimeout(() => { document.getElementById('cursor-marker')?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 100);",
+        );
+        if (Platform.OS === 'android') {
+          setTimeout(() => {
+            scrollRef.current?.scrollToEnd({animated: true});
+          }, 200);
+        }
+        setTimeout(() => {
+          scrollRef.current?.scrollToEnd({animated: true});
+        }, 400); // delay more on Android
+      }, 300);
     }
   }, [promptData]);
 
@@ -749,8 +780,18 @@ const EditDream = ({route, navigation}) => {
                         height={40}
                         size={16}
                         font={Font.EBGaramond_SemiBold}
+                        // onPress={() => {
+                        //   setPromptMOdalOpen(true);
+                        // }}
+
                         onPress={() => {
-                          setPromptMOdalOpen(true);
+                          Keyboard.dismiss();
+
+                          InteractionManager.runAfterInteractions(() => {
+                            setTimeout(() => {
+                              setPromptMOdalOpen(true);
+                            }, 800); // Tune delay if needed
+                          });
                         }}
                         style={{width: '50%', zIndex: -1}}
                       />
@@ -779,14 +820,16 @@ const EditDream = ({route, navigation}) => {
         </SafeAreaView>
       </ImageBackground>
 
-      <PromptDreamModal
-        visible={propmModalOpen}
-        promptData={promptData}
-        setPromptData={setPromptData}
-        onClose={() => {
-          setPromptMOdalOpen(false);
-        }}
-      />
+      {promptReady && (
+        <PromptDreamModal
+          visible={propmModalOpen}
+          promptData={promptData}
+          setPromptData={setPromptData}
+          onClose={() => {
+            setPromptMOdalOpen(false);
+          }}
+        />
+      )}
       <ColorToolModal
         visible={colorModal}
         selectedColor={style.color}

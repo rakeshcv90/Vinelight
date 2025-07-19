@@ -12,6 +12,7 @@ import {
   Dimensions,
   TouchableOpacity,
   FlatList,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import CustomeHeader2 from '../../Component/CustomeHeader2';
@@ -34,6 +35,27 @@ import Button2 from '../../Component/Button2';
 import Toast from 'react-native-toast-message';
 import {SafeAreaView} from 'react-native-safe-area-context';
 const {width, height} = Dimensions.get('window');
+
+
+const fonts = [
+  {label: 'Georgia', value: 'Georgia'},
+  {label: 'Times New Roman', value: 'Times New Roman'},
+  {label: 'Arial', value: 'Arial'},
+  {label: 'Courier New', value: 'Courier New'},
+  {label: 'Verdana', value: 'Verdana'},
+  {label: 'Trebuchet MS', value: 'Trebuchet MS'},
+  {label: 'Palatino', value: 'Palatino'},
+  {label: 'Garamond', value: 'Garamond'},
+  {label: 'Comic Sans MS', value: 'Comic Sans MS'},
+  {label: 'Impact', value: 'Impact'},
+  {label: 'Lucida Console', value: 'Lucida Console'},
+  {label: 'Tahoma', value: 'Tahoma'},
+  {label: 'Helvetica', value: 'Helvetica'},
+  {label: 'Optima', value: 'Optima'},
+  {label: 'Didot', value: 'Didot'},
+  {label: 'Monaco', value: 'Monaco'},
+  {label: 'Brush Script MT', value: 'Brush Script MT'},
+];
 const DreamView = ({route, navigation}) => {
   const dispatch = useDispatch();
   const [currentDream, setCurrentDream] = useState(route?.params?.dreaItem);
@@ -41,12 +63,14 @@ const DreamView = ({route, navigation}) => {
     moment().format(route?.params?.dreaItem?.currentDat),
   );
   const scrollRef = useRef();
+    const [selectedFont, setSelectedFont] = useState(fonts[0]);
   const [journalData, setjournalData] = useState();
   const [goaldisplayData, setGoalDisplayData] = useState();
   const [selectedButton, setSelectedButton] = useState(2);
   const getDreamData = useSelector(state => state?.user?.getDreamData);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
   const goalData = useSelector(state => state.user?.goalByDate || []);
+   const richText = useRef();
   useEffect(() => {
     const filteredData = getJournalData?.filter(dream => {
       return dream?.currentDat == currentDate;
@@ -154,6 +178,37 @@ const DreamView = ({route, navigation}) => {
   const clearAllTasksForDate = data => {
     dispatch(updateAllGoalData(data));
   };
+
+   useEffect(() => {
+      if (selectedButton == 1) {
+        if (journalData?.[0]?.journal?.journalContent && richText.current) {
+          setTimeout(() => {
+            handleInsertContent(journalData?.[0]?.journal?.journalContent);
+          }, 200);
+        }
+      } else if (selectedButton == 2) {
+        if (currentDream?.[0]?.dream?.dreamContent  && richText.current) {
+          setTimeout(() => {
+            handleInsertContent(currentDream?.[0]?.dream?.dreamContent );
+          }, 200);
+        }
+      }
+    }, [journalData,selectedButton,currentDream]);
+  
+    const handleInsertContent = (itemData) => {
+      // Get the HTML content
+      let rawHTML =itemData|| '';
+  
+      // Remove any cursor marker if it exists (optional cleanup)
+      rawHTML = rawHTML
+        .replace(/<span id="cursor-marker"[^>]*>(.*?)<\/span>/g, '$1')
+        .replace(/<span id="cursor-marker"><\/span>/g, '')
+        .replace(/<div[^>]*id="cursor-marker"[^>]*>.*?<\/div>/g, '')
+        .replace(/<p[^>]*id="cursor-marker"[^>]*>.*?<\/p>/g, '');
+  
+      // Set the HTML content without inserting a cursor
+      richText.current?.setContentHTML(rawHTML);
+    };
   return (
     <>
       <ImageBackground
@@ -326,7 +381,8 @@ const DreamView = ({route, navigation}) => {
                       {selectedButton == 1 &&
                         (journalData?.[0]?.journal?.journalContent ? (
                           <>
-                            <WebView
+                            {Platform.OS=='ios'?
+                               <WebView
                               originWhitelist={['*']}
                               scrollEnabled={true} // Let ScrollView handle scrolling
                               showsVerticalScrollIndicator={false}
@@ -359,7 +415,22 @@ const DreamView = ({route, navigation}) => {
       `,
                               }}
                               style={{width: '100%'}}
-                            />
+                            /> :
+                               <RichEditor
+                                                          ref={richText}
+                                                          initialHeight={300}
+                                                          disabled={true}
+                                                          editorStyle={{
+                                                            contentCSSText: `
+                                  font-family: ${selectedFont.value};
+                                  font-size: 16px;
+                                  overflow-x: hidden;
+                                  word-wrap: break-word;
+                                  white-space: normal;
+                                  max-width: 100%;
+                                `,
+                                                          }}
+                                                        />}
                           </>
                         ) : (
                           <>
@@ -423,7 +494,8 @@ const DreamView = ({route, navigation}) => {
                       {selectedButton == 2 &&
                         (currentDream?.[0]?.dream?.dreamContent ? (
                           <>
-                            <WebView
+                            {Platform.OS=='ios'?
+                               <WebView
                               originWhitelist={['*']}
                               scrollEnabled={true} // Let ScrollView handle scrolling
                               showsVerticalScrollIndicator={false}
@@ -456,7 +528,22 @@ const DreamView = ({route, navigation}) => {
       `,
                               }}
                               style={{width: '100%'}}
-                            />
+                            /> :
+                               <RichEditor
+                                                          ref={richText}
+                                                          initialHeight={300}
+                                                          disabled={true}
+                                                          editorStyle={{
+                                                            contentCSSText: `
+                                  font-family: ${selectedFont.value};
+                                  font-size: 16px;
+                                  overflow-x: hidden;
+                                  word-wrap: break-word;
+                                  white-space: normal;
+                                  max-width: 100%;
+                                `,
+                                                          }}
+                                                        />}
                           </>
                         ) : (
                           <>

@@ -14,6 +14,7 @@ const initialState = {
   getDailyPrompt: {},
   getDreamData: [],
   getJournalData: [],
+  editjournal:false
 };
 export const userReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -331,6 +332,11 @@ export const userReducer = (state = initialState, action) => {
         goalByDate: updatedGoalByDate,
       };
     }
+  case types.EDIT_JAURNAL_ENTRY:
+      return {
+        ...state,
+        editjournal: action.payload,
+      };
 
     default:
       return state;

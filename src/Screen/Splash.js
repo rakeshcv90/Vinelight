@@ -102,7 +102,7 @@ const Splash = ({navigation}) => {
 
           try {
             const result = await axios(
-              'https://sandbox.itunes.apple.com/verifyReceipt',
+              'https://buy.itunes.apple.com/verifyReceipt',
               {
                 method: 'POST',
                 headers: {

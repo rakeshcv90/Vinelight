@@ -567,8 +567,8 @@ const Profile = ({navigation}) => {
                         style={{
                           top: height * 0.02,
                         }}>
-                        {isSubscriptionValid(subscription) &&
-                        !isCoupanValid(coupaDetails) ? (
+                        {isSubscriptionValid(subscription) ||
+                        isCoupanValid(coupaDetails) ? (
                           <Button2
                             width={
                               isSubscriptionValid(subscription) ? 280 : 250

@@ -52,11 +52,13 @@ const Subscription = ({navigation}) => {
   const subscription = useSelector(state => state?.user?.subscription);
 
   const subscription_products = useSelector(state => state?.user?.getProducts);
+
   const Plat = 'Ios';
   const dispatch = useDispatch();
   const url = 'https://www.instagram.com/vinelightapp/';
   const url1 = 'https://arkanaapps.com/contact/';
   const url2 = 'https://arkanaapps.com/privacy-policy';
+  const url3 = 'https://arkanaapps.com/terms-of-use';
   const [selectedPackege, setSelectedPackage] = useState({
     item: subscription_products[1]?.productId,
     offerToken:
@@ -402,6 +404,7 @@ const Subscription = ({navigation}) => {
   }, [url1]);
 
   const restorePurchase = async () => {
+    setLoader(true);
     const purchases = await RNIap.getAvailablePurchases();
 
     if (purchases?.length == 0) {
@@ -413,7 +416,7 @@ const Subscription = ({navigation}) => {
           text: 'No active subscription found!',
         },
       });
-
+      setLoader(false);
       dispatch(setSubscriptionDetails([]));
       return;
     } else {
@@ -486,7 +489,6 @@ const Subscription = ({navigation}) => {
         dispatch(setSubscriptionDetails(subscriptionData));
       } else {
         const latestPurchase = purchases[purchases.length - 1];
-
         const apiRequestBody = {
           'receipt-data': latestPurchase.transactionReceipt,
           password: 'f41a27c3319749ccb2e0e4607ecb0664',
@@ -494,8 +496,8 @@ const Subscription = ({navigation}) => {
         };
 
         try {
-          const result = await axios(
-            'https://sandbox.itunes.apple.com/verifyReceipt',
+          let result = await axios(
+            'https://buy.itunes.apple.com/verifyReceipt',
             {
               method: 'POST',
               headers: {
@@ -504,11 +506,16 @@ const Subscription = ({navigation}) => {
               data: apiRequestBody,
             },
           );
-          setLoader(false);
+          if (result.data.status === 21007) {
+            result = await axios.post(
+              'https://sandbox.itunes.apple.com/verifyReceipt',
+              apiRequestBody,
+              {headers: {'Content-Type': 'application/json'}},
+            );
+          }
           const receipt = purchases.transactionReceipt;
           const isAndroid = Platform.OS === 'android';
           const isIos = Platform.OS === 'ios';
-
           const isAndroidPurchased =
             isAndroid && purchases?.purchaseStateAndroid === 1;
           const isAndroidPending =
@@ -551,30 +558,31 @@ const Subscription = ({navigation}) => {
                     text: 'Subscription activated successfully!',
                   },
                 });
-
+                setLoader(false);
                 dispatch(setSubscriptionDetails(subscriptionData));
               } else {
-                // Toast.show({
-                //   type: 'custom',
-                //   position: 'top',
-                //   props: {
-                //     icon: IconData.ERR, // your custom image
-                //     text: 'No Active Subscription Found!',
-                //   },
-                // });
-
+                Toast.show({
+                  type: 'custom',
+                  position: 'top',
+                  props: {
+                    icon: IconData.ERR, // your custom image
+                    text: 'No Active Subscription Found!',
+                  },
+                });
+                setLoader(false);
                 dispatch(setSubscriptionDetails([]));
               }
             });
           } else {
-            // Toast.show({
-            //   type: 'custom',
-            //   position: 'top',
-            //   props: {
-            //     icon: IconData.ERR, // your custom image
-            //     text: 'No Active Subscription Found!',
-            //   },
-            // });
+            Toast.show({
+              type: 'custom',
+              position: 'top',
+              props: {
+                icon: IconData.ERR, // your custom image
+                text: 'No Active Subscription Found!',
+              },
+            });
+            setLoader(false);
           }
         } catch (error) {
           setLoader(false);
@@ -662,7 +670,6 @@ const Subscription = ({navigation}) => {
             justifyContent: 'flex-end',
           }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          {/* <ActivityLoader visible={loader} /> */}
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView
               contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-end'}}
@@ -962,7 +969,7 @@ const Subscription = ({navigation}) => {
             backgroundColor="transparent"
             barStyle="light-content"
           />
-
+          <ActivityLoader visible={loader} />
           <FastImage
             source={ImageData.BACKGROUND}
             style={styles.primaryBackground}
@@ -1332,29 +1339,30 @@ const Subscription = ({navigation}) => {
                               );
                             })}
                       </View>
-
-                      <TouchableOpacity
-                        onPress={() => {
-                          setCoupanModal(true);
-                        }}
-                        style={{
-                          width: '90%',
-                          alignItems: 'center',
-                          paddingLeft: 5,
-                        }}>
-                        <Text
+                      {Platform.OS == 'android' && (
+                        <TouchableOpacity
+                          onPress={() => {
+                            setCoupanModal(true);
+                          }}
                           style={{
-                            textAlign: 'center',
-                            color: Color.LIGHTGREEN,
-                            fontFamily: Font.EB_Garamond_Bold,
-                            fontSize: 16,
-                            marginTop: 10,
-                            textDecorationLine: 'underline',
-                            // marginBottom: 10,
+                            width: '90%',
+                            alignItems: 'center',
+                            paddingLeft: 5,
                           }}>
-                          Have Coupon Code?
-                        </Text>
-                      </TouchableOpacity>
+                          <Text
+                            style={{
+                              textAlign: 'center',
+                              color: Color.LIGHTGREEN,
+                              fontFamily: Font.EB_Garamond_Bold,
+                              fontSize: 16,
+                              marginTop: 10,
+                              textDecorationLine: 'underline',
+                              // marginBottom: 10,
+                            }}>
+                            Have Coupon Code?
+                          </Text>
+                        </TouchableOpacity>
+                      )}
 
                       <View
                         style={{
@@ -1446,7 +1454,7 @@ const Subscription = ({navigation}) => {
                           justifyContent: 'center',
                           alignItems: 'center',
                           alignSelf: 'center',
-
+                          zIndex: 999,
                           gap: 20,
                           flexDirection: 'row',
                         }}>
@@ -1491,7 +1499,7 @@ const Subscription = ({navigation}) => {
                           </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          activeOpacity={1}
+                          // activeOpacity={0.5}
                           onPress={() => {
                             restorePurchase();
                           }}
@@ -1502,6 +1510,7 @@ const Subscription = ({navigation}) => {
                             borderRadius: 30,
                             justifyContent: 'center',
                             alignItems: 'center',
+                            zIndex: 1,
                           }}>
                           <Text
                             style={{
@@ -1543,7 +1552,31 @@ const Subscription = ({navigation}) => {
                               fontSize: 16,
                               color: Color.LIGHTGREEN,
                             }}>
-                            Privacy Policy{' '}
+                            Privacy Policy
+                          </Text>
+                          <Text
+                            style={{
+                              textAlign: 'center',
+
+                              fontFamily: Font.EB_Garamond_Bold,
+                              fontSize: 16,
+                              color: Color.LIGHTGREEN,
+                            }}>
+                            {' '}
+                            &{' '}
+                          </Text>
+                          <Text
+                            onPress={async () => {
+                              await Linking.openURL(url3);
+                            }}
+                            style={{
+                              textAlign: 'center',
+                              textDecorationLine: 'underline',
+                              fontFamily: Font.EB_Garamond_Bold,
+                              fontSize: 16,
+                              color: Color.LIGHTGREEN,
+                            }}>
+                            Terms of Use{' '}
                           </Text>
                         </Text>
                       </View>

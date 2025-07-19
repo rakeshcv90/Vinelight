@@ -14,7 +14,7 @@ import {Color, Font, IconData, ImageData} from '../../assets/Image';
 import {callApi, callApi1} from './ApiCall';
 import {Api} from '../Api';
 import Toast from 'react-native-toast-message';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 const {width, height} = Dimensions.get('window');
 
 const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
@@ -22,6 +22,7 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
   const navigation = useNavigation();
   const [header3, setHeader3] = useState('Prompts');
   const [categories, setCategories] = useState([]);
+  const listRef = React.useRef(null);
 
   const [prompts, setPrompts] = useState(null);
   const [listOpen, setListOpen] = useState(0);
@@ -46,6 +47,9 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
       if (data?.success) {
         setPrompts(data?.data);
         setListOpen(1);
+        setTimeout(() => {
+          listRef.current?.scrollToOffset({animated: false, offset: 0});
+        }, 100);
       } else {
         Toast.show({
           type: 'custom',
@@ -122,7 +126,11 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal
+      visible={visible}
+      animationType="fade"
+      transparent={true}
+      statusBarTranslucent={true}>
       <View style={styles.overlay}>
         <View style={styles.modalWrapper}>
           <ImageBackground
@@ -167,12 +175,13 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
             <View
               style={{
                 width: '96%',
-                height: '75%',
+                height: '80%',
 
                 alignSelf: 'center',
                 // top: -20,
               }}>
               <FlatList
+                ref={listRef}
                 data={listOpen == 0 ? categories : prompts}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{paddingBottom: 20}}

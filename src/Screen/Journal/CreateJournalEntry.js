@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Platform,
   Animated,
+  InteractionManager,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -89,7 +90,7 @@ const CreateJournalEntry = ({navigation, route}) => {
   const [isTyping, setIsTyping] = useState(false);
   const [defaultHTML, setDefaultHTML] = useState('<p>Loading...</p>');
   const [style, setStyle] = useState({
-    font: '',
+    font: 'Georgia',
     size: 16,
     color: '#000000',
     bold: false,
@@ -102,6 +103,16 @@ const CreateJournalEntry = ({navigation, route}) => {
   const [isEditorReady, setEditorReady] = useState(false);
   const [keyboardHeight] = useState(new Animated.Value(0));
   const animatedMarginTop = useRef(new Animated.Value(-height * 0.035)).current;
+
+  const [promptReady, setPromptReady] = useState(false);
+  useEffect(() => {
+    if (propmModalOpen) {
+      setPromptReady(false);
+      InteractionManager.runAfterInteractions(() => {
+        setPromptReady(true);
+      });
+    }
+  }, [propmModalOpen]);
   useEffect(() => {
     const showListener =
       Platform.OS === 'ios'
@@ -325,7 +336,7 @@ const CreateJournalEntry = ({navigation, route}) => {
     const rawText = prompt?.description || '';
 
     // const htmlContent = `<p>${rawText}</p><span id="cursor-marker">&#8203;</span>`;
-       const htmlContent = `
+    const htmlContent = `
       <div>${rawText}</div>
       <div><br></div> <!-- Ensures one empty line -->
       <span id="cursor-marker">&#8203;</span>
@@ -334,14 +345,27 @@ const CreateJournalEntry = ({navigation, route}) => {
     // editorRef.current.setContentHTML(htmlContent);
     setIsTyping(true);
 
+    // setTimeout(() => {
+    //   editorRef.current?.blurContentEditor();
+    //   editorRef.current?.focusContentEditor();
+
+    //   editorRef.current?.commandDOM(
+    //     "document.getElementById('cursor-marker')?.scrollIntoView({ behavior: 'smooth', block: 'center' });",
+    //   );
+    // }, 200);
     setTimeout(() => {
       editorRef.current?.blurContentEditor();
       editorRef.current?.focusContentEditor();
 
+      // Optional: scroll into view using JS inside the webview
       editorRef.current?.commandDOM(
-        "document.getElementById('cursor-marker')?.scrollIntoView({ behavior: 'smooth', block: 'center' });",
+        "setTimeout(() => { document.getElementById('cursor-marker')?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 100);",
       );
-    }, 200);
+
+      setTimeout(() => {
+        scrollRef.current?.scrollToEnd({animated: true});
+      }, 400); // delay more on Android
+    }, 300);
   };
 
   useEffect(() => {
@@ -355,10 +379,22 @@ const CreateJournalEntry = ({navigation, route}) => {
     `;
       editorRef.current.insertHTML(htmlContent);
 
+      // setTimeout(() => {
+      //   editorRef.current?.blurContentEditor();
+      //   editorRef.current?.focusContentEditor();
+      // }, 100);
       setTimeout(() => {
         editorRef.current?.blurContentEditor();
         editorRef.current?.focusContentEditor();
-      }, 100);
+
+        editorRef.current?.commandDOM(
+          "setTimeout(() => { document.getElementById('cursor-marker')?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 100);",
+        );
+
+        setTimeout(() => {
+          scrollRef.current?.scrollToEnd({animated: true});
+        }, 400); // delay more on Android
+      }, 300);
     }
   }, [promptData]);
 
@@ -699,7 +735,7 @@ const CreateJournalEntry = ({navigation, route}) => {
                       bottom: isKeyboardVisible
                         ? height <= 800
                           ? 30
-                          : 40
+                          : 45
                         : 10,
                     },
                   ]}
@@ -724,8 +760,18 @@ const CreateJournalEntry = ({navigation, route}) => {
                         height={40}
                         size={16}
                         font={Font.EBGaramond_SemiBold}
+                        // onPress={() => {
+                        //   setPromptMOdalOpen(true);
+                        // }}
+
                         onPress={() => {
-                          setPromptMOdalOpen(true);
+                          Keyboard.dismiss();
+
+                          InteractionManager.runAfterInteractions(() => {
+                            setTimeout(() => {
+                              setPromptMOdalOpen(true);
+                            }, 800); // Tune delay if needed
+                          });
                         }}
                         style={{width: '50%', zIndex: -1}}
                       />
@@ -801,7 +847,10 @@ const CreateJournalEntry = ({navigation, route}) => {
               </ImageBackground>
             </TouchableWithoutFeedback>
           </KeyboardAvoidingView>
-          <PromptModal
+         
+        </SafeAreaView>
+      </ImageBackground>
+       <PromptModal
             visible={propmModalOpen}
             promptData={promptData}
             setPromptData={setPromptData}
@@ -818,11 +867,8 @@ const CreateJournalEntry = ({navigation, route}) => {
             }}
             onClose={() => setColorModa(false)}
           />
-        </SafeAreaView>
-      </ImageBackground>
     </>
-    //   )}
-    // </>
+
   );
 };
 const styles = StyleSheet.create({

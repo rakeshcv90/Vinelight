@@ -174,7 +174,11 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
     }
   };
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal
+      visible={visible}
+      animationType="fade"
+      transparent={true}
+      statusBarTranslucent={true}>
       <View style={styles.overlay}>
         <View style={styles.modalWrapper}>
           <ImageBackground
@@ -223,7 +227,7 @@ const PromptModal = ({visible, onClose, promptData, setPromptData}) => {
             <View
               style={{
                 width: '96%',
-                height: '75%',
+                height: '82%',
 
                 alignSelf: 'center',
                 // top: -20,

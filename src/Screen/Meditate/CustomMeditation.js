@@ -346,7 +346,7 @@ const CustomMeditation = ({navigation}) => {
                         gap: 5,
                       }}>
                       <Text style={styles.advancedSettings}>
-                        Advanced Settings
+                        Customized Meditations
                       </Text>
                       <Image
                         source={IconData.SETTING}

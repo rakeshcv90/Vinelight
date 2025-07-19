@@ -243,23 +243,29 @@ const Dreams = () => {
 
                   const wrappedHtml = `
     <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body {
-            font-family: -apple-system, Roboto, sans-serif;
-            font-size: 16px;
-            color: #333;
-            margin: 0;
-            padding: 0;
-          }
-          p {
-            margin: 0;
-          }
-        </style>
-      </head>
-      <body>${htmlContent}</body>
-    </html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-size: 16px;
+        }
+        .clamp {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="clamp">
+        ${htmlContent}
+      </div>
+    </body>
+  </html>
   `;
 
                   if (item.type === 'header') {
@@ -339,18 +345,18 @@ const Dreams = () => {
                           dreaItem: clickedDateData,
                         });
                       }}>
-                      <Text style={styles.taskText} numberOfLines={2}>
+                      {/* <Text style={styles.taskText} numberOfLines={2}>
                         {dream?.dreamContent
                           ? htmlToPlainText(dream.dreamContent)
                           : 'No content available'}
-                      </Text>
+                      </Text> */}
 
-                      {/* <WebView
+                      <WebView
                         originWhitelist={['*']}
                         source={{html: wrappedHtml}}
                         style={{height: 20, backgroundColor: 'transparent'}} // or use styles.webview
                         scrollEnabled={false}
-                      /> */}
+                      />
                     </TouchableOpacity>
                   );
                 }}

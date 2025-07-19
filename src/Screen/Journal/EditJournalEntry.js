@@ -35,10 +35,10 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 const {width, height} = Dimensions.get('window');
 
 const fonts = [
-  {label: 'Georgia', value: 'Georgia'},
-  {label: 'Courier New', value: 'Courier New'},
-  {label: 'Times New Roman', value: 'Times New Roman'},
+    {label: 'Georgia', value: 'Georgia'},
+   {label: 'Times New Roman', value: 'Times New Roman'},
   {label: 'Arial', value: 'Arial'},
+  {label: 'Courier New', value: 'Courier New'},
   {label: 'Verdana', value: 'Verdana'},
   {label: 'Trebuchet MS', value: 'Trebuchet MS'},
   {label: 'Palatino', value: 'Palatino'},
@@ -52,6 +52,7 @@ const fonts = [
   {label: 'Didot', value: 'Didot'},
   {label: 'Monaco', value: 'Monaco'},
   {label: 'Brush Script MT', value: 'Brush Script MT'},
+
 ];
 const EditJournalEntry = ({navigation, route}) => {
   const [keyboardHeight] = useState(new Animated.Value(0));
@@ -78,7 +79,7 @@ const EditJournalEntry = ({navigation, route}) => {
   );
   const [promptData, setPromptData] = useState(null);
   const [style, setStyle] = useState({
-    font: 'EB Garamond',
+    font: 'Georgia',
     size: 16,
     color: '#000000',
     bold: false,
@@ -87,6 +88,16 @@ const EditJournalEntry = ({navigation, route}) => {
   });
   const [showFontDropdown, setShowFontDropdown] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  const [promptReady, setPromptReady] = useState(false);
+  useEffect(() => {
+    if (propmModalOpen) {
+      setPromptReady(false);
+      InteractionManager.runAfterInteractions(() => {
+        setPromptReady(true);
+      });
+    }
+  }, [propmModalOpen]);
   useEffect(() => {
     const showListener =
       Platform.OS === 'ios'
@@ -238,52 +249,120 @@ const EditJournalEntry = ({navigation, route}) => {
     }, 1000);
   }, [route, navigation]);
 
+  // const handleInsertContent = () => {
+  //   let rawHTML = route?.params?.journalData?.journal?.journalContent || '';
+
+  //   // Clean any existing cursor marker spans
+  //   rawHTML = rawHTML.replace(
+  //     /<span id="cursor-marker"[^>]*>(.*?)<\/span>/g,
+  //     '$1',
+  //   );
+  //   rawHTML = rawHTML.replace(/<span id="cursor-marker"><\/span>/g, '');
+  //   rawHTML = rawHTML.replace(
+  //     /<div[^>]*id="cursor-marker"[^>]*>.*?<\/div>/g,
+  //     '',
+  //   );
+  //   rawHTML = rawHTML.replace(/<p[^>]*id="cursor-marker"[^>]*>.*?<\/p>/g, '');
+
+  //   // Insert a clean inline cursor marker at the end
+  //   const cursorMarker = `<span id="cursor-marker" style="display: inline;">&#8203;</span>`;
+  //   // const extraLine = `<div style="height: 1em;"></div>`;
+
+  //   // const finalHTML = `${rawHTML}${cursorMarker}${extraLine}`;
+
+  //   const finalHTML = `${rawHTML}${cursorMarker}`;
+
+  //   editorRef.current?.setContentHTML(finalHTML);
+
+  //   const focusAndSetCursor = () => {
+  //     editorRef.current?.focusContentEditor();
+
+  //     // Move the cursor to after the last cursor-marker
+  //     editorRef.current?.commandDOM(`
+  //     const markers = document.querySelectorAll('#cursor-marker');
+  //     if (markers.length > 0) {
+  //       const last = markers[markers.length - 1];
+  //       const range = document.createRange();
+  //       const sel = window.getSelection();
+  //       range.setStartAfter(last);
+  //       range.collapse(true);
+  //       sel.removeAllRanges();
+  //       sel.addRange(range);
+
+  //       // Scroll cursor into view
+  //       last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  //     }
+  //   `);
+
+  //     // Reinsert a styled invisible character to preserve formatting
+  //     const defaultStyle = `
+  //     display: inline;
+  //     font-family: '${style.font}';
+  //     font-size: ${style.size}px;
+  //     color: ${style.color};
+  //     font-weight: ${style.bold ? 'bold' : 'normal'};
+  //     font-style: ${style.italic ? 'italic' : 'normal'};
+  //     text-decoration: ${style.underline ? 'underline' : 'none'};
+  //   `
+  //       .replace(/\s\s+/g, ' ')
+  //       .trim();
+
+  //     setTimeout(() => {
+  //       editorRef.current?.insertHTML(
+  //         `<span style="${defaultStyle}">&#8203;</span>`,
+  //       );
+  //     }, 50);
+  //   };
+
+  //   // Slight delay for layout to settle
+  //   if (Platform.OS === 'ios') {
+  //     InteractionManager.runAfterInteractions(() => {
+  //       requestAnimationFrame(() => {
+  //         setTimeout(focusAndSetCursor, 300);
+  //       });
+  //     });
+  //   } else {
+  //     setTimeout(focusAndSetCursor, 200);
+  //   }
+  // };
   const handleInsertContent = () => {
     let rawHTML = route?.params?.journalData?.journal?.journalContent || '';
 
-    // Clean any existing cursor marker spans
-    rawHTML = rawHTML.replace(
-      /<span id="cursor-marker"[^>]*>(.*?)<\/span>/g,
-      '$1',
-    );
-    rawHTML = rawHTML.replace(/<span id="cursor-marker"><\/span>/g, '');
-    rawHTML = rawHTML.replace(
-      /<div[^>]*id="cursor-marker"[^>]*>.*?<\/div>/g,
-      '',
-    );
-    rawHTML = rawHTML.replace(/<p[^>]*id="cursor-marker"[^>]*>.*?<\/p>/g, '');
+    // Remove any previously inserted cursor marker
+    rawHTML = rawHTML
+      .replace(/<span id="cursor-marker"[^>]*>(.*?)<\/span>/g, '$1')
+      .replace(/<span id="cursor-marker"><\/span>/g, '')
+      .replace(/<div[^>]*id="cursor-marker"[^>]*>.*?<\/div>/g, '')
+      .replace(/<p[^>]*id="cursor-marker"[^>]*>.*?<\/p>/g, '');
 
-    // Insert a clean inline cursor marker at the end
-    const cursorMarker = `<span id="cursor-marker" style="display: inline;">&#8203;</span>`;
-    // const extraLine = `<div style="height: 1em;"></div>`;
-
-    // const finalHTML = `${rawHTML}${cursorMarker}${extraLine}`;
-
+    // Add a cursor marker at the end of content
+    const cursorMarker = `<span id="cursor-marker" style="display:inline;">&#8203;</span>`;
     const finalHTML = `${rawHTML}${cursorMarker}`;
 
+    // Set the content HTML
     editorRef.current?.setContentHTML(finalHTML);
 
     const focusAndSetCursor = () => {
       editorRef.current?.focusContentEditor();
 
-      // Move the cursor to after the last cursor-marker
+      // Use commandDOM to scroll to the marker and move the cursor there
       editorRef.current?.commandDOM(`
-      const markers = document.querySelectorAll('#cursor-marker');
-      if (markers.length > 0) {
-        const last = markers[markers.length - 1];
-        const range = document.createRange();
-        const sel = window.getSelection();
-        range.setStartAfter(last);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
-
-        // Scroll cursor into view
-        last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      setTimeout(() => {
+        const markers = document.querySelectorAll('#cursor-marker');
+        if (markers.length > 0) {
+          const last = markers[markers.length - 1];
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.setStartAfter(last);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          last.scrollIntoView({ behavior: 'auto', block: 'end' });
+        }
+      }, 50);
     `);
 
-      // Reinsert a styled invisible character to preserve formatting
+      // Insert invisible character for style preservation
       const defaultStyle = `
       display: inline;
       font-family: '${style.font}';
@@ -300,10 +379,17 @@ const EditJournalEntry = ({navigation, route}) => {
         editorRef.current?.insertHTML(
           `<span style="${defaultStyle}">&#8203;</span>`,
         );
-      }, 50);
+      }, 100);
+
+      // On Android: Scroll the parent ScrollView too
+      if (Platform.OS === 'android') {
+        setTimeout(() => {
+          scrollRef.current?.scrollToEnd({animated: true});
+        }, 200);
+      }
     };
 
-    // Slight delay for layout to settle
+    // Delay focus for layout to settle
     if (Platform.OS === 'ios') {
       InteractionManager.runAfterInteractions(() => {
         requestAnimationFrame(() => {
@@ -311,7 +397,7 @@ const EditJournalEntry = ({navigation, route}) => {
         });
       });
     } else {
-      setTimeout(focusAndSetCursor, 200);
+      setTimeout(focusAndSetCursor, 400); // slightly longer for Android
     }
   };
 
@@ -327,10 +413,22 @@ const EditJournalEntry = ({navigation, route}) => {
 
       editorRef.current.insertHTML(htmlContent);
 
+      // setTimeout(() => {
+      //   editorRef.current?.blurContentEditor();
+      //   editorRef.current?.focusContentEditor();
+      // }, 100);
       setTimeout(() => {
         editorRef.current?.blurContentEditor();
         editorRef.current?.focusContentEditor();
-      }, 100);
+
+        editorRef.current?.commandDOM(
+          "setTimeout(() => { document.getElementById('cursor-marker')?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 100);",
+        );
+
+        setTimeout(() => {
+          scrollRef.current?.scrollToEnd({animated: true});
+        }, 400); // delay more on Android
+      }, 300);
     }
   }, [promptData]);
 
@@ -689,7 +787,7 @@ const EditJournalEntry = ({navigation, route}) => {
                       bottom: isKeyboardVisible
                         ? height <= 800
                           ? 30
-                          : 40
+                          : 45
                         : 10,
                     },
                   ]}
@@ -714,8 +812,18 @@ const EditJournalEntry = ({navigation, route}) => {
                         height={40}
                         size={16}
                         font={Font.EBGaramond_SemiBold}
+                        // onPress={() => {
+                        //   setPromptMOdalOpen(true);
+                        // }}
+
                         onPress={() => {
-                          setPromptMOdalOpen(true);
+                          Keyboard.dismiss();
+
+                          InteractionManager.runAfterInteractions(() => {
+                            setTimeout(() => {
+                              setPromptMOdalOpen(true);
+                            }, 800); // Tune delay if needed
+                          });
                         }}
                         style={{width: '50%', zIndex: -1}}
                       />

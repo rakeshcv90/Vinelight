@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button from '../../Component/Button';
 import Button2 from '../../Component/Button2';
@@ -19,18 +19,14 @@ import {callApi} from '../../Component/ApiCall';
 import {Api} from '../../Api';
 import Toast from 'react-native-toast-message';
 import FastImage from 'react-native-fast-image';
-import {useSelector} from 'react-redux';
-import {useNavigation} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {moodData} from '../../Component/Mood';
 import moment from 'moment-timezone';
+import { setJournalEdit } from '../../redux/actions';
 
 const {width, height} = Dimensions.get('window');
-// const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-// const today = new Date().toISOString().split('T')[0];
 
-const deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-const today = moment().tz(deviceTimeZone).format('YYYY-MM-DD');
 
 LocaleConfig.locales['custom'] = {
   monthNames: [
@@ -76,14 +72,36 @@ LocaleConfig.locales['custom'] = {
 
 LocaleConfig.defaultLocale = 'custom';
 
-const Home = () => {
+const Home = ({isActive}) => {
+
+const deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+ const dispatch = useDispatch();
+const today = moment().tz(deviceTimeZone).format('YYYY-MM-DD');
   const [selectedDate, setSelectedDate] = useState(today);
 
   const navigation = useNavigation();
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
+   const editjournal = useSelector(state => state?.user?.editjournal);
+  console.log('Home getJournalData', editjournal);
+
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   const [editSet, setEditSet] = useState(false);
+
+   // force re-run when new journal is added
+useEffect(() => {
+  const clickedDateData = getJournalData.find(
+    d => d?.currentDat === today, // 👈 this line
+  );
+
+  if (clickedDateData === undefined) {
+    setEditSet(false);
+        dispatch(setJournalEdit(false));
+  } else {
+    setEditSet(true);
+        dispatch(setJournalEdit(true));
+  }
+}, [getJournalData]);
   const markedJournalDates = useMemo(() => {
     const marks = {};
     // const todayDate = today
@@ -135,16 +153,8 @@ const Home = () => {
         journal: mood[0],
       });
     } else {
-      // Toast.show({
-      //   type: 'custom',
-      //   position: 'top',
-      //   props: {
-      //     icon: IconData.ERR, // your custom image
-      //     text: 'No journal entry data available for this selected date.',
-      //   },
-      // });
       if (date <= today) {
-        navigation.navigate('CreateJournalEntry', {
+        navigation.replace('CreateJournalEntry', {
           prompttype: false,
           selectedDate: date,
         });
@@ -179,16 +189,21 @@ const Home = () => {
     // });
   };
 
-  useEffect(() => {
-    const clickedDateData = getJournalData.find(d => d?.currentDat === today);
-    if (clickedDateData == undefined) {
-      setEditSet(false);
-    } else {
-      setEditSet(true);
-    }
-  }, [getJournalData]);
+  // useEffect(() => {
+  //   const clickedDateData = getJournalData.find(d => d?.currentDat === today);
+  //   if (clickedDateData == undefined) {
+  //     setEditSet(false);
+  //   } else {
+  //     setEditSet(true);
+  //   }
+  // }, [getJournalData]);
+
   return (
-    <View style={styles.secondaryContainer}>
+    <View
+      style={[
+        styles.secondaryContainer,
+        {height: Platform.OS == 'android' && height >= 780 ? '90%' : '85%'},
+      ]}>
       <FastImage
         // source={ImageData.MAINBACKGROUND}
         source={memoizedBackground}
@@ -282,57 +297,6 @@ const Home = () => {
 
                     textDayFontFamily: Font?.EBGaramond_SemiBold,
                   }}
-                  // dayComponent={({date}) => {
-                  //   const isSelected = date.dateString === selectedDate;
-                  //   const marked = markedJournalDates?.[date.dateString];
-
-                  //   const selectedStyle = marked?.selectedColor
-                  //     ? {backgroundColor: marked.selectedColor}
-                  //     : null;
-
-                  //   const dotStyle = marked?.dotColor
-                  //     ? {
-                  //         width: 6,
-                  //         height: 6,
-                  //         borderRadius: 3,
-                  //         backgroundColor: marked.dotColor,
-                  //         marginTop: 2,
-                  //         alignSelf: 'center',
-                  //       }
-                  //     : null;
-
-                  //   const moodEmoji = marked?.moodName
-                  //     ? getemojyItem(marked.moodName) || ''
-                  //     : '';
-                  //   return (
-                  //     <TouchableOpacity
-                  //       onPress={() => getDayPresh(date.dateString)}
-                  //       style={styles.dayContainer}>
-                  //       {moodEmoji ? (
-                  //         <Image
-                  //           source={moodEmoji}
-                  //           style={{width: 24, height: 24}}
-                  //           tintColor={Color.LIGHTGREEN}
-                  //         />
-                  //       ) : (
-                  //         <View
-                  //           style={[
-                  //             styles.circle,
-                  //             isSelected && styles.selectedCircle,
-                  //             selectedStyle,
-                  //           ]}>
-                  //           <Text
-                  //             style={[
-                  //               styles.dayText,
-                  //               isSelected && styles.selectedText,
-                  //             ]}>
-                  //             {date.day}
-                  //           </Text>
-                  //         </View>
-                  //       )}
-                  //     </TouchableOpacity>
-                  //   );
-                  // }}
                   dayComponent={({date}) => {
                     const isToday = date.dateString === today;
                     const marked = markedJournalDates?.[date.dateString];
@@ -470,7 +434,7 @@ const Home = () => {
               alignItems: 'center',
               zIndex: 1,
             }}>
-            {!editSet ? (
+            {!editjournal ? (
               <Button2
                 width={250}
                 height={50}
@@ -547,10 +511,12 @@ const styles = StyleSheet.create({
 
   calendarWrapper: {
     width: '100%',
-    height: height * 0.33, // 77% of screen height
-    overflow: 'hidden',
+    height: height <= 800 ? height * 0.3 : height * 0.25,
+
+    overflow: 'visible',
     backgroundColor: 'transparent',
     padding: 0,
+    zIndex: 1,
   },
   calendar: {
     width: '100%',
