@@ -36,16 +36,13 @@
   </dict>
   <key>NSCameraUsageDescription</key>
   <string> Vinelight needs camera access for user's profile photo</string>
-  <key>NSHealthShareUsageDescription</key>
-  <string>Read and understand health data.</string>
   <key>NSLocationWhenInUseUsageDescription</key>
   <string>Vinelight needs Location access to show Gyms on the basis of Current User's location</string>
   <key>NSPhotoLibraryAddUsageDescription</key>
   <string>We need access to save your images to the photo library.</string>
   <key>NSPhotoLibraryUsageDescription</key>
   <string>Vinelight needs library access for user's profile photo</string>
-  <key>NSMicrophoneUsageDescription</key>
-  <string>This app uses speech synthesis</string>
+ 
   <key>UIAppFonts</key>
   <array>
     <string>EBGaramond-Italic.ttf</string>

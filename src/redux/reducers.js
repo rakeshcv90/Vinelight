@@ -1,5 +1,6 @@
 import Toast from 'react-native-toast-message';
 import types from './types';
+import { IconData } from '../../assets/Image';
 const initialState = {
   userInfo: null,
   ceremonyinfo: [],

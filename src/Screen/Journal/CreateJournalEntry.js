@@ -276,7 +276,6 @@ const CreateJournalEntry = ({navigation, route}) => {
       }
 
       // setLoader(true);
-
       dispatch(
         setJournalData({
           currentDat,
@@ -301,7 +300,7 @@ const CreateJournalEntry = ({navigation, route}) => {
       }, 900);
     } catch (error) {
       setLoader(false);
-      console.error('Error saving journal data:', error);
+      console.log('Error saving journal data:', error);
 
       Toast.show({
         type: 'custom',

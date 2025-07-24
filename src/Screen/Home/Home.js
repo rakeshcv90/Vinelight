@@ -154,7 +154,7 @@ useEffect(() => {
       });
     } else {
       if (date <= today) {
-        navigation.replace('CreateJournalEntry', {
+        navigation.navigate('CreateJournalEntry', {
           prompttype: false,
           selectedDate: date,
         });
