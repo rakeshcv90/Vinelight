@@ -1,26 +1,28 @@
-import {View, Text, Image} from 'react-native';
+import {View, Text, Image, Dimensions} from 'react-native';
 import React from 'react';
 import {Color, Font, IconData} from '../../assets/Image';
-
+const {width, height} = Dimensions.get('window');
 const ProfileGoalComponent = ({image, count, title}) => {
   return (
     <View
       style={{
-        width: 155,
-        height: 96,
+        width: width * 0.42,
+        height: height * 0.12,
         borderRadius: 8,
-        padding: 8,
+        padding: 10,
         backgroundColor: Color?.BROWN3,
       }}>
       <View
         style={{
           width: '100%',
+          top: -10,
           justifyContent: 'space-between',
           flexDirection: 'row',
+          alignItems: 'center',
         }}>
         <Text
           style={{
-            fontSize: 40,
+            fontSize: 35,
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.BROWN,
           }}>
@@ -33,12 +35,13 @@ const ProfileGoalComponent = ({image, count, title}) => {
           resizeMode="contain"
         />
       </View>
-      <View style={{width: '100%', marginTop: 5}}></View>
+      <View style={{width: '100%'}}></View>
       <Text
         style={{
           fontSize: 16,
           fontFamily: Font.EBGaramond_Medium,
           color: Color.LIGHTGREEN,
+          top: -10,
         }}>
         {title}
       </Text>

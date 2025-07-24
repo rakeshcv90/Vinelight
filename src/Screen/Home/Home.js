@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button from '../../Component/Button';
 import Button2 from '../../Component/Button2';
@@ -19,13 +19,14 @@ import {callApi} from '../../Component/ApiCall';
 import {Api} from '../../Api';
 import Toast from 'react-native-toast-message';
 import FastImage from 'react-native-fast-image';
-import {useSelector} from 'react-redux';
-import {useNavigation} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {moodData} from '../../Component/Mood';
+import moment from 'moment-timezone';
+import { setJournalEdit } from '../../redux/actions';
 
 const {width, height} = Dimensions.get('window');
 
-const today = new Date().toISOString().split('T')[0];
 
 LocaleConfig.locales['custom'] = {
   monthNames: [
@@ -71,15 +72,39 @@ LocaleConfig.locales['custom'] = {
 
 LocaleConfig.defaultLocale = 'custom';
 
-const Home = () => {
+const Home = ({isActive}) => {
+
+const deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+ const dispatch = useDispatch();
+const today = moment().tz(deviceTimeZone).format('YYYY-MM-DD');
   const [selectedDate, setSelectedDate] = useState(today);
+
   const navigation = useNavigation();
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
-  const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
+   const editjournal = useSelector(state => state?.user?.editjournal);
+  console.log('Home getJournalData', editjournal);
 
+  const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
+  const [editSet, setEditSet] = useState(false);
+
+   // force re-run when new journal is added
+useEffect(() => {
+  const clickedDateData = getJournalData.find(
+    d => d?.currentDat === today, // 👈 this line
+  );
+
+  if (clickedDateData === undefined) {
+    setEditSet(false);
+        dispatch(setJournalEdit(false));
+  } else {
+    setEditSet(true);
+        dispatch(setJournalEdit(true));
+  }
+}, [getJournalData]);
   const markedJournalDates = useMemo(() => {
     const marks = {};
+    // const todayDate = today
     const todayDate = new Date();
 
     getJournalData?.forEach(entry => {
@@ -107,6 +132,18 @@ const Home = () => {
   }, [getJournalData, selectedDate]);
 
   const getDayPresh = date => {
+    if (date > today) {
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: 'You cannot select future date',
+        },
+      });
+      return;
+    }
+    setSelectedDate(date);
     const mood = getJournalData?.filter(item => {
       return item?.currentDat === date;
     });
@@ -116,13 +153,21 @@ const Home = () => {
         journal: mood[0],
       });
     } else {
-      Toast.show({
-        type: 'error', // 'info' or any type you want
-        text1: 'No data found',
-        text2: 'No journal entry data available for this selected date.',
-        visibilityTime: 3000,
-        position: 'top', // 'top' or 'bottom'
-      });
+      if (date <= today) {
+        navigation.navigate('CreateJournalEntry', {
+          prompttype: false,
+          selectedDate: date,
+        });
+      } else {
+        Toast.show({
+          type: 'custom',
+          position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Journal entries cannot be created for future dates.',
+          },
+        });
+      }
     }
   };
 
@@ -133,8 +178,32 @@ const Home = () => {
 
     return mood[0]?.Image;
   };
+  const onclickData = () => {
+    const mood = getJournalData?.filter(item => {
+      return item?.currentDat === today;
+    });
+
+    // navigation.navigate('CreateJournalEntry', {
+    //   prompttype: false,
+    //   selectedDate: selectedDate,
+    // });
+  };
+
+  // useEffect(() => {
+  //   const clickedDateData = getJournalData.find(d => d?.currentDat === today);
+  //   if (clickedDateData == undefined) {
+  //     setEditSet(false);
+  //   } else {
+  //     setEditSet(true);
+  //   }
+  // }, [getJournalData]);
+
   return (
-    <View style={styles.secondaryContainer}>
+    <View
+      style={[
+        styles.secondaryContainer,
+        {height: Platform.OS == 'android' && height >= 780 ? '90%' : '85%'},
+      ]}>
       <FastImage
         // source={ImageData.MAINBACKGROUND}
         source={memoizedBackground}
@@ -163,7 +232,7 @@ const Home = () => {
               borderWidth: 1,
               alignSelf: 'center',
               borderColor: Color.LIGHTGREEN,
-              // backgroundColor: Color?.LIGHTBROWN,
+              backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -229,12 +298,13 @@ const Home = () => {
                     textDayFontFamily: Font?.EBGaramond_SemiBold,
                   }}
                   dayComponent={({date}) => {
-                    const isSelected = date.dateString === selectedDate;
+                    const isToday = date.dateString === today;
                     const marked = markedJournalDates?.[date.dateString];
 
-                    const selectedStyle = marked?.selectedColor
-                      ? {backgroundColor: marked.selectedColor}
-                      : null;
+                    const selectedStyle =
+                      isToday && marked?.selectedColor
+                        ? {backgroundColor: marked.selectedColor}
+                        : null;
 
                     const dotStyle = marked?.dotColor
                       ? {
@@ -246,9 +316,11 @@ const Home = () => {
                           alignSelf: 'center',
                         }
                       : null;
+
                     const moodEmoji = marked?.moodName
                       ? getemojyItem(marked.moodName) || ''
                       : '';
+
                     return (
                       <TouchableOpacity
                         onPress={() => getDayPresh(date.dateString)}
@@ -263,13 +335,13 @@ const Home = () => {
                           <View
                             style={[
                               styles.circle,
-                              isSelected && styles.selectedCircle,
+                              isToday && styles.selectedCircle,
                               selectedStyle,
                             ]}>
                             <Text
                               style={[
                                 styles.dayText,
-                                isSelected && styles.selectedText,
+                                isToday && styles.selectedText,
                               ]}>
                               {date.day}
                             </Text>
@@ -329,9 +401,26 @@ const Home = () => {
               nestedScrollEnabled={true}
               showsVerticalScrollIndicator={false}>
               <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('CreateJournalEntry', {prompttype: true})
-                }>
+                onPress={() => {
+                  const mood = getJournalData?.filter(item => {
+                    return item?.currentDat === today;
+                  });
+                  if (mood?.length > 0) {
+                    Toast.show({
+                      type: 'custom',
+                      position: 'top',
+                      props: {
+                        icon: IconData.ERR, // your custom image
+                        text: `You already created a prompt for today's date`,
+                      },
+                    });
+                  } else {
+                    navigation.navigate('CreateJournalEntry', {
+                      prompttype: true,
+                      selectedDate: selectedDate,
+                    });
+                  }
+                }}>
                 <Text style={styles.text}>{prompt?.description}</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -345,17 +434,37 @@ const Home = () => {
               alignItems: 'center',
               zIndex: 1,
             }}>
-            <Button2
-              width={250}
-              height={50}
-              buttonTitle={'Add Journal Entry'}
-              img={IconData.PLUS}
-              left={true}
-              size={20}
-              onPress={() =>
-                navigation.navigate('CreateJournalEntry', {prompttype: false})
-              }
-            />
+            {!editjournal ? (
+              <Button2
+                width={250}
+                height={50}
+                buttonTitle={'New Journal Entry'}
+                img={IconData.PLUS}
+                left={true}
+                size={20}
+                onPress={() =>
+                  navigation.navigate('CreateJournalEntry', {prompttype: false})
+                }
+              />
+            ) : (
+              <Button2
+                width={250}
+                height={50}
+                buttonTitle={'Edit Journal Entry'}
+                img={IconData.PEN2}
+                left={true}
+                size={20}
+                onPress={() => {
+                  const clickedDateData = getJournalData.find(
+                    d => d?.currentDat === today,
+                  );
+
+                  navigation.navigate('EditJournalEntry', {
+                    journalData: clickedDateData,
+                  });
+                }}
+              />
+            )}
           </View>
         </ScrollView>
       </FastImage>
@@ -402,10 +511,12 @@ const styles = StyleSheet.create({
 
   calendarWrapper: {
     width: '100%',
-    height: height * 0.33, // 77% of screen height
-    overflow: 'hidden',
+    height: height <= 800 ? height * 0.3 : height * 0.25,
+
+    overflow: 'visible',
     backgroundColor: 'transparent',
     padding: 0,
+    zIndex: 1,
   },
   calendar: {
     width: '100%',

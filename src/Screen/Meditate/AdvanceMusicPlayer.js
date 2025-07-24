@@ -7,13 +7,20 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import FastImage from 'react-native-fast-image';
 import ProgressBar3 from '../../Component/ProgressBar3';
+import KeepAwake from 'react-native-keep-awake';
 const {width, height} = Dimensions.get('window');
 const AdvanceMusicPlayer = ({navigation, route}) => {
+useEffect(() => {
+    KeepAwake.activate();   // Prevent screen sleep when this screen is active
 
+    return () => {
+      KeepAwake.deactivate(); // Clean up on unmount
+    };
+  }, []);
   const [pauseSound, setPauseSound] = useState(false);
   return (
     <View style={styles.container}>
@@ -111,6 +118,7 @@ const AdvanceMusicPlayer = ({navigation, route}) => {
                     flexDirection: 'row',
                     alignItems: 'flex-start',
                     justifyContent: 'space-between',
+                    
                   }}>
                   <FastImage
                     source={ImageData.LEFT}

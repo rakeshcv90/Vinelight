@@ -3,18 +3,21 @@ import {
   FlatList,
   Image,
   ImageBackground,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import {useNavigation} from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
 import {useDispatch, useSelector} from 'react-redux';
 import {deleteDreamData} from '../../redux/actions';
+import moment from 'moment';
+import WebView from 'react-native-webview';
 const {width, height} = Dimensions.get('window');
 const Dreams = () => {
   const navigation = useNavigation();
@@ -24,7 +27,10 @@ const Dreams = () => {
   const [toolVisible, setToolVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 0});
   const [selectedDream, setSelectedDream] = useState(null);
-
+  const [editSet, setEditSet] = useState(false);
+  const [currentDat, setCurrentDate] = useState(
+    moment().local().format('YYYY-MM-DD'),
+  );
   // const flattenDreamData = dreamData => {
   //   const result = [];
 
@@ -94,13 +100,22 @@ const Dreams = () => {
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
           }}>
-          No Dream Journal Data Saved
+          No dream data available.
         </Text>
       </View>
     );
   };
+  // const formatDate = dateStr => {
+  //   const date = new Date(dateStr);
+  //   return date.toLocaleDateString('en-GB', {
+  //     day: 'numeric',
+  //     month: 'long',
+  //     year: 'numeric',
+  //   });
+  // };
+
   const formatDate = dateStr => {
-    const date = new Date(dateStr);
+    const date = new Date(`${dateStr}T12:00:00`); // Add time to avoid timezone offset
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'long',
@@ -118,7 +133,8 @@ const Dreams = () => {
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, '');
 
     return plainText;
   };
@@ -126,8 +142,24 @@ const Dreams = () => {
   const deleteDream = () => {
     dispatch(deleteDreamData(selectedDream?.dream?.id));
   };
+
+  useEffect(() => {
+    const clickedDateData = getDreamData.find(
+      d => d?.currentDat === currentDat,
+    );
+    if (clickedDateData == undefined) {
+      setEditSet(false);
+    } else {
+      setEditSet(true);
+    }
+  }, [getDreamData]);
+
   return (
-    <View style={styles.secondaryContainer}>
+    <View
+      style={[
+        styles.secondaryContainer,
+        {height: Platform.OS == 'android' && height >= 780 ? '90%' : '85%'},
+      ]}>
       <FastImage
         source={memoizedBackground}
         style={styles.secondaryBackground}
@@ -148,7 +180,7 @@ const Dreams = () => {
               marginTop: '10%',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
-              // backgroundColor: Color?.LIGHTBROWN,
+              backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -206,6 +238,36 @@ const Dreams = () => {
                     : `dream-${item.dream.id}`
                 }
                 renderItem={({item, index}) => {
+                  const htmlContent =
+                    item?.dream?.dreamContent || '<p>No content available</p>';
+
+                  const wrappedHtml = `
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-size: 16px;
+        }
+        .clamp {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="clamp">
+        ${htmlContent}
+      </div>
+    </body>
+  </html>
+  `;
+
                   if (item.type === 'header') {
                     return (
                       <View
@@ -283,11 +345,18 @@ const Dreams = () => {
                           dreaItem: clickedDateData,
                         });
                       }}>
-                      <Text style={styles.taskText} numberOfLines={3}>
+                      {/* <Text style={styles.taskText} numberOfLines={2}>
                         {dream?.dreamContent
                           ? htmlToPlainText(dream.dreamContent)
                           : 'No content available'}
-                      </Text>
+                      </Text> */}
+
+                      <WebView
+                        originWhitelist={['*']}
+                        source={{html: wrappedHtml}}
+                        style={{height: 20, backgroundColor: 'transparent'}} // or use styles.webview
+                        scrollEnabled={false}
+                      />
                     </TouchableOpacity>
                   );
                 }}
@@ -300,21 +369,47 @@ const Dreams = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'center',
-                top: height * 0.035,
+
+                top:
+                  Platform.OS == 'ios'
+                    ? height * 0.035
+                    : height >= 780
+                    ? height * 0.025
+                    : height * 0.035,
                 gap: 20,
                 flexDirection: 'row',
               }}>
-              <Button2
-                width={280}
-                height={50}
-                buttonTitle={'New Dream Journal Entry'}
-                img={IconData.PLUS}
-                left={true}
-                size={20}
-                onPress={() => {
-                  navigation.navigate('CreateDream');
-                }}
-              />
+              {!editSet ? (
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'New Dream Journal Entry'}
+                  img={IconData.PLUS}
+                  left={true}
+                  size={20}
+                  onPress={() => {
+                    navigation.navigate('CreateDream');
+                  }}
+                />
+              ) : (
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'Edit Dream Journal Entry'}
+                  img={IconData.PEN2}
+                  left={true}
+                  size={20}
+                  onPress={() => {
+                    const clickedDateData = getDreamData.find(
+                      d => d?.currentDat === currentDat,
+                    );
+
+                    navigation.navigate('EditDream', {
+                      dreamData: clickedDateData,
+                    });
+                  }}
+                />
+              )}
             </View>
 
             <View
@@ -464,7 +559,7 @@ const styles = StyleSheet.create({
   },
   taskRow: {
     padding: 2,
-
+    height: 60,
     marginBottom: 0,
     borderRadius: 12,
   },

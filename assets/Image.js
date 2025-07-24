@@ -40,6 +40,7 @@ export const IconData = {
   CEREMONYA: require('../assets/Image/icon/ceremonyA.png'),
   GOALA: require('../assets/Image/icon/goalsA.png'),
   PEN: require('../assets/Image/icon/pen.png'),
+    PEN2: require('../assets/Image/icon/pen2.png'),
   SAVE: require('../assets/Image/icon/save.png'),
   UPGRADE: require('../assets/Image/icon/upgrade.png'),
   FACEBOOK: require('../assets/Image/icon/fb.png'),
@@ -89,6 +90,13 @@ export const IconData = {
   MAIL: require('../assets/Image/icon/email.png'),
   BACK1: require('../assets/Image/icon/back1.png'),
   CALENDERDROP: require('../assets/Image/icon/calenderdop.png'),
+  SUCC: require('../assets/Image/icon/succ.png'),
+  ERR: require('../assets/Image/icon/err.png'),
+  DEL: require('../assets/Image/icon/del.png'),
+  CLOCK: require('../assets/Image/icon/clock.png'),
+  UNDO: require('../assets/Image/icon/undo.png'),
+  SEND: require('../assets/Image/icon/send.png'),
+  OFFER: require('../assets/Image/icon/offer.png'),
 };
 export const Font = {
   EB_Garamond: 'EBGaramond-Variable',

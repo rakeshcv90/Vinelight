@@ -14,13 +14,15 @@ import {Color, Font, IconData, ImageData} from '../../assets/Image';
 import {callApi, callApi1} from './ApiCall';
 import {Api} from '../Api';
 import Toast from 'react-native-toast-message';
+import {useNavigation} from '@react-navigation/native';
 const {width, height} = Dimensions.get('window');
 
 const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
   const [header, setHeader] = useState('Categories');
-
+  const navigation = useNavigation();
   const [header3, setHeader3] = useState('Prompts');
   const [categories, setCategories] = useState([]);
+  const listRef = React.useRef(null);
 
   const [prompts, setPrompts] = useState(null);
   const [listOpen, setListOpen] = useState(0);
@@ -45,16 +47,19 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
       if (data?.success) {
         setPrompts(data?.data);
         setListOpen(1);
+        setTimeout(() => {
+          listRef.current?.scrollToOffset({animated: false, offset: 0});
+        }, 100);
       } else {
         Toast.show({
-          type: 'error',
-          text1: 'Data Not Found',
-          text2: 'Sub-Categories Data Not FOund',
-          visibilityTime: 3000,
+          type: 'custom',
           position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Sub-Categories Data Not Found',
+          },
         });
       }
-      console.log('Data', data);
     } catch (error) {
       console.error('Error:', error.message);
     }
@@ -96,7 +101,6 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
   };
 
   const renderItem2 = ({item, index}) => {
-  
     return (
       <TouchableOpacity
         style={styles.card}
@@ -104,7 +108,9 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
         onPress={() => {
           setPromptData(item?.description);
           setListOpen(0);
+          // onClose();
           onClose();
+          // navigation.setParams({modalOpenData: null, selectedDate: null});
         }}>
         <Text style={styles.title}>{item?.description}</Text>
       </TouchableOpacity>
@@ -120,7 +126,11 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal
+      visible={visible}
+      animationType="fade"
+      transparent={true}
+      statusBarTranslucent={true}>
       <View style={styles.overlay}>
         <View style={styles.modalWrapper}>
           <ImageBackground
@@ -147,8 +157,7 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
                   fontSize: 24,
                   color: Color.LIGHTGREEN,
                 }}>
-                {listOpen == 0
-                  ? header:header3}
+                {listOpen == 0 ? header : header3}
               </Text>
               <TouchableOpacity
                 onPress={() => {
@@ -166,12 +175,13 @@ const PromptDreamModal = ({visible, onClose, promptData, setPromptData}) => {
             <View
               style={{
                 width: '96%',
-                height: '75%',
+                height: '80%',
 
                 alignSelf: 'center',
                 // top: -20,
               }}>
               <FlatList
+                ref={listRef}
                 data={listOpen == 0 ? categories : prompts}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{paddingBottom: 20}}
@@ -219,7 +229,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: Font.EBGaramond_Regular,
-    textAlign: 'center',
+    textAlign: 'left',
     color: Color.LIGHTGREEN,
     lineHeight: 24,
   },

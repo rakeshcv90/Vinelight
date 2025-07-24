@@ -15,7 +15,7 @@ import {
   Keyboard,
   TouchableOpacity,
 } from 'react-native';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import Button2 from '../../Component/Button2';
 import ActivityLoader from '../../Component/ActivityLoader';
@@ -23,11 +23,12 @@ import Button from '../../Component/Button';
 import TooltipModal from '../../Component/TooltipModal';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
-import { InteractionManager } from 'react-native';
+import {InteractionManager} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   deleteGoalByDate,
   deleteTaskById,
+  deleteTaskByRepetedId,
   setGaolData,
   updateAllGoalData,
   upDateGoalById,
@@ -36,17 +37,36 @@ import uuid from 'react-native-uuid';
 import {getDatesForMultipleDaysOverMonths} from '../utils';
 import Toast from 'react-native-toast-message';
 import FastImage from 'react-native-fast-image';
+import DeleteModal from '../../Component/DeleteModal';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
 
-const Goal = () => {
-  const [modalopen, setModalOpen] = useState(false);
+const Goal = ({isActive}) => {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const DataCurrent = route?.params?.modalOpenData;
+
+  const [modalopen, setModalOpen] = useState(
+    DataCurrent == undefined ? false : true,
+  );
   const dispatch = useDispatch();
   const goalData = useSelector(state => state.user?.goalByDate || []);
-
-  const [toolVisible, setToolVisible] = useState(false);
+  const [deleteModalData, setDeleteModaldata] = useState(false);
+  const [toolGoalVisible, setToolGoalVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 0});
   const [selectedGoal, setSelectedGoal] = useState(null);
+  const [SelectedData, setSelectedData] = useState(null);
+  const goalInputRef = useRef(null);
+  const [currentDAte, setCurrentDAte] = useState(
+    moment().local().format('YYYY-MM-DD'),
+  );
+
+  const [currentdate, setCurrentData] = useState(
+    DataCurrent == undefined
+      ? moment().local().format('YYYY-MM-DD')
+      : DataCurrent,
+  );
   const emptyComponent = () => {
     return (
       <View
@@ -70,22 +90,34 @@ const Goal = () => {
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
           }}>
-          No Goals Saved
+          No goals data available.
         </Text>
       </View>
     );
   };
 
-  const CeremonyModal = ({visible, onClose}) => {
-    const [daysShow, setDayshow] = useState(true);
+  useEffect(() => {
+    if (!isActive) {
+      setModalVisible(false), setToolGoalVisible(false);
+    }
+  }, [isActive]);
+  const GoalModal = ({visible, onClose}) => {
+    const [daysShow, setDayshow] = useState(new Date());
     const [goalName, setGoalName] = useState(null);
+    // const [selectedDate, setSelectedDate] = useState(
+    //   moment().format('YYYY-MM-DD'),
+    // );
     const [selectedDate, setSelectedDate] = useState(
-      moment().format('YYYY-MM-DD'),
+      DataCurrent == undefined
+        ? moment().local().format('YYYY-MM-DD')
+        : route?.params?.selectedDate,
     );
+
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const showDatePicker = () => setDatePickerVisibility(true);
     const hideDatePicker = () => setDatePickerVisibility(false);
     const handleConfirm = date => {
+      Keyboard.dismiss();
       const formattedDate = moment(date).format('YYYY-MM-DD');
       setSelectedDate(formattedDate);
       hideDatePicker();
@@ -102,13 +134,16 @@ const Goal = () => {
       'Fri',
       'Sat',
     ];
-    const safeAction = (action) => {
+    const safeAction = action => {
       Keyboard.dismiss();
       InteractionManager.runAfterInteractions(() => {
         action();
       });
     };
-    
+    const showDatePicker1 = () => {
+      Keyboard.dismiss(); // close keyboard before opening picker
+      setDatePickerVisibility(true);
+    };
     const toggleMood = mood => {
       if (mood === 'Daily') {
         const allSelected = selectedMoods.length === dayOptions.length;
@@ -144,6 +179,25 @@ const Goal = () => {
       }
     };
 
+    // const toggleMood = mood => {
+    //   const weekDays = dayOptions.filter(d => d !== 'Daily');
+
+    //   if (mood === 'Daily') {
+    //     const allSelected = selectedMoods.length === weekDays.length;
+    //     setSelectedMoods(allSelected ? [] : weekDays);
+    //   } else {
+    //     let newSelection;
+
+    //     if (selectedMoods.includes(mood)) {
+    //       newSelection = selectedMoods.filter(m => m !== mood);
+    //     } else {
+    //       newSelection = [...selectedMoods, mood];
+    //     }
+
+    //     setSelectedMoods(newSelection);
+    //   }
+    // };
+
     const saveGoalData = () => {
       if (goalName) {
         const date = selectedDate;
@@ -153,17 +207,26 @@ const Goal = () => {
         const response = insertTaskAcrossDates(dispatch, date, days, text);
         if (response > 0) {
           onClose();
+
           Toast.show({
-            type: 'success',
-            text1: 'Goal Saved',
-            text2: `${response} task(s) added.`,
+            type: 'custom',
+            position: 'top',
+            props: {
+              icon: IconData.SUCC, // your custom image
+              text: `Goal saved!`,
+            },
           });
+          navigation.setParams({modalOpenData: null, selectedDate: null});
+          setModalOpen(false); // update local state as well
         }
       } else {
         Toast.show({
-          type: 'error',
-          text1: 'Please Select Goal Data',
-          // text2: error.message,
+          type: 'custom',
+          position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Please enter the goal first to save the goal.',
+          },
         });
       }
     };
@@ -183,7 +246,8 @@ const Goal = () => {
         });
       }
 
-      // Dispatch task insertion for each unique date
+      const taskCount = allDates.size;
+      const repeatId = taskCount > 1 ? uuid.v4() : null;
       Array.from(allDates).forEach(date => {
         dispatch(
           setGaolData({
@@ -192,16 +256,24 @@ const Goal = () => {
               id: uuid.v4(), // make sure you're using react-native-uuid
               text: taskText,
               completed: false,
+              ...(repeatId && {repeatId}),
             },
           }),
         );
       });
 
-      return allDates.size;
+      return taskCount;
     };
-
+    const isValidDate = date => {
+      return date instanceof Date && !isNaN(date);
+    };
     return (
-      <Modal visible={visible} transparent animationType="slide">
+      <Modal
+        visible={visible}
+        transparent
+        animationType="slide"
+        onRequestClose={onClose}
+        onDismiss={onClose}>
         <KeyboardAvoidingView
           style={styles.overlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -209,7 +281,8 @@ const Goal = () => {
             onPress={Keyboard.dismiss}
             accessible={false}>
             <ScrollView
-              contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-end'}} keyboardShouldPersistTaps='handled'>
+              contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-end'}}
+              keyboardShouldPersistTaps="handled">
               <View style={styles.modalWrapper}>
                 <ImageBackground
                   source={ImageData.MODAL}
@@ -234,7 +307,7 @@ const Goal = () => {
                         textAlign: 'center',
                         color: Color.LIGHTGREEN,
                       }}>
-                      Add New Goal
+                      New Goal
                     </Text>
                     <TouchableOpacity
                       onPress={() => onClose()}
@@ -281,7 +354,7 @@ const Goal = () => {
                       </>
                     </View>
 
-                    <View
+                    {/* <View
                       style={{
                         width: '90%',
                         height: 120,
@@ -291,7 +364,7 @@ const Goal = () => {
                       }}>
                       <TextInput
                         value={goalName}
-                        autoFocus={true}
+                        // autoFocus={true}
                         onChangeText={text => setGoalName(text)}
                         placeholder=" Name"
                         placeholderTextColor={Color.GREEN}
@@ -304,7 +377,32 @@ const Goal = () => {
                         }}
                         selectionColor={Color.LIGHTGREEN}
                       />
-                    </View>
+                    </View> */}
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      onPress={() => goalInputRef.current?.focus()}
+                      style={{
+                        width: '90%',
+                        height: 120,
+                        borderRadius: 12,
+                        backgroundColor: 'white',
+                      }}>
+                      <TextInput
+                        ref={goalInputRef}
+                        value={goalName}
+                        onChangeText={text => setGoalName(text)}
+                        placeholder=" Name"
+                        placeholderTextColor={Color.GREEN}
+                        multiline={true}
+                        textAlignVertical="top"
+                        style={{
+                          color: Color.LIGHTGREEN,
+                          fontSize: 16,
+                          fontFamily: Font.EBGaramond_Regular,
+                        }}
+                        // selectionColor={Color.LIGHTGREEN}
+                      />
+                    </TouchableOpacity>
                     <View
                       style={{
                         width: '100%',
@@ -425,7 +523,9 @@ const Goal = () => {
                           paddingHorizontal: 10,
                           gap: 10,
                         }}>
-                      <TouchableOpacity onPress={() => safeAction(showDatePicker)}>
+                        <TouchableOpacity
+                          // onPress={() => safeAction(showDatePicker)}
+                          onPress={showDatePicker1}>
                           <Image
                             source={IconData.CALENDER}
                             style={{width: 24, height: 24}}
@@ -433,7 +533,9 @@ const Goal = () => {
                             resizeMode="contain"
                           />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => safeAction(showDatePicker)}>
+                        <TouchableOpacity
+                          // onPress={() => safeAction(showDatePicker)}
+                          onPress={showDatePicker1}>
                           <Text
                             style={{
                               fontSize: 16,
@@ -446,7 +548,9 @@ const Goal = () => {
                               : ''}
                           </Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => safeAction(showDatePicker)}>
+                        <TouchableOpacity
+                          // onPress={() => safeAction(showDatePicker)}
+                          onPress={showDatePicker1}>
                           <Image
                             source={IconData.DROP}
                             style={{width: 15, height: 15}}
@@ -454,8 +558,10 @@ const Goal = () => {
                             resizeMode="contain"
                           />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => safeAction(() => setTooltipVisible(true))}>
-
+                        <TouchableOpacity
+                          onPress={() =>
+                            safeAction(() => setTooltipVisible(true))
+                          }>
                           <Image
                             source={IconData.REPEAT}
                             style={{width: 24, height: 24}}
@@ -471,10 +577,15 @@ const Goal = () => {
                           onClose={() => setTooltipVisible(false)}
                         />
                       </View>
+                     {console.log("dddddddd",height)}
                       <View
-                        style={{
-                          width: '30%',
-                        }}>
+                        // style={{
+                        //   right: height <= 900 ? height*0.0045 : 0,
+                        // }}
+                            style={{
+                          right: height <= 800 ? height*0.0045 : 0,
+                        }}
+                        >
                         <Button
                           img={IconData.SAVE}
                           text="Save"
@@ -485,6 +596,7 @@ const Goal = () => {
                           size={16}
                           font={Font.EBGaramond_SemiBold}
                           onPress={() => {
+                            Keyboard.dismiss();
                             saveGoalData();
                           }}
                           style={{width: '50%', zIndex: -1}}
@@ -500,6 +612,7 @@ const Goal = () => {
                 onConfirm={handleConfirm}
                 onCancel={hideDatePicker}
                 display={Platform.OS === 'ios' ? 'inline' : 'default'} // optional but nice
+                date={isValidDate(daysShow) ? new Date(daysShow) : new Date()}
               />
             </ScrollView>
           </TouchableWithoutFeedback>
@@ -522,8 +635,17 @@ const Goal = () => {
 
     return result;
   };
+  // const formatDate = dateStr => {
+  //   const date = new Date(dateStr);
+  //   return date.toLocaleDateString('en-GB', {
+  //     day: 'numeric',
+  //     month: 'long',
+  //     year: 'numeric',
+  //   });
+  // };
+
   const formatDate = dateStr => {
-    const date = new Date(dateStr);
+    const date = new Date(`${dateStr}T12:00:00`); // Add time to avoid timezone offset
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'long',
@@ -531,20 +653,67 @@ const Goal = () => {
     });
   };
   const updateTask = data => {
-    dispatch(upDateGoalById(data?.id));
+    if (data?.date <= currentDAte) {
+      dispatch(upDateGoalById(data?.task?.id));
+    } else {
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: 'You cannot mark a goal that is set for a future date.',
+        },
+      });
+    }
   };
   const deleteGoalDate = data => {
+    setDeleteModaldata(false);
     dispatch(deleteGoalByDate(data?.date));
+    Toast.show({
+      type: 'custom',
+      position: 'top',
+      props: {
+        icon: IconData.DEL, // your custom image
+        text: 'Goal deleted successfully',
+      },
+    });
   };
   const deleteTask = data => {
+    setDeleteModaldata(false);
     dispatch(deleteTaskById(data?.id));
+
+    Toast.show({
+      type: 'custom',
+      position: 'top',
+      props: {
+        icon: IconData.DEL, // your custom image
+        text: 'Goal deleted successfully',
+      },
+    });
   };
   const clearAllTasksForDate = data => {
-    dispatch(updateAllGoalData(data?.date));
+    if (data?.date <= currentDAte) {
+      dispatch(updateAllGoalData(data?.date));
+    } else {
+      Toast.show({
+        type: 'custom',
+        position: 'top',
+        props: {
+          icon: IconData.ERR, // your custom image
+          text: 'You cannot mark a goal that is set for a future date.',
+        },
+      });
+    }
+
+    // dispatch(updateAllGoalData(data?.date));
   };
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   return (
-    <View style={styles.secondaryContainer}>
+    <View
+      style={[
+        styles.secondaryContainer,
+        {height: Platform.OS == 'android' && height >= 780 ? '90%' : '85%'},
+      ]}>
       <FastImage
         source={memoizedBackground}
         style={styles.secondaryBackground}
@@ -565,7 +734,7 @@ const Goal = () => {
               marginTop: '10%',
               borderWidth: 1,
               borderColor: Color.LIGHTGREEN,
-              // backgroundColor: Color?.LIGHTBROWN,
+              backgroundColor: Color?.LIGHTBROWN,
             }}>
             <View
               style={{
@@ -640,13 +809,14 @@ const Goal = () => {
                           }}>
                           <Text style={styles.dateText}>
                             {formatDate(item.date)}
+                            {/* {item.date} */}
                           </Text>
                           <TouchableOpacity
                             onPressIn={event => {
                               const {pageX, pageY} = event.nativeEvent;
                               setTooltipPosition({x: pageX, y: pageY});
                               setSelectedGoal(item);
-                              setToolVisible(true);
+                              setToolGoalVisible(true);
                             }}>
                             <Image
                               source={IconData.DOTS}
@@ -673,7 +843,7 @@ const Goal = () => {
                       <TouchableOpacity
                         style={styles.iconWrap}
                         onPress={() => {
-                          updateTask(task);
+                          updateTask(item);
                         }}>
                         <Image
                           source={
@@ -693,7 +863,13 @@ const Goal = () => {
                       <TouchableOpacity
                         style={styles.menuWrap}
                         onPress={() => {
-                          deleteTask(task);
+                          if (task?.repeatId == undefined) {
+                            deleteTask(task);
+                          } else {
+                            setSelectedData(task);
+
+                            setDeleteModaldata(true);
+                          }
                         }}>
                         <Image
                           source={IconData.DELETE}
@@ -713,11 +889,17 @@ const Goal = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'center',
-
+                // top: height * 0.036,
+                top:
+                  Platform.OS == 'ios'
+                    ? height * 0.035
+                    : height >= 780
+                    ? height * 0.025
+                    : height * 0.035,
                 flexDirection: 'row',
               }}>
               <Button2
-                width={200}
+                width={280}
                 height={50}
                 buttonTitle={'New Goal'}
                 img={IconData.PLUS}
@@ -756,14 +938,14 @@ const Goal = () => {
             </View>
           </View>
         </View>
-        <CeremonyModal
+        <GoalModal
           visible={modalopen}
           onClose={() => {
             setModalOpen(false);
           }}
         />
 
-        {toolVisible && (
+        {toolGoalVisible && (
           <View
             style={{
               position: 'absolute',
@@ -777,7 +959,7 @@ const Goal = () => {
             <TouchableOpacity
               activeOpacity={1}
               style={{flex: 1}}
-              onPress={() => setToolVisible(false)}
+              onPress={() => setToolGoalVisible(false)}
             />
 
             {/* Tooltip itself */}
@@ -804,7 +986,7 @@ const Goal = () => {
                 <TouchableOpacity
                   onPress={() => {
                     clearAllTasksForDate(selectedGoal);
-                    setToolVisible(false);
+                    setToolGoalVisible(false);
                   }}
                   style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
                   <Image
@@ -826,7 +1008,7 @@ const Goal = () => {
                 <TouchableOpacity
                   onPress={() => {
                     deleteGoalDate(selectedGoal);
-                    setToolVisible(false);
+                    setToolGoalVisible(false);
                   }}
                   style={{paddingVertical: 6, flexDirection: 'row', gap: 10}}>
                   <Image
@@ -848,7 +1030,125 @@ const Goal = () => {
             </View>
           </View>
         )}
+        {deleteModalData && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              zIndex: 9999,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <ImageBackground
+              source={ImageData.MODAL}
+              style={{
+                width: 350,
+                padding: 30,
+                borderRadius: 16,
+                alignItems: 'center',
+              }}
+              imageStyle={{resizeMode: 'cover', borderRadius: 16}}>
+              <TouchableOpacity
+                onPress={() => setDeleteModaldata(null)}
+                style={{position: 'absolute', top: 12, right: 12, padding: 4}}>
+                <Image
+                  source={IconData.CANCEL}
+                  style={{width: 35, height: 35}}
+                />
+              </TouchableOpacity>
+
+              <Text
+                style={{
+                  fontSize: 24,
+                  color: Color.LIGHTGREEN,
+                  fontFamily: Font.EBGaramond_SemiBold,
+                  marginTop: 12,
+                  marginBottom: 20,
+                  textAlign: 'center',
+                }}>
+                Delete Repeating Goal?
+              </Text>
+
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: Color.LIGHTGREEN,
+                  fontFamily: Font.EBGaramond_Regular,
+                  textAlign: 'center',
+                  marginBottom: 20,
+                  lineHeight: 24,
+                }}>
+                This is a repeating task. Do you want to delete just this entry
+                or all the future entries too?
+              </Text>
+
+              <View style={{flexDirection: 'row', gap: 10}}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#3e3e2e',
+                    paddingVertical: 10,
+                    paddingHorizontal: 20,
+                    borderRadius: 24,
+                  }}
+                  onPress={() => {
+                    dispatch(deleteTaskByRepetedId(SelectedData?.repeatId));
+                    setDeleteModaldata(false);
+                  }}>
+                  <Text style={styles.buttonText}>Delete All</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: Color.LIGHTGREEN,
+                    paddingVertical: 10,
+                    paddingHorizontal: 15,
+                    borderRadius: 24,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                  onPress={() => {
+                    // setdeleteModalVisible(false);
+                    deleteTask(SelectedData);
+                  }}>
+                  <Image
+                    source={IconData.DELETE}
+                    style={{width: 25, height: 25}}
+                  />
+                  <Text style={styles.buttonText}> Delete Only This</Text>
+                </TouchableOpacity>
+              </View>
+            </ImageBackground>
+          </View>
+        )}
       </FastImage>
+
+      {/* <DeleteModal
+        visible={deleteModalData}
+        onClose={() => setDeleteModaldata(false)}
+        // onDeleteAll={() => {
+        //   Toast.show({
+        //     type: 'custom',
+        //     position: 'top',
+        //     props: {
+        //       icon: IconData.DEL, // your custom image
+        //       text: 'Goal deleted successfully',
+        //     },
+        //   });
+        //   setTimeout(() => {
+        //     dispatch(deleteTaskByRepetedId(SelectedData?.repeatId));
+        //   }, 500);
+
+        //   setModalVisible(false);
+        // }}
+        // onDeleteOne={() => {
+        //   setModalVisible(false);
+        //   deleteTask(SelectedData);
+        // }}
+      /> */}
     </View>
   );
 };
@@ -1046,5 +1346,72 @@ const styles = StyleSheet.create({
   },
   menuWrap: {
     paddingHorizontal: 8,
+  },
+
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deletemodal: {
+    padding: 40,
+    width: 350,
+    elevation: 10,
+    shadowColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    padding: 4,
+  },
+  title: {
+    fontSize: 24,
+
+    color: Color.LIGHTGREEN,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 20,
+    fontFamily: Font.EBGaramond_SemiBold,
+  },
+  message: {
+    fontSize: 16,
+    color: Color.LIGHTGREEN,
+    fontFamily: Font.EBGaramond_Regular,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    gap: 10,
+  },
+  deleteAllBtn: {
+    backgroundColor: '#3e3e2e',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+  },
+  deleteOneBtn: {
+    backgroundColor: Color.LIGHTGREEN,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 10,
+  },
+  buttonText: {
+    color: Color.BROWN3,
+    fontFamily: Font.EBGaramond_SemiBold,
+    fontSize: 16,
+  },
+  imageStyle: {
+    resizeMode: 'cover',
+    borderRadius: 16,
   },
 });

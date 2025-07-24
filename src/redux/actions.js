@@ -87,3 +87,20 @@ export const updateJournalData = updatedEntry => ({
   type: types.UPDATE_JOURNAL,
   payload: updatedEntry,
 });
+export const deleteTaskByRepetedId = taskId => ({
+  type: types.DELETE_TASKS_BY_REPEAT_ID,
+  payload: taskId,
+});
+
+export const setAppliedCoupan = data => ({
+  type: types.COUPAN_APPLIED,
+  payload: data,
+});
+export const setCoupanDetails = data => ({
+  type: types.COUPAN_DETAILS,
+  payload: data,
+});
+export const setJournalEdit = data => ({
+  type: types.EDIT_JAURNAL_ENTRY,
+  payload: data,
+});

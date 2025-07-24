@@ -9,155 +9,388 @@ import {
   Dimensions,
   ScrollView,
   Platform,
+  Animated,
+  Easing,
 } from 'react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import ProgressBar from '../../Component/ProgressBar';
 import Tts from 'react-native-tts';
 import {InteractionManager} from 'react-native';
+import KeepAwake from 'react-native-keep-awake';
+import ActivityLoader from '../../Component/ActivityLoader';
 const {width, height} = Dimensions.get('window');
 
+const startZoomAnimation = () => {
+  animationRef.current = Animated.loop(
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.2,
+        duration: 1000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]),
+  );
+  animationRef.current.start();
+  setIsAnimating(true);
+};
+
+const stopZoomAnimation = () => {
+  animationRef.current?.stop();
+  setIsAnimating(false);
+};
+
+function parseLRC(lrcText) {
+  const lines = lrcText.split('\n');
+  const result = [];
+
+  const timeRegex = /\[(\d{2}):(\d{2}(?:\.\d{2})?)\]/g;
+
+  for (const line of lines) {
+    const matches = [...line.matchAll(timeRegex)];
+    const text = line.replace(timeRegex, '').trim();
+
+    for (const match of matches) {
+      const minutes = parseInt(match[1]);
+      const seconds = parseFloat(match[2]);
+      const time = minutes * 60 + seconds;
+      result.push({time, text});
+    }
+  }
+
+  // Optional: Sort by time (important!)
+  result.sort((a, b) => a.time - b.time);
+
+  return result;
+}
+
 const MeditationPlayer = ({route, navigation}) => {
+  const timer = route?.params?.itemData?.time / 60;
+  // console.log("Item Data",timer)
   const [defaultMusic, setDefaultMusic] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
+  const [totalduration, setTotalDuration] = useState(0);
   const [pauseSound, setPauseSound] = useState(false);
   const scrollRef = useRef(null);
-  const [ttsOpen, setTtsOpen] = useState(false);
+  const [ttsOpen, setTtsOpen] = useState(true);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const animationRef = useRef(null);
+  const [isAnimating, setIsAnimating] = useState(true);
+  const [loader, setLoader] = useState(true);
+
+  useEffect(() => {
+    KeepAwake.activate(); // Prevent screen sleep when this screen is active
+
+    return () => {
+      KeepAwake.deactivate(); // Clean up on unmount
+    };
+  }, []);
+
+  //   const initTts = async () => {
+  //     try {
+  //       if (Platform.OS == 'ios') {
+  //         await new Promise(resolve => setTimeout(resolve, 500));
+  //         const voices = await Tts.voices();
+
+  //         const femaleVoice = voices.find(
+  //           voice =>
+  //             voice.language.startsWith('en') &&
+  //             voice.name === 'Samantha' &&
+  //             !voice.notInstalled,
+  //         );
+
+  //         // if (femaleVoice) {
+  //         //   await Tts.setDefaultLanguage(femaleVoice.language);
+  //         //   await Tts.setDefaultVoice(femaleVoice.id);
+  //         // } else {
+  //         //   await Tts.setDefaultLanguage('en'); // fallback
+  //         // }
+  //         await Tts.setDefaultRate(0.4);
+  //         Tts.setDucking(true);
+  //       } else {
+  //         await Tts.setDefaultLanguage('en-IN');
+  //         await Tts.setDefaultRate(0.35);
+  //       }
+  //       await Tts.setDucking(true);
+  //       await Tts.setIgnoreSilentSwitch('ignore');
+
+  //       setTtsInitialized(true);
+
+  //       if (Platform.OS === 'android') {
+  //         Tts.addEventListener('tts-progress', event => {
+  //           const {start} = event;
+
+  //           if (typeof start !== 'number') {
+  //             console.log('❌ Invalid event:', event);
+  //             return;
+  //           }
+
+  //           const partial = cleanText.substring(0, start);
+  //           const index =
+  //             partial.trim().split(/\s+/).filter(Boolean).length - 1;
+
+  //           setCurrentWordIndex(index);
+  //           scrollToWord(index);
+  //         });
+
+  //         Tts.addEventListener('tts-finish', () => {
+  //           setCurrentWordIndex(-1);
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.log('TTS Init Error:', error);
+  //     }
+  //   };
+
+  //   initTts();
+
+  //   return () => {
+  //     Tts.removeAllListeners('tts-progress');
+  //     Tts.removeAllListeners('tts-finish');
+  //     if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
+  //   };
+  // }, []);
+
+  // const scrollToWord = index => {
+  //   InteractionManager.runAfterInteractions(() => {
+  //     const wordRef = wordRefs.current[index];
+  //     if (wordRef?.current && scrollRef.current) {
+  //       wordRef.current.measureLayout(
+  //         scrollRef.current,
+  //         (x, y) => {
+  //           scrollRef.current.scrollTo({y: y - 80, animated: true});
+  //         },
+  //         err => console.log('📛 measureLayout error:', err),
+  //       );
+  //     }
+  //   });
+  // };
+
+  // useEffect(() => {
+  //   if (ttsOpen) {
+  //     setCurrentWordIndex(-1);
+  //     Tts.speak(cleanText);
+
+  //     if (Platform.OS === 'ios') {
+  //       let index = 0;
+  //       const wpm = 190;
+  //       const delay = 60000 / wpm;
+
+  //       iosIntervalRef.current = setInterval(() => {
+  //         if (index < words.length) {
+  //           setCurrentWordIndex(index);
+  //           scrollToWord(index);
+  //           index++;
+  //         } else {
+  //           clearInterval(iosIntervalRef.current);
+  //           setCurrentWordIndex(-1);
+  //         }
+  //       }, delay);
+  //     }
+  //   } else {
+  //     Platform.OS == 'android' ? Tts.stop() : Tts.stop();
+  //     //
+  //     setCurrentWordIndex(-1);
+  //     if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
+  //   }
+  // }, [ttsOpen]);
+  // useEffect(() => {
+  //   if (ttsOpen) {
+  //     setCurrentWordIndex(-1);
+
+  //     const speakChunks = text => {
+  //       // Function to split string into chunks
+  //       const splitNChars = (txt, num) => {
+  //         const result = [];
+  //         for (let i = 0; i < txt.length; i += num) {
+  //           result.push(txt.substr(i, num));
+  //         }
+  //         return result;
+  //       };
+
+  //       // If too long for Android, split and speak
+  //       if (Platform.OS === 'android' && text.length >= 3999) {
+  //         const chunks = splitNChars(text, 3999);
+
+  //         const speakChunk = index => {
+  //           if (index < chunks.length) {
+  //             Tts.speak(chunks[index], {
+  //               androidParams: {
+  //                 KEY_PARAM_STREAM: 'STREAM_MUSIC',
+  //               },
+  //             });
+  //             // Wait for the current chunk to finish (basic delay approach)
+  //             setTimeout(() => speakChunk(index + 1), 2000); // Adjust delay based on chunk length
+  //           }
+  //         };
+
+  //         speakChunk(0); // Start speaking chunks
+  //       } else {
+  //         Tts.speak(text, {
+  //           iosVoiceId: 'com.apple.ttsbundle.Moira-compact',
+  //           rate: 0.5,
+  //         });
+  //       }
+  //     };
+
+  //     speakChunks(cleanText); // Call function for Android or iOS
+
+  //     if (Platform.OS === 'ios') {
+  //       let index = 0;
+  //       const wpm = 155;
+  //       const delay = 60000 / wpm;
+  //       iosIntervalRef.current = setInterval(() => {
+  //         if (index < words.length) {
+  //           setCurrentWordIndex(index);
+  //           scrollToWord(index);
+  //           index++;
+  //         } else {
+  //           clearInterval(iosIntervalRef.current);
+  //           setCurrentWordIndex(-1);
+  //         }
+  //       }, delay);
+  //     }
+  //   } else {
+  //     Tts.stop();
+  //     setCurrentWordIndex(-1);
+  //     if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
+  //   }
+  // }, [ttsOpen]);
+  // const [activeWordIndex, setActiveWordIndex] = useState(-1);
 
   const handleUpdateTime = useCallback(time => {
     setCurrentTime(time);
+    if (time > 0) {
+      setLoader(false);
+    } else {
+      setLoader(false);
+    }
   }, []);
-  const [ttsInitialized, setTtsInitialized] = useState(false);
-  const TextSpeech = `${route?.params?.itemData?.description}`;
-  const cleanText = TextSpeech.replace(/<\/?[^>]+(>|$)/g, '');
-  const words = cleanText.match(/\S+/g);
-  const iosIntervalRef = useRef(null);
-  const [currentWordIndex, setCurrentWordIndex] = useState(-1);
-  const wordRefs = useRef([]);
-  useEffect(() => {
-    wordRefs.current = words.map(
-      (_, i) => wordRefs.current[i] || React.createRef(),
+
+  const handletotalTime = useCallback(time => {
+    setTotalDuration(time);
+  }, []);
+
+  const startZoomAnimation = () => {
+    animationRef.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.2,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
     );
-  }, [words]);
+    animationRef.current.start();
+    setIsAnimating(true);
+  };
 
-  useEffect(() => {
-    const initTts = async () => {
-      try {
-        if (Platform.OS == 'ios') {
-          const voices = await Tts.voices();
-
-          const femaleVoice = voices.find(
-            voice =>
-              voice.language.startsWith('en') &&
-              voice.name === 'Samantha' && // You can try 'Karen', 'Tessa', etc.
-              !voice.notInstalled,
-          );
-
-          if (femaleVoice) {
-            await Tts.setDefaultLanguage(femaleVoice.language);
-            await Tts.setDefaultVoice(femaleVoice.id);
-          } else {
-            await Tts.setDefaultLanguage('en-IN'); // fallback
-          }
-          await Tts.setDefaultRate(0.4);
-          Tts.setDucking(true)
-        } else {
-          await Tts.setDefaultLanguage('en-IN');
-          await Tts.setDefaultRate(0.35);
-        }
-
-        await Tts.setDucking(true);
-        await Tts.setIgnoreSilentSwitch('ignore');
-      
-        setTtsInitialized(true);
-
-        if (Platform.OS === 'android') {
-          Tts.addEventListener('tts-progress', event => {
-            const {start} = event;
-
-            if (typeof start !== 'number') {
-              console.log('❌ Invalid event:', event);
-              return;
-            }
-
-            const partial = cleanText.substring(0, start);
-            const index =
-              partial.trim().split(/\s+/).filter(Boolean).length - 1;
-
-            setCurrentWordIndex(index);
-            scrollToWord(index);
-          });
-
-          Tts.addEventListener('tts-finish', () => {
-            setCurrentWordIndex(-1);
-          });
-        }
-      } catch (error) {
-        console.log('TTS Init Error:', error);
-      }
-    };
-
-    initTts();
-
-    return () => {
-      Tts.removeAllListeners('tts-progress');
-      Tts.removeAllListeners('tts-finish');
-      if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
-    };
-  }, []);
-
-
-  const scrollToWord = index => {
-    InteractionManager.runAfterInteractions(() => {
-      const wordRef = wordRefs.current[index];
-      if (wordRef?.current && scrollRef.current) {
-        wordRef.current.measureLayout(
-          scrollRef.current,
-          (x, y) => {
-            scrollRef.current.scrollTo({y: y - 100, animated: true});
-          },
-          err => console.log('📛 measureLayout error:', err),
-        );
-      }
-    });
+  const stopZoomAnimation = () => {
+    animationRef.current?.stop();
+    setIsAnimating(false);
   };
 
   useEffect(() => {
-
     if (ttsOpen) {
-
-      setCurrentWordIndex(-1);
-      Tts.speak(cleanText);
-
-      if (Platform.OS === 'ios') {
-        let index = 0;
-        const wpm = 160;
-        const delay = 60000 / wpm; 
-
-        iosIntervalRef.current = setInterval(() => {
-          if (index < words.length) {
-            setCurrentWordIndex(index);
-            scrollToWord(index);
-            index++;
-          } else {
-            clearInterval(iosIntervalRef.current);
-            setCurrentWordIndex(-1);
-          }
-        }, delay);
-      }
+      startZoomAnimation();
     } else {
-      Platform.OS == 'android' ?Tts.stop():Tts.stop();
-      //
-      setCurrentWordIndex(-1);
-      if (iosIntervalRef.current) clearInterval(iosIntervalRef.current);
+      stopZoomAnimation();
     }
   }, [ttsOpen]);
-  const formatDuration = totalSeconds => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
 
+  // const lineRefs = useRef([]);
+  // const [activeIndex, setActiveIndex] = useState(-1);
+  // const lrcLines = useMemo(() => parseLRC(route?.params?.itemData?.lyrics_text), []);
+  // const scrollDebounce = useRef(null);
+  // const lastScrolledIndex = useRef(-1);
+
+  // useEffect(() => {
+  //   const syncTime = currentTime - 2;
+
+  //   const index = lrcLines.findIndex((item, i) => {
+  //     return (
+  //       syncTime >= item.time &&
+  //       (i === lrcLines.length - 1 || syncTime < lrcLines[i + 1].time)
+  //     );
+  //   });
+
+  //   if (index !== -1 && index !== activeIndex) {
+  //     setActiveIndex(index);
+
+  //     // Avoid redundant scroll to the same index
+  //     if (lastScrolledIndex.current === index) return;
+
+  //     if (scrollDebounce.current) {
+  //       clearTimeout(scrollDebounce.current);
+  //     }
+
+  //     scrollDebounce.current = setTimeout(() => {
+  //       const ref = lineRefs.current[index];
+  //       if (ref && scrollRef.current) {
+  //         InteractionManager.runAfterInteractions(() => {
+  //           ref.measureLayout(
+  //             scrollRef.current,
+  //             (x, y) => {
+  //               scrollRef.current.scrollTo({y: y - 80, animated: true});
+  //               lastScrolledIndex.current = index;
+  //             },
+  //             err => console.warn('⚠️ measureLayout error:', err),
+  //           );
+  //         });
+  //       }
+  //     }, 120); // debounce delay
+  //   }
+  // }, [currentTime, lrcLines, activeIndex]);
+  // useEffect(() => {
+  //   const syncTime = currentTime - 2;
+
+  //   const index = lrcLines.findIndex((item, i) => {
+  //     return (
+  //       syncTime >= item.time &&
+  //       (i === lrcLines.length - 1 || syncTime < lrcLines[i + 1].time)
+  //     );
+  //   });
+
+  //   if (index !== -1 && index !== activeIndex) {
+  //     setActiveIndex(index);
+
+  //     if (lastScrolledIndex.current === index) return;
+
+  //     if (scrollDebounce.current) {
+  //       clearTimeout(scrollDebounce.current);
+  //     }
+
+  //     scrollDebounce.current = setTimeout(() => {
+  //       const ref = lineRefs.current[index];
+  //       if (ref && scrollRef.current) {
+  //         InteractionManager.runAfterInteractions(() => {
+  //           ref.measureLayout(
+  //             scrollRef.current,
+  //             (x, y) => {
+  //               scrollRef.current.scrollTo({ y: y - 80, animated: true });
+  //               lastScrolledIndex.current = index;
+  //             },
+  //             err => console.warn('⚠️ measureLayout error:', err)
+  //           );
+  //         });
+  //       }
+  //     }, 120);
+  //   }
+  // }, [currentTime, lrcLines, activeIndex]);
   return (
     <View style={styles.container}>
       <StatusBar
@@ -182,11 +415,12 @@ const MeditationPlayer = ({route, navigation}) => {
             zIndex: 1,
             alignItems: 'center',
           }}>
+          <ActivityLoader visible={loader} />
           <TouchableOpacity
             onPress={() => {
+              Tts.stop();
               setPauseSound(true);
               navigation.goBack();
-              Tts.stop()
             }}
             style={{
               width: 50,
@@ -282,7 +516,6 @@ const MeditationPlayer = ({route, navigation}) => {
                   <Text style={styles.subText}>
                     {route?.params?.itemData?.name}
                   </Text>
-                  
                 </View>
 
                 <View
@@ -295,33 +528,31 @@ const MeditationPlayer = ({route, navigation}) => {
                     top: -height * 0.04,
                     padding: 10,
                   }}>
-                  <ScrollView
-                    ref={scrollRef}
-                    contentContainerStyle={{paddingBottom: 40}}
-                    showsVerticalScrollIndicator={false}>
-                    <Text style={styles.textBlock}>
-                      {words.map((word, index) => (
-                        <View key={index} ref={wordRefs.current[index]}>
-                          <Text
-                            style={[
-                              styles.textBlock,
-                              {
-                                color:
-                                  index === currentWordIndex
-                                    ? Color.LIGHTGREEN
-                                    : '#60723E',
-                                fontWeight:
-                                  index === currentWordIndex
-                                    ? Font.EBGaramond_SemiBold
-                                    : Font.EB_Garamond,
-                              },
-                            ]}>
-                            {word + ' '}
-                          </Text>
-                        </View>
+                  <Animated.Image
+                    source={ImageData.LOGO}
+                    tintColor={Color.LIGHTGREEN}
+                    style={[
+                      styles.image,
+                      {
+                        transform: [{scale: scaleAnim}],
+                      },
+                    ]}
+                  />
+                  {/* <ScrollView ref={scrollRef} style={styles.container}>
+                    <View style={styles.innerContainer}>
+                      {lrcLines.map((line, index) => (
+                        <Text
+                          key={index}
+                          ref={el => (lineRefs.current[index] = el)}
+                          style={[
+                            styles.line,
+                            index === activeIndex && styles.activeLine,
+                          ]}>
+                          {line.text}
+                        </Text>
                       ))}
-                    </Text>
-                  </ScrollView>
+                    </View>
+                  </ScrollView> */}
                 </View>
                 <View
                   style={{
@@ -341,6 +572,8 @@ const MeditationPlayer = ({route, navigation}) => {
                     pauseSound={pauseSound}
                     ttsOpen={ttsOpen}
                     setTtsOpen={setTtsOpen}
+                    totalDUration={handletotalTime}
+                    musicTime={route?.params?.itemData?.time}
                   />
                 </View>
 
@@ -393,6 +626,7 @@ const styles = StyleSheet.create({
   secondaryContainer: {
     width: '90%',
     height: '90%',
+    marginTop: height * 0.03,
   },
   secondaryBackground: {
     width: '100%', // Fills the parent container
@@ -435,5 +669,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff200',
     color: 'black',
     borderRadius: 4,
+  },
+  innerContainer: {
+    paddingBottom: 200,
+  },
+  line: {
+    fontSize: 20,
+    color: '#60723E',
+    marginBottom: 12,
+    fontFamily: 'EBGaramond-Regular',
+  },
+  activeLine: {
+    color: Color.LIGHTGREEN,
+    fontFamily: 'EBGaramond-SemiBold',
+  },
+  image: {
+    width: 220,
+    height: 220,
+    borderRadius: 12,
   },
 });

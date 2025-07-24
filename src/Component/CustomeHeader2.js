@@ -310,7 +310,7 @@ const CustomeHeader2 = ({onClear, onDelete, selectedDate, setCurrentDate}) => {
         mode="date"
         onConfirm={handleConfirm}
         onCancel={hideDatePicker}
-        display={Platform.OS === 'ios' ? 'inline' : 'default'} // optional but nice
+        display={Platform.OS === 'ios' ? 'spinner' : 'default'} // optional but nice
         maximumDate={new Date()}
       />
     </View>

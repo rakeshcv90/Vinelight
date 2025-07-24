@@ -13,15 +13,16 @@ import {ImageData} from '../../assets/Image';
 import {storage} from '../Component/Storage';
 import {useDispatch, useSelector} from 'react-redux';
 import {Api} from '../Api';
-import {callApi} from '../Component/ApiCall';
+import {callApi, callApi1} from '../Component/ApiCall';
 import * as RNIap from 'react-native-iap';
 import {
   setAdvanceMedatationData,
+  setCoupanDetails,
   setDailyPrompt,
   setMeditationData,
   setSubscriptionDetails,
 } from '../redux/actions';
-import Toast from 'react-native-toast-message';
+
 import axios from 'axios';
 
 const Splash = ({navigation}) => {
@@ -30,7 +31,9 @@ const Splash = ({navigation}) => {
   const opacityAnim = useRef(new Animated.Value(0)).current; // Start transparent
   const subscription = useSelector(state => state?.user?.subscription);
   const storedUserString = useSelector(state => state?.user?.userInfo);
-
+  const appliedCoupanDetails = useSelector(
+    state => state?.user?.appliedCoupanDetails,
+  );
   useEffect(() => {
     const initIAP = async () => {
       try {
@@ -41,7 +44,6 @@ const Splash = ({navigation}) => {
         const purchases = await RNIap.getAvailablePurchases();
 
         if (purchases?.length === 0) {
-          console.log('No active subscriptions found');
           dispatch(setSubscriptionDetails([]));
           return;
         }
@@ -83,7 +85,6 @@ const Splash = ({navigation}) => {
             }),
           };
 
-          console.log('Active Subscription Data:', sortedPurchases);
           // Determine plan type
           const planType = activePurchase.productId.includes('monthly')
             ? 'Monthly'
@@ -101,7 +102,7 @@ const Splash = ({navigation}) => {
 
           try {
             const result = await axios(
-              'https://sandbox.itunes.apple.com/verifyReceipt',
+              'https://buy.itunes.apple.com/verifyReceipt',
               {
                 method: 'POST',
                 headers: {
@@ -131,7 +132,6 @@ const Splash = ({navigation}) => {
 
               const activeSubs = renewalHistory.filter(item => {
                 if (item.auto_renew_status == '1') {
-                  console.log('Active');
                   const subscriptionData = {
                     productId: item?.product_id,
                     transactionId: item?.transaction_id,
@@ -150,18 +150,17 @@ const Splash = ({navigation}) => {
 
                   dispatch(setSubscriptionDetails(subscriptionData));
                 } else {
-                  console.log('No Active');
                   dispatch(setSubscriptionDetails([]));
                 }
               });
             } else {
             }
           } catch (error) {
-            console.log('Reeeeeeeee', error);
+            console.log('Subscription Error', error);
           }
         }
       } catch (error) {
-        console.error('Subscription error:', error);
+        // console.error('Subscription error:', error);
         dispatch(setSubscriptionDetails([]));
       }
     };
@@ -185,8 +184,10 @@ const Splash = ({navigation}) => {
         if (storedUserString) {
           navigation.replace('MainPage');
           fetchData();
+          fetchData2();
         } else {
           fetchData();
+          fetchData2();
           navigation.replace('Intro');
         }
       });
@@ -206,6 +207,26 @@ const Splash = ({navigation}) => {
       dispatch(setDailyPrompt(data2?.data));
     } catch (error) {
       console.error('Error:', error.message);
+    }
+  };
+  const fetchData2 = async () => {
+
+    try {
+      if(!appliedCoupanDetails?.length) {
+        dispatch(setCoupanDetails([]));
+        return;
+      }
+      const data3 = await callApi1(
+        `${Api.COUPAN_STATUS}/${appliedCoupanDetails[0]?.user_code}`,
+      );
+      if (data3?.status === true) {
+        dispatch(setCoupanDetails(data3?.data));
+
+      } else {
+        dispatch(setCoupanDetails([]));
+      }
+    } catch (error) {
+      console.error('Coupan Details Erray', error);
     }
   };
   return (

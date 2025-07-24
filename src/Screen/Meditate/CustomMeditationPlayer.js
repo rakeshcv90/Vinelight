@@ -8,19 +8,28 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Color, Font, IconData, ImageData} from '../../../assets/Image';
 import ProgressBar from '../../Component/ProgressBar';
 import ProgressBar2 from '../../Component/ProgressBar2';
 import {useSelector} from 'react-redux';
 import FastImage from 'react-native-fast-image';
+import KeepAwake from 'react-native-keep-awake';
 const {width, height} = Dimensions.get('window');
 const CustomMeditationPlayer = ({navigation, route}) => {
   const [pauseSound, setPauseSound] = useState(false);
 
   const memoizedBackground = useMemo(() => ImageData.BACKGROUND, []);
   const memoizedBackground1 = useMemo(() => ImageData.MAINBACKGROUND, []);
- 
+
+  useEffect(() => {
+    KeepAwake.activate(); // Prevent screen sleep when this screen is active
+
+    return () => {
+      KeepAwake.deactivate(); // Clean up on unmount
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -172,6 +181,13 @@ const CustomMeditationPlayer = ({navigation, route}) => {
                   <ProgressBar2
                     musicTime={route?.params?.timer}
                     pauseSound={pauseSound}
+                    // onBack={() => {
+                    //   console.log("sssssss")
+                    //   navigation.goBack();
+                    // }}
+                    onEnd={() => {
+                      console.log('sssssss'), navigation.goBack();
+                    }}
                   />
                 </View>
 

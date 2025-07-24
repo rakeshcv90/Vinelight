@@ -65,14 +65,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'flex-end', // show at bottom
     alignItems: 'center',
-    paddingBottom: 70,
+    paddingBottom: 300,
   },
   container: {
     backgroundColor: '#37412a',
     padding: 15,
     borderRadius: 10,
     width: 200,
-    // maxHeight: 400,
+    maxHeight: 300,
     borderWidth: 2,
     borderColor: '#bfb68c',
   },

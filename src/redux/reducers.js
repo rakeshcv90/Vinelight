@@ -1,5 +1,6 @@
 import Toast from 'react-native-toast-message';
 import types from './types';
+import { IconData } from '../../assets/Image';
 const initialState = {
   userInfo: null,
   ceremonyinfo: [],
@@ -8,10 +9,13 @@ const initialState = {
   advanceMeditationData: [],
   customeMedidation: [],
   subscription: [],
+  appliedCoupanDetails: [],
+  coupaDetails: [],
   getProducts: [],
   getDailyPrompt: {},
   getDreamData: [],
   getJournalData: [],
+  editjournal:false
 };
 export const userReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -27,16 +31,37 @@ export const userReducer = (state = initialState, action) => {
         ceremonyinfo: [...state.ceremonyinfo, action.payload],
       };
 
+    // case types.SET_GOAL_INFO: {
+    //   const {date, task} = action.payload;
+    //   const goalByDate = state.goalByDate || {}; // ✅ fallback to empty object
+    //   const existingEntry = goalByDate[date]; // ✅ safe access
+    //   const existingTasks = existingEntry?.tasks || [];
+
+    //   return {
+    //     ...state,
+    //     goalByDate: {
+    //       ...state.goalByDate,
+    //       [date]: {
+    //         date,
+    //         tasks: [...existingTasks, task],
+    //       },
+    //     },
+    //   };
+    // }
+
     case types.SET_GOAL_INFO: {
       const {date, task} = action.payload;
-      const goalByDate = state.goalByDate || {}; // ✅ fallback to empty object
-      const existingEntry = goalByDate[date]; // ✅ safe access
+      const goalByDate = state.goalByDate || {};
+      const existingEntry = goalByDate[date];
       const existingTasks = existingEntry?.tasks || [];
+
+      const isDuplicate = existingTasks.some(t => t.id === task.id);
+      if (isDuplicate) return state;
 
       return {
         ...state,
         goalByDate: {
-          ...state.goalByDate,
+          ...goalByDate,
           [date]: {
             date,
             tasks: [...existingTasks, task],
@@ -44,6 +69,7 @@ export const userReducer = (state = initialState, action) => {
         },
       };
     }
+
     case types.DELETE_GOAL_BY_DATE: {
       const dateToDelete = action.payload;
 
@@ -140,7 +166,6 @@ export const userReducer = (state = initialState, action) => {
         ),
       };
     case types.CUSTOME_MEDITATION:
-  
       return {
         ...state,
         customeMedidation: Array.isArray(state.customeMedidation)
@@ -158,8 +183,20 @@ export const userReducer = (state = initialState, action) => {
     case types.SUBSCRIPTION_DETAILS:
       return {
         ...state,
-        subscription: action.payload,
+        subscription: [action.payload],
       };
+
+    case types.COUPAN_APPLIED:
+      return {
+        ...state,
+        appliedCoupanDetails: [action.payload],
+      };
+    case types.COUPAN_DETAILS:
+      return {
+        ...state,
+        coupaDetails: [action.payload],
+      };
+
     case types.SUBSCRIPTION_PRODUCTS:
       return {
         ...state,
@@ -172,8 +209,6 @@ export const userReducer = (state = initialState, action) => {
       };
 
     case types.DREAM_DATA:
-
-
       const currentData = Array.isArray(state.getDreamData)
         ? state.getDreamData
         : [];
@@ -184,13 +219,13 @@ export const userReducer = (state = initialState, action) => {
       );
 
       if (exists) {
-     
         Toast.show({
-          type: 'error',
-          text1: 'Data Save Failed',
-          text2: 'Data for this date already exists.',
-          visibilityTime: 3000,
-          position: 'top', // 'top' or 'bottom'
+          type: 'custom',
+          position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Data for this date already exists.',
+          },
         });
         return state;
       }
@@ -201,8 +236,6 @@ export const userReducer = (state = initialState, action) => {
       };
 
     case types.UPDATE_DREAM:
-  
-
       const updatedData1 = Array.isArray(state.getDreamData)
         ? state.getDreamData.map(entry =>
             entry.currentDat === action.payload.currentDat
@@ -225,8 +258,6 @@ export const userReducer = (state = initialState, action) => {
         getDreamData: filteredData,
       };
     case types.JOURNAL_DATA:
-   
-
       const currentData1 = Array.isArray(state.getJournalData)
         ? state.getJournalData
         : [];
@@ -237,13 +268,13 @@ export const userReducer = (state = initialState, action) => {
       );
 
       if (exists1) {
-
         Toast.show({
-          type: 'error',
-          text1: 'Data Save Failed',
-          text2: 'Data for this date already exists.',
-          visibilityTime: 3000,
-          position: 'top', // 'top' or 'bottom'
+          type: 'custom',
+          position: 'top',
+          props: {
+            icon: IconData.ERR, // your custom image
+            text: 'Data for this date already exists.',
+          },
         });
         return state;
       }
@@ -264,8 +295,6 @@ export const userReducer = (state = initialState, action) => {
       };
 
     case types.UPDATE_JOURNAL:
-   
-
       const updatedData = Array.isArray(state.getJournalData)
         ? state.getJournalData.map(entry => {
             if (entry.currentDat === action.payload.currentDat) {
@@ -281,6 +310,33 @@ export const userReducer = (state = initialState, action) => {
       return {
         ...state,
         getJournalData: updatedData,
+      };
+    case types.DELETE_TASKS_BY_REPEAT_ID: {
+      const repeatId = action.payload;
+      const updatedGoalByDate = {};
+
+      for (const [date, entry] of Object.entries(state.goalByDate)) {
+        const filteredTasks = entry.tasks.filter(
+          task => task.repeatId !== repeatId,
+        );
+
+        if (filteredTasks.length > 0) {
+          updatedGoalByDate[date] = {
+            ...entry,
+            tasks: filteredTasks,
+          };
+        }
+      }
+
+      return {
+        ...state,
+        goalByDate: updatedGoalByDate,
+      };
+    }
+  case types.EDIT_JAURNAL_ENTRY:
+      return {
+        ...state,
+        editjournal: action.payload,
       };
 
     default:
