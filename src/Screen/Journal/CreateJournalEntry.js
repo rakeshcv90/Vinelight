@@ -477,7 +477,7 @@ const CreateJournalEntry = ({navigation, route}) => {
                         borderWidth: 1,
 
                         borderColor: Color.LIGHTGREEN,
-                        backgroundColor: 'white',
+                        backgroundColor: Color.LIGHTBROWN,
                         right: 10,
                       }}>
                       <View
@@ -485,17 +485,19 @@ const CreateJournalEntry = ({navigation, route}) => {
                           width: '100%',
                           // height: '10%',
                           flexDirection: 'row',
-
+                          backgroundColor: Color.LIGHTBROWN,
                           justifyContent: 'space-between',
                         }}>
                         <>
                           <Image
                             source={ImageData.LEFT}
                             resizeMode="contain"
+                            tintColor={Color.blue}
                             style={{width: 31, height: 31}}
                           />
                           <Image
                             source={ImageData.RIGHT}
+                            tintColor={Color.blue}
                             resizeMode="contain"
                             style={{
                               width: 31,
@@ -508,7 +510,10 @@ const CreateJournalEntry = ({navigation, route}) => {
                       <ActivityLoader visible={loader} />
                       <ScrollView
                         ref={scrollRef}
-                        style={styles.editorContainer}
+                        style={[
+                          styles.editorContainer,
+                          {backgroundColor: Color.LIGHTBROWN},
+                        ]}
                         keyboardShouldPersistTaps="handled"
                         contentInsetAdjustmentBehavior="automatic"
                         contentContainerStyle={{flexGrow: 1}}>
@@ -517,7 +522,7 @@ const CreateJournalEntry = ({navigation, route}) => {
                           onResponderStart={() => {
                             editorRef.current?.focusContentEditor();
                           }}
-                          style={{flex: 1}}>
+                          style={{flex: 1, backgroundColor: Color.LIGHTBROWN}}>
                           <RichEditor
                             ref={editorRef}
                             initialContentHTML=""
@@ -533,11 +538,22 @@ const CreateJournalEntry = ({navigation, route}) => {
                             onChange={text => {
                               handleTypingStart(text);
                             }}
+                            // editorStyle={{
+                            //   contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
+                            //   placeholderColor: '*000',
+                            // }}
                             editorStyle={{
-                              contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
-                              placeholderColor: '*000',
+                              contentCSSText: `
+                               font-family: ${selectedFont.value};
+                               font-size: 16px;
+                               background-color: ${Color.LIGHTBROWN};
+                                `,
+                              placeholderColor: '#000',
                             }}
-                            style={styles.richEditor}
+                            style={[
+                              styles.richEditor,
+                              {backgroundColor: Color.LIGHTBROWN},
+                            ]}
                           />
                         </View>
                       </ScrollView>
@@ -552,6 +568,7 @@ const CreateJournalEntry = ({navigation, route}) => {
                         <>
                           <Image
                             source={ImageData.BACKLEFT}
+                            tintColor={Color.blue}
                             resizeMode="contain"
                             style={{
                               width: 31,
@@ -561,6 +578,7 @@ const CreateJournalEntry = ({navigation, route}) => {
 
                           <Image
                             source={ImageData.BACKRIGHT}
+                            tintColor={Color.blue}
                             resizeMode="contain"
                             style={{
                               width: 31,
@@ -814,6 +832,7 @@ const CreateJournalEntry = ({navigation, route}) => {
                       <Image
                         source={IconData.DROP}
                         resizeMode="contain"
+                        tintColor={'#671AAF'}
                         style={{width: 12, height: 12}}
                         // tintColor={'red'}
                       />
@@ -846,28 +865,26 @@ const CreateJournalEntry = ({navigation, route}) => {
               </ImageBackground>
             </TouchableWithoutFeedback>
           </KeyboardAvoidingView>
-         
         </SafeAreaView>
       </ImageBackground>
-       <PromptModal
-            visible={propmModalOpen}
-            promptData={promptData}
-            setPromptData={setPromptData}
-            onClose={() => {
-              setPromptMOdalOpen(false);
-            }}
-          />
-          <ColorToolModal
-            visible={colorModal}
-            selectedColor={style.color}
-            onSelect={hex => {
-              onColorSelect(hex);
-              setColorModa(false);
-            }}
-            onClose={() => setColorModa(false)}
-          />
+      <PromptModal
+        visible={propmModalOpen}
+        promptData={promptData}
+        setPromptData={setPromptData}
+        onClose={() => {
+          setPromptMOdalOpen(false);
+        }}
+      />
+      <ColorToolModal
+        visible={colorModal}
+        selectedColor={style.color}
+        onSelect={hex => {
+          onColorSelect(hex);
+          setColorModa(false);
+        }}
+        onClose={() => setColorModa(false)}
+      />
     </>
-
   );
 };
 const styles = StyleSheet.create({
@@ -891,7 +908,7 @@ const styles = StyleSheet.create({
   editorContainer: {
     height: height * 0.7,
     width: '100%',
-    backgroundColor: 'white',
+    backgroundColor: Color.LIGHTBROWN,
   },
 
   modalOverlay: {

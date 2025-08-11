@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 16,
-    color: '#3B4F2C',
+  color: '#671AAF', 
     fontWeight: '600',
   },
   controls: {

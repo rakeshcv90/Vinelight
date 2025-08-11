@@ -74,171 +74,92 @@ const MainPage = ({navigation, route}) => {
 
   return (
     <>
-      {/* {Platform.OS == 'ios' ? (
-        <View style={styles.container}>
-          <StatusBar
-            translucent
-            backgroundColor="transparent"
-            barStyle="light-content"
-          />
+      <>
+        <ImageBackground
+          source={ImageData.BACKGROUND}
+          style={{flex: 1}}
+          resizeMode="cover">
+          <SafeAreaView style={styles.container}>
+            <StatusBar
+              translucent
+              backgroundColor="transparent"
+              barStyle="light-content"
+            />
 
-          <ImageBackground
-            source={ImageData.BACKGROUND}
-            style={styles.primaryBackground}
-            resizeMode="cover">
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Profile')}
-              style={styles.profileBtn}>
-              <Image
-                source={
-                  userInfo?.photo?.base64
-                    ? {
-                        uri: `data:${userInfo.photo.type};base64,${userInfo.photo.base64}`,
-                      }
-                    : userInfo?.photo?.uri
-                    ? {uri: userInfo.photo.uri}
-                    : ImageData.NOIMAGE
-                }
-                style={styles.profileImage}
-              />
-            </TouchableOpacity>
+            <ImageBackground
+              source={ImageData.BACKGROUND}
+              style={styles.primaryBackground}
+              resizeMode="cover">
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Profile')}
+                style={[styles.profileBtn, {top: height * 0.02}]}>
+                <Image
+                  source={
+                    userInfo?.photo?.base64
+                      ? {
+                          uri: `data:${userInfo.photo.type};base64,${userInfo.photo.base64}`,
+                        }
+                      : userInfo?.photo?.uri
+                      ? {uri: userInfo.photo.uri}
+                      : ImageData.NOIMAGE
+                  }
+                  style={styles.profileImage}
+                />
+              </TouchableOpacity>
 
-            {activeTab === 'Home' ? (
-              <Home isActive={activeTab === 'Home'} />
-            ) : activeTab === 'Journal' ? (
-              <Journal isActive={activeTab === 'Journal'} />
-            ) : activeTab === 'Dreams' ? (
-              <Dreams isActive={activeTab === 'Dreams'} />
-            ) : activeTab === 'Ceremony' ? (
-              <Ceremony isActive={activeTab === 'Ceremony'} />
-            ) : activeTab === 'Goal' ? (
-              <Goal isActive={activeTab === 'Goal'} />
-            ) : (
-              <Meditation isActive={activeTab === 'Meditate'} />
-            )}
+              {activeTab === 'Home' ? (
+                <Home isActive={activeTab === 'Home'} />
+              ) : activeTab === 'Journal' ? (
+                <Journal isActive={activeTab === 'Journal'} />
+              ) : activeTab === 'Dreams' ? (
+                <Dreams isActive={activeTab === 'Dreams'} />
+              ) : activeTab === 'Ceremony' ? (
+                <Ceremony isActive={activeTab === 'Ceremony'} />
+              ) : activeTab === 'Goal' ? (
+                <Goal isActive={activeTab === 'Goal'} />
+              ) : (
+                <Meditation isActive={activeTab === 'Meditate'} />
+              )}
 
-            <View style={styles.tabBarWrapper}>
-              <ImageBackground
-                source={ImageData.TABBACKGROUND}
-                style={styles.thirdBackground}
-                resizeMode="stretch">
-                <View style={styles.tabRow}>
-                  {tabs.map(tab => {
-                    const isActive = tab.key === activeTab;
-                    return (
-                      <TouchableOpacity
-                        activeOpacity={0.5}
-                        key={tab.key}
-                        style={styles.tabButton}
-                        onPress={() => setActiveTab(tab.key)}>
-                        <Image
-                          source={tab.activeIcon}
-                          resizeMode="contain"
-                          style={{width: 24, height: 24}}
-                        />
-                        <View style={styles.labelContainer}>
-                          <Text
-                            style={[
-                              styles.labelText,
-                              isActive && styles.activeLabelText,
-                            ]}>
-                            {tab.key}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </ImageBackground>
-            </View>
-          </ImageBackground>
-        </View>
-      ) : ( */}
-        <>
-          <ImageBackground
-            source={ImageData.BACKGROUND}
-            style={{flex: 1}}
-            resizeMode="cover">
-            <SafeAreaView style={styles.container}>
-              <StatusBar
-                translucent
-                backgroundColor="transparent"
-                barStyle="light-content"
-              />
-
-              <ImageBackground
-                source={ImageData.BACKGROUND}
-                style={styles.primaryBackground}
-                resizeMode="cover">
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Profile')}
-                  style={[styles.profileBtn, {top: height * 0.02}]}>
-                  <Image
-                    source={
-                      userInfo?.photo?.base64
-                        ? {
-                            uri: `data:${userInfo.photo.type};base64,${userInfo.photo.base64}`,
-                          }
-                        : userInfo?.photo?.uri
-                        ? {uri: userInfo.photo.uri}
-                        : ImageData.NOIMAGE
-                    }
-                    style={styles.profileImage}
-                  />
-                </TouchableOpacity>
-
-                {activeTab === 'Home' ? (
-                  <Home isActive={activeTab === 'Home'} />
-                ) : activeTab === 'Journal' ? (
-                  <Journal isActive={activeTab === 'Journal'} />
-                ) : activeTab === 'Dreams' ? (
-                  <Dreams isActive={activeTab === 'Dreams'} />
-                ) : activeTab === 'Ceremony' ? (
-                  <Ceremony isActive={activeTab === 'Ceremony'} />
-                ) : activeTab === 'Goal' ? (
-                  <Goal isActive={activeTab === 'Goal'} />
-                ) : (
-                  <Meditation isActive={activeTab === 'Meditate'} />
-                )}
-
-                <View style={[styles.tabBarWrapper, {bottom: height * 0.005}]}>
-                  <ImageBackground
-                    source={ImageData.TABBACKGROUND}
-                    style={styles.thirdBackground}
-                    resizeMode="stretch">
-                    <View style={styles.tabRow}>
-                      {tabs.map(tab => {
-                        const isActive = tab.key === activeTab;
-                        return (
-                          <TouchableOpacity
-                            activeOpacity={0.5}
-                            key={tab.key}
-                            style={styles.tabButton}
-                            onPress={() => setActiveTab(tab.key)}>
-                            <Image
-                              source={tab.activeIcon}
-                              resizeMode="contain"
-                              style={{width: 24, height: 24}}
-                            />
-                            <View style={styles.labelContainer}>
-                              <Text
-                                style={[
-                                  styles.labelText,
-                                  isActive && styles.activeLabelText,
-                                ]}>
-                                {tab.key}
-                              </Text>
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </ImageBackground>
-                </View>
-              </ImageBackground>
-            </SafeAreaView>
-          </ImageBackground>
-        </>
+              <View style={[styles.tabBarWrapper, {bottom: height * 0.005}]}>
+                <ImageBackground
+                  source={ImageData.TABBACKGROUND}
+                  style={styles.thirdBackground}
+                  resizeMode="stretch">
+                  <View style={styles.tabRow}>
+                    {tabs.map(tab => {
+                      const isActive = tab.key === activeTab;
+                      return (
+                        <TouchableOpacity
+                          activeOpacity={0.5}
+                          key={tab.key}
+                          style={styles.tabButton}
+                          onPress={() => setActiveTab(tab.key)}>
+                          <Image
+                            source={tab.activeIcon}
+                            resizeMode="contain"
+                            tintColor={isActive ? Color.BROWN4 : 'white'}
+                            style={{width: 24, height: 24}}
+                          />
+                          <View style={styles.labelContainer}>
+                            <Text
+                              style={[
+                                styles.labelText,
+                                isActive && styles.activeLabelText,
+                              ]}>
+                              {tab.key}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ImageBackground>
+              </View>
+            </ImageBackground>
+          </SafeAreaView>
+        </ImageBackground>
+      </>
       {/* )} */}
     </>
   );
@@ -312,14 +233,14 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontSize: 12,
-    color: Color.BROWN4,
+    color: '#d9d9d9',
     fontFamily: Font.EBGaramond_SemiBold,
 
     textAlign: 'center',
   },
   activeLabelText: {
     fontSize: 12,
-    color: 'white',
+    color: Color.BROWN4,
     fontFamily: Font.EBGaramond_SemiBold,
 
     textAlign: 'center',

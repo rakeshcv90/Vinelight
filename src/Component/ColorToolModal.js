@@ -63,7 +63,6 @@ const colorCode = [
   {id: 23, code: '#9F009F', name: 'Magenta'},
   {id: 24, code: '#1C55B1', name: 'Blue'},
   {id: 25, code: '#FF0000', name: 'Red'},
-
 ];
 const ColorToolModal = ({visible, onClose, onSelect, selectedColor}) => {
   return (
@@ -121,13 +120,13 @@ const styles = StyleSheet.create({
     paddingBottom: 150,
   },
   container: {
-    backgroundColor: '#2f2f1f',
+    backgroundColor: '#9C42FF',
     padding: 16,
     borderRadius: 12,
     width: 240,
     maxHeight: 400,
     borderWidth: 1,
-    borderColor: '#bfb68c',
+    borderColor: Color.blue,
   },
   title: {
     fontSize: 18,
@@ -143,7 +142,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   selectedColorOption: {
-    backgroundColor: '#4d4d33',
+    backgroundColor: '#E7D3FF',
   },
   colorCircle: {
     width: 20,
@@ -159,12 +158,12 @@ const styles = StyleSheet.create({
     fontFamily: Font.EBGaramond_SemiBold,
   },
   selectedText: {
-    color: '#ffffff',
+    color: Color.GREEN,
     fontWeight: '700',
   },
   closeButton: {
     marginTop: 12,
-    backgroundColor: '#dcd6b4',
+    backgroundColor: Color.BROWN4,
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',

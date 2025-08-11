@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   text: {
-    color: Color.BROWN3,
+    color: '#FAF5FF',
     fontWeight: '600',
     fontFamily: Font.EBGaramond_SemiBold,
   },

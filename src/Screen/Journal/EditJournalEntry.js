@@ -35,8 +35,8 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 const {width, height} = Dimensions.get('window');
 
 const fonts = [
-    {label: 'Georgia', value: 'Georgia'},
-   {label: 'Times New Roman', value: 'Times New Roman'},
+  {label: 'Georgia', value: 'Georgia'},
+  {label: 'Times New Roman', value: 'Times New Roman'},
   {label: 'Arial', value: 'Arial'},
   {label: 'Courier New', value: 'Courier New'},
   {label: 'Verdana', value: 'Verdana'},
@@ -52,7 +52,6 @@ const fonts = [
   {label: 'Didot', value: 'Didot'},
   {label: 'Monaco', value: 'Monaco'},
   {label: 'Brush Script MT', value: 'Brush Script MT'},
-
 ];
 const EditJournalEntry = ({navigation, route}) => {
   const [keyboardHeight] = useState(new Animated.Value(0));
@@ -526,9 +525,9 @@ const EditJournalEntry = ({navigation, route}) => {
                         maxHeight: isKeyboardVisible ? '70%' : '82%',
                         marginTop: '2%',
                         borderWidth: 1,
-
+                        backgroundColor: Color.LIGHTBROWN,
                         borderColor: Color.LIGHTGREEN,
-                        backgroundColor: 'white',
+
                         right: 10,
                       }}>
                       <View
@@ -536,17 +535,19 @@ const EditJournalEntry = ({navigation, route}) => {
                           width: '100%',
                           // height: '10%',
                           flexDirection: 'row',
-
+                          backgroundColor: Color.LIGHTBROWN,
                           justifyContent: 'space-between',
                         }}>
                         <>
                           <Image
                             source={ImageData.LEFT}
                             resizeMode="contain"
+                            tintColor={Color.blue}
                             style={{width: 31, height: 31}}
                           />
                           <Image
                             source={ImageData.RIGHT}
+                            tintColor={Color.blue}
                             resizeMode="contain"
                             style={{
                               width: 31,
@@ -558,21 +559,23 @@ const EditJournalEntry = ({navigation, route}) => {
                       </View>
                       <ActivityLoader visible={loader} />
 
-                      <ScrollView
+                      {/* <ScrollView
                         ref={scrollRef}
                         style={styles.editorContainer}
                         contentContainerStyle={{
                           flexGrow: 1,
                           padding: 10,
                           paddingBottom: 10,
+                           backgroundColor: Color.LIGHTBROWN,
                         }}
                         keyboardShouldPersistTaps="handled">
                         <View
+                 
                           onStartShouldSetResponder={() => true}
                           onResponderStart={() => {
                             editorRef.current?.focusContentEditor();
                           }}
-                          style={{flex: 1}}>
+                          style={{flex: 1, backgroundColor: Color.LIGHTBROWN,}}>
                           <RichEditor
                             ref={editorRef}
                             initialContentHTML=""
@@ -584,14 +587,73 @@ const EditJournalEntry = ({navigation, route}) => {
                             onChange={text => {
                               handleTypingStart(text);
                             }}
-                            editorStyle={{
-                              contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
+                             editorStyle={{
+    contentCSSText: `
+      body {
+        background-color: ${Color.LIGHTBROWN};
+        font-family: ${selectedFont.value};
+        font-size: 16px;
+      }
+    `,
+    placeholderColor: '#000',
+  }}
+  style={{
+    minHeight: 500,
+    paddingBottom: 0,
+    backgroundColor: Color.LIGHTBROWN,
+  }}
+                          />
+                        </View>
+                      </ScrollView> */}
+  <ScrollView
+                        ref={scrollRef}
+                        style={[
+                          styles.editorContainer,
+                          {backgroundColor: Color.LIGHTBROWN},
+                        ]}
+                        keyboardShouldPersistTaps="handled"
+                        contentInsetAdjustmentBehavior="automatic"
+                        contentContainerStyle={{flexGrow: 1}}>
+                        <View
+                          onStartShouldSetResponder={() => true} // to make this View respond to touches
+                          onResponderStart={() => {
+                            editorRef.current?.focusContentEditor();
+                          }}
+                          style={{flex: 1, backgroundColor: Color.LIGHTBROWN}}>
+                          <RichEditor
+                            ref={editorRef}
+                            initialContentHTML=""
+                            initialFocus={false}
+                            onCursorPosition={handleCursorPosition}
+                            placeholder="Start writing here..."
+                            androidHardwareAccelerationDisabled
+                            androidLayerType="software"
+                            onInitialized={() => {
+                              console.log('Editor is ready');
+                              setEditorReady(true);
                             }}
-                            style={{minHeight: 500, paddingBottom: 0}}
+                            onChange={text => {
+                              handleTypingStart(text);
+                            }}
+                            // editorStyle={{
+                            //   contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
+                            //   placeholderColor: '*000',
+                            // }}
+                            editorStyle={{
+                              contentCSSText: `
+                               font-family: ${selectedFont.value};
+                               font-size: 16px;
+                               background-color: ${Color.LIGHTBROWN};
+                                `,
+                              placeholderColor: '#000',
+                            }}
+                            style={[
+                              styles.richEditor,
+                              {backgroundColor: Color.LIGHTBROWN},
+                            ]}
                           />
                         </View>
                       </ScrollView>
-
                       <View
                         style={{
                           width: '100%',
@@ -604,6 +666,7 @@ const EditJournalEntry = ({navigation, route}) => {
                           <Image
                             source={ImageData.BACKLEFT}
                             resizeMode="contain"
+                            tintColor={Color.blue}
                             style={{
                               width: 31,
                               height: 31,
@@ -613,6 +676,7 @@ const EditJournalEntry = ({navigation, route}) => {
                           <Image
                             source={ImageData.BACKRIGHT}
                             resizeMode="contain"
+                            tintColor={Color.blue}
                             style={{
                               width: 31,
                               height: 31,
@@ -867,6 +931,7 @@ const EditJournalEntry = ({navigation, route}) => {
                       <Image
                         source={IconData.DROP}
                         resizeMode="contain"
+                        tintColor={'#671AAF'}
                         style={{width: 12, height: 12}}
                         // tintColor={'red'}
                       />
@@ -942,11 +1007,11 @@ const styles = StyleSheet.create({
   editorContainer: {
     height: height * 0.7,
     width: '100%',
-    backgroundColor: 'white',
+    backgroundColor: Color.LIGHTBROWN,
   },
 
   modalOverlay: {
-    flex: 1,
+     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',

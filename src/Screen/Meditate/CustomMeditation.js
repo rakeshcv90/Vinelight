@@ -160,11 +160,13 @@ const CustomMeditation = ({navigation}) => {
                       }}>
                       <FastImage
                         source={ImageData.LEFT}
+                        tintColor={Color.blue}
                         resizeMode={FastImage.resizeMode.contain}
                         style={{width: 31, height: 31}}
                       />
                       <FastImage
                         source={ImageData.RIGHT}
+                        tintColor={Color.blue}
                         resizeMode={FastImage.resizeMode.contain}
                         style={{
                           width: 31,
@@ -184,6 +186,7 @@ const CustomMeditation = ({navigation}) => {
                       <Text style={styles.subText}>Meditations</Text>
                       <FastImage
                         source={ImageData.MEDATATION}
+                        tintColor={Color.blue}
                         resizeMode={FastImage.resizeMode.contain}
                         style={{width: 150, height: 150}}
                       />
@@ -244,7 +247,8 @@ const CustomMeditation = ({navigation}) => {
                             fontSize: 40,
                             borderRadius: 8,
                             left: -5,
-
+                            borderWidth: 1,
+                            borderColor: '#781AD6',
                             textAlign: 'center',
                             fontFamily: Font.EB_Garamond_Bold,
                           }}
@@ -293,7 +297,8 @@ const CustomMeditation = ({navigation}) => {
                             color: Color.LIGHTGREEN,
                             fontSize: 40,
                             borderRadius: 8,
-
+                            borderWidth: 1,
+                            borderColor: '#781AD6',
                             alignSelf: 'center',
                             justifyContent: 'center',
                             textAlign: 'center',
@@ -422,6 +427,7 @@ const CustomMeditation = ({navigation}) => {
                       }}>
                       <FastImage
                         source={ImageData.BACKLEFT}
+                        tintColor={Color.blue}
                         resizeMode={FastImage.resizeMode.contain}
                         style={{
                           width: 31,
@@ -431,6 +437,7 @@ const CustomMeditation = ({navigation}) => {
 
                       <FastImage
                         source={ImageData.BACKRIGHT}
+                        tintColor={Color.blue}
                         resizeMode={FastImage.resizeMode.contain}
                         style={{
                           width: 31,
@@ -506,7 +513,7 @@ const styles = StyleSheet.create({
     backfaceVisibility: 'red',
   },
   timeButton: {
-    backgroundColor: '#CBBB92',
+    backgroundColor: '#D5B0FF',
     paddingVertical: 12,
     borderRadius: 20,
     marginHorizontal: 10,
@@ -521,7 +528,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   activeTimeButton: {
-    backgroundColor: '#B1915E',
+    backgroundColor: '#671AAF',
   },
   timeButtonText: {
     fontSize: 16,

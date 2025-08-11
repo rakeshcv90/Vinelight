@@ -287,6 +287,7 @@ const DisplayJournalEntry = ({route, navigation}) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   alignItems: 'center',
+                    backgroundColor: Color.LIGHTBROWN,
                 }}>
                 <ImageBackground
                   source={ImageData.DREAMBACKGROUND}
@@ -311,7 +312,7 @@ const DisplayJournalEntry = ({route, navigation}) => {
                       borderWidth: 1,
 
                       borderColor: Color.LIGHTGREEN,
-                      backgroundColor: 'white',
+                      backgroundColor: Color.LIGHTBROWN,
                       right: 10,
                     }}>
                     <View
@@ -319,17 +320,19 @@ const DisplayJournalEntry = ({route, navigation}) => {
                         width: '100%',
                         // height: '10%',
                         flexDirection: 'row',
-
+                        backgroundColor: Color.LIGHTBROWN,
                         justifyContent: 'space-between',
                       }}>
                       <>
                         <Image
                           source={ImageData.LEFT}
+                          tintColor={Color.blue}
                           resizeMode="contain"
                           style={{width: 31, height: 31}}
                         />
                         <Image
                           source={ImageData.RIGHT}
+                          tintColor={Color.blue}
                           resizeMode="contain"
                           style={{
                             width: 31,
@@ -388,15 +391,19 @@ const DisplayJournalEntry = ({route, navigation}) => {
                                 ref={richText}
                                 initialHeight={300}
                                 disabled={true}
+                                style={{backgroundColor: Color.LIGHTBROWN}}
                                 editorStyle={{
+                                  backgroundColor: Color.LIGHTBROWN,
                                   contentCSSText: `
-      font-family: ${selectedFont.value};
-      font-size: 16px;
-      overflow-x: hidden;
-      word-wrap: break-word;
-      white-space: normal;
-      max-width: 100%;
-    `,
+                                font-family: ${selectedFont.value};
+                                font-size: 16px;
+                                overflow-x: hidden;
+                                 word-wrap: break-word;
+                                white-space: normal;
+                                max-width: 100%;
+                                 background-color: ${Color.LIGHTBROWN};
+                                
+                               `,
                                 }}
                               />
                             )}
@@ -464,13 +471,13 @@ const DisplayJournalEntry = ({route, navigation}) => {
                       {selectedButton == 2 &&
                         (dreamData?.[0]?.dream?.dreamContent ? (
                           <>
-                            {Platform.OS=='ios'?
-                               <WebView
-                              originWhitelist={['*']}
-                              scrollEnabled={true} // Let ScrollView handle scrolling
-                              showsVerticalScrollIndicator={false}
-                              source={{
-                                html: `
+                            {Platform.OS == 'ios' ? (
+                              <WebView
+                                originWhitelist={['*']}
+                                scrollEnabled={true} // Let ScrollView handle scrolling
+                                showsVerticalScrollIndicator={false}
+                                source={{
+                                  html: `
         <html>
           <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -496,25 +503,29 @@ const DisplayJournalEntry = ({route, navigation}) => {
   </body>
         </html>
       `,
-                              }}
-                              style={{width: '100%'}}
-                            /> :
-                          
-                            <RichEditor
-                              ref={richText}
-                              initialHeight={300}
-                              disabled={true}
-                              editorStyle={{
-                                contentCSSText: `
-      font-family: ${selectedFont.value};
-      font-size: 16px;
-      overflow-x: hidden;
-      word-wrap: break-word;
-      white-space: normal;
-      max-width: 100%;
-    `,
-                              }}
-                            />  }
+                                }}
+                                style={{width: '100%'}}
+                              />
+                            ) : (
+                              <RichEditor
+                                ref={richText}
+                                initialHeight={300}
+                                disabled={true}
+                                editorStyle={{
+                                  backgroundColor: Color.LIGHTBROWN,
+                                  contentCSSText: `
+                                font-family: ${selectedFont.value};
+                                font-size: 16px;
+                                overflow-x: hidden;
+                                 word-wrap: break-word;
+                                white-space: normal;
+                                max-width: 100%;
+                                 background-color: ${Color.LIGHTBROWN};
+                                
+                               `,
+                                }}
+                              />
+                            )}
                           </>
                         ) : (
                           <>
@@ -619,6 +630,7 @@ const DisplayJournalEntry = ({route, navigation}) => {
                       <>
                         <Image
                           source={ImageData.BACKLEFT}
+                          tintColor={Color.blue}
                           resizeMode="contain"
                           style={{
                             width: 31,
@@ -628,6 +640,7 @@ const DisplayJournalEntry = ({route, navigation}) => {
 
                         <Image
                           source={ImageData.BACKRIGHT}
+                          tintColor={Color.blue}
                           resizeMode="contain"
                           style={{
                             width: 31,
@@ -875,7 +888,7 @@ const styles = StyleSheet.create({
   editorContainer: {
     height: height * 0.7,
     width: '100%',
-    backgroundColor: 'white',
+    backgroundColor: Color.LIGHTBROWN,
     padding: 10,
   },
 

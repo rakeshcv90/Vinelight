@@ -27,6 +27,7 @@ const Button = ({
           <Image
             source={img}
             style={{width: 20, height: 20, right: 8, tintColor: tintColor,top:3}}
+            tintColor={'#671AAF'}
             resizeMode="contain"
           />
         )}
@@ -43,6 +44,7 @@ const Button = ({
             source={img}
             style={{width: 16, height: 14, left: 8, tintColor: tintColor,top:3}}
             resizeMode="contain"
+            tintColor={'#671AAF'}
           />
         )}
       </TouchableOpacity>

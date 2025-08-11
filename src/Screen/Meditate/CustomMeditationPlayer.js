@@ -129,11 +129,13 @@ const CustomMeditationPlayer = ({navigation, route}) => {
                   }}>
                   <FastImage
                     source={ImageData.LEFT}
+                         tintColor={Color.blue}
                     resizeMode={FastImage.resizeMode.contain}
                     style={{width: 31, height: 31}}
                   />
                   <FastImage
                     source={ImageData.RIGHT}
+                         tintColor={Color.blue}
                     resizeMode={FastImage.resizeMode.contain}
                     style={{
                       width: 31,
@@ -165,6 +167,7 @@ const CustomMeditationPlayer = ({navigation, route}) => {
                   }}>
                   <FastImage
                     source={ImageData.MEDATATION}
+                         tintColor={Color.blue}
                     resizeMode={FastImage.resizeMode.contain}
                     style={{width: '100%', height: '100%'}}
                   />
@@ -202,6 +205,7 @@ const CustomMeditationPlayer = ({navigation, route}) => {
                   }}>
                   <FastImage
                     source={ImageData.BACKLEFT}
+                         tintColor={Color.blue}
                     resizeMode={FastImage.resizeMode.contain}
                     style={{
                       width: 31,
@@ -211,6 +215,7 @@ const CustomMeditationPlayer = ({navigation, route}) => {
 
                   <FastImage
                     source={ImageData.BACKRIGHT}
+                         tintColor={Color.blue}
                     resizeMode={FastImage.resizeMode.contain}
                     style={{
                       width: 31,

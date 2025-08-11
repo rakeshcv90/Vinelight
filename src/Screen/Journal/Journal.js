@@ -73,6 +73,7 @@ const Journal = ({}) => {
         }}>
         <Image
           source={IconData.NODATA}
+          
           resizeMode="contain"
           style={{
             width: width * 0.5,
@@ -181,11 +182,13 @@ const Journal = ({}) => {
                   <FastImage
                     source={ImageData.LEFT}
                     resizeMode={FastImage.resizeMode.contain}
+                     tintColor={Color.blue}
                     style={{width: 31, height: 31}}
                   />
                   <FastImage
                     source={ImageData.RIGHT}
                     resizeMode="contain"
+                     tintColor={Color.blue}
                     style={{
                       width: 31,
                       height: 31,
@@ -413,6 +416,7 @@ const Journal = ({}) => {
                   }}>
                   <FastImage
                     source={ImageData.BACKLEFT}
+                     tintColor={Color.blue}
                     resizeMode={FastImage.resizeMode.contain}
                     style={{
                       width: 31,
@@ -422,6 +426,7 @@ const Journal = ({}) => {
 
                   <FastImage
                     source={ImageData.BACKRIGHT}
+                     tintColor={Color.blue}
                     resizeMode={FastImage.resizeMode.contain}
                     style={{
                       width: 31,
@@ -574,6 +579,7 @@ const Journal = ({}) => {
                       source={ImageData.LEFT}
                       resizeMode={FastImage.resizeMode.contain}
                       style={{width: 31, height: 31}}
+                       tintColor={Color.blue}
                     />
                     <FastImage
                       source={ImageData.RIGHT}
@@ -583,6 +589,7 @@ const Journal = ({}) => {
                         height: 31,
                         backgroundColor: 'transparent',
                       }}
+                       tintColor={Color.blue}
                     />
                   </View>
                   <View
@@ -816,6 +823,7 @@ const Journal = ({}) => {
                     }}>
                     <FastImage
                       source={ImageData.BACKLEFT}
+                       tintColor={Color.blue}
                       resizeMode={FastImage.resizeMode.contain}
                       style={{
                         width: 31,
@@ -825,6 +833,7 @@ const Journal = ({}) => {
 
                     <FastImage
                       source={ImageData.BACKRIGHT}
+                       tintColor={Color.blue}
                       resizeMode={FastImage.resizeMode.contain}
                       style={{
                         width: 31,

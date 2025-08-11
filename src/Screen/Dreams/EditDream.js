@@ -505,17 +505,19 @@ const EditDream = ({route, navigation}) => {
                           width: '100%',
                           // height: '10%',
                           flexDirection: 'row',
-
+                          backgroundColor: Color.LIGHTBROWN,
                           justifyContent: 'space-between',
                         }}>
                         <>
                           <Image
                             source={ImageData.LEFT}
+                            tintColor={Color.blue}
                             resizeMode="contain"
                             style={{width: 31, height: 31}}
                           />
                           <Image
                             source={ImageData.RIGHT}
+                            tintColor={Color.blue}
                             resizeMode="contain"
                             style={{
                               width: 31,
@@ -543,7 +545,7 @@ const EditDream = ({route, navigation}) => {
                           onResponderStart={() => {
                             editorRef.current?.focusContentEditor();
                           }}
-                          style={{flex: 1}}>
+                          style={{flex: 1, backgroundColor: Color.LIGHTBROWN}}>
                           <RichEditor
                             ref={editorRef}
                             initialContentHTML=""
@@ -556,9 +558,17 @@ const EditDream = ({route, navigation}) => {
                               handleTypingStart(text);
                             }}
                             editorStyle={{
-                              contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
+                              contentCSSText: `
+                                                       font-family: ${selectedFont.value};
+                                                       font-size: 16px;
+                                                       background-color: ${Color.LIGHTBROWN};
+                                                        `,
+                              placeholderColor: '#000',
                             }}
-                            style={{minHeight: 500, paddingBottom: 0}}
+                            style={[
+                              styles.richEditor,
+                              {backgroundColor: Color.LIGHTBROWN},
+                            ]}
                           />
                         </View>
                       </ScrollView>
@@ -568,13 +578,14 @@ const EditDream = ({route, navigation}) => {
                           width: '100%',
                           // height: '10%',
                           flexDirection: 'row',
-
+                          backgroundColor: Color.LIGHTBROWN,
                           justifyContent: 'space-between',
                         }}>
                         <>
                           <Image
                             source={ImageData.BACKLEFT}
                             resizeMode="contain"
+                            tintColor={Color.blue}
                             style={{
                               width: 31,
                               height: 31,
@@ -584,6 +595,7 @@ const EditDream = ({route, navigation}) => {
                           <Image
                             source={ImageData.BACKRIGHT}
                             resizeMode="contain"
+                            tintColor={Color.blue}
                             style={{
                               width: 31,
                               height: 31,
@@ -863,7 +875,7 @@ const styles = StyleSheet.create({
   editorContainer: {
     height: height * 0.7,
     width: '100%',
-    backgroundColor: 'white',
+    backgroundColor: Color.LIGHTBROWN,
   },
 
   modalOverlay: {

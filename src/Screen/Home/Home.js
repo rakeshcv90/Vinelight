@@ -23,10 +23,9 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {moodData} from '../../Component/Mood';
 import moment from 'moment-timezone';
-import { setJournalEdit } from '../../redux/actions';
+import {setJournalEdit} from '../../redux/actions';
 
 const {width, height} = Dimensions.get('window');
-
 
 LocaleConfig.locales['custom'] = {
   monthNames: [
@@ -73,35 +72,34 @@ LocaleConfig.locales['custom'] = {
 LocaleConfig.defaultLocale = 'custom';
 
 const Home = ({isActive}) => {
-
-const deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
- const dispatch = useDispatch();
-const today = moment().tz(deviceTimeZone).format('YYYY-MM-DD');
+  const deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const dispatch = useDispatch();
+  const today = moment().tz(deviceTimeZone).format('YYYY-MM-DD');
   const [selectedDate, setSelectedDate] = useState(today);
 
   const navigation = useNavigation();
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
-   const editjournal = useSelector(state => state?.user?.editjournal);
+  const editjournal = useSelector(state => state?.user?.editjournal);
   console.log('Home getJournalData', editjournal);
 
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   const [editSet, setEditSet] = useState(false);
 
-   // force re-run when new journal is added
-useEffect(() => {
-  const clickedDateData = getJournalData.find(
-    d => d?.currentDat === today, // 👈 this line
-  );
+  // force re-run when new journal is added
+  useEffect(() => {
+    const clickedDateData = getJournalData.find(
+      d => d?.currentDat === today, // 👈 this line
+    );
 
-  if (clickedDateData === undefined) {
-    setEditSet(false);
-        dispatch(setJournalEdit(false));
-  } else {
-    setEditSet(true);
-        dispatch(setJournalEdit(true));
-  }
-}, [getJournalData]);
+    if (clickedDateData === undefined) {
+      setEditSet(false);
+      dispatch(setJournalEdit(false));
+    } else {
+      setEditSet(true);
+      dispatch(setJournalEdit(true));
+    }
+  }, [getJournalData]);
   const markedJournalDates = useMemo(() => {
     const marks = {};
     // const todayDate = today
@@ -217,7 +215,7 @@ useEffect(() => {
             alignItems: 'center',
             marginTop: '30%',
           }}>
-          <Text style={styles.title2}>VineLight</Text>
+          <Text style={styles.title2}>LotusMind</Text>
         </View>
         <ScrollView
           contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}
@@ -246,10 +244,12 @@ useEffect(() => {
                 <FastImage
                   source={ImageData.LEFT}
                   resizeMode={FastImage.resizeMode.contain}
+                  tintColor={Color.blue}
                   style={{width: 31, height: 31}}
                 />
                 <FastImage
                   source={ImageData.RIGHT}
+                   tintColor={Color.blue}
                   resizeMode={FastImage.resizeMode.contain}
                   style={{
                     width: 31,
@@ -365,6 +365,7 @@ useEffect(() => {
                 <FastImage
                   source={ImageData.BACKLEFT}
                   resizeMode={FastImage.resizeMode.contain}
+                   tintColor={Color.blue}
                   style={{
                     width: 31,
                     height: 31,
@@ -374,6 +375,7 @@ useEffect(() => {
                 <FastImage
                   source={ImageData.BACKRIGHT}
                   resizeMode={FastImage.resizeMode.contain}
+                   tintColor={Color.blue}
                   style={{
                     width: 31,
                     height: 31,

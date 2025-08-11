@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     paddingTop: StatusBar.currentHeight,
   },
   image: {
-    width: 500,
+    width: 350,
     height: 500,
     resizeMode: 'contain',
   },

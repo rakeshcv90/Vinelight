@@ -9,14 +9,9 @@ import {
   Image,
 } from 'react-native';
 import {moodData} from './Mood';
-import { Color, Font } from '../../assets/Image';
+import {Color, Font} from '../../assets/Image';
 
-const TooltipModal2 = ({
-  visible,
-  onClose,
-  selectedOptions = {},
-  onSelect,
-}) => {
+const TooltipModal2 = ({visible, onClose, selectedOptions = {}, onSelect}) => {
   return (
     <Modal
       visible={visible}
@@ -27,22 +22,25 @@ const TooltipModal2 = ({
         <View style={styles.container}>
           <ScrollView showsVerticalScrollIndicator={false}>
             {moodData?.map((option, index) => {
-                const isSelected = selectedOptions?.name === option.name;
+              const isSelected = selectedOptions?.name === option.name;
               return (
                 <TouchableOpacity
                   key={index}
                   onPress={() => onSelect(option)}
-                  style={[
-                    styles.option,
-                    isSelected && styles.selectedOption,
-                  ]}>
+                  style={[styles.option, isSelected && styles.selectedOption]}>
                   <Image
                     source={option?.Image}
                     resizeMode="contain"
-                    style={{width: 24, height: 24, marginRight: 10}} 
-                    tintColor={isSelected?Color.LIGHTGREEN:Color.BROWN3}
+                    style={{width: 24, height: 24, marginRight: 10}}
+                    tintColor={isSelected ? Color.LIGHTGREEN : Color.BROWN3}
                   />
-                  <Text style={[styles.optionText, isSelected && styles.selectecText,]}>{option?.name}</Text>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      isSelected && styles.selectecText,
+                    ]}>
+                    {option?.name}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -68,13 +66,13 @@ const styles = StyleSheet.create({
     paddingBottom: 300,
   },
   container: {
-    backgroundColor: '#37412a',
+    backgroundColor: '#9C42FF',
     padding: 15,
     borderRadius: 10,
     width: 200,
     maxHeight: 300,
     borderWidth: 2,
-    borderColor: '#bfb68c',
+    borderColor: Color.blue,
   },
   option: {
     flexDirection: 'row',
@@ -82,18 +80,17 @@ const styles = StyleSheet.create({
     // paddingVertical: 10,
     padding: 10,
 
-
     // paddingHorizontal: 10,
   },
 
   optionText: {
     fontSize: 16,
     color: '#f0f0dc',
-    fontFamily:Font.EBGaramond_SemiBold
+    fontFamily: Font.EBGaramond_SemiBold,
   },
   closeButton: {
     marginTop: 15,
-    backgroundColor: '#dcd6b4',
+    backgroundColor: Color.BROWN4,
     paddingVertical: 10,
     borderRadius: 6,
     alignItems: 'center',
@@ -104,13 +101,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   selectedOption: {
-    backgroundColor:Color.BROWN3,
+    backgroundColor: Color.BROWN3,
     borderRadius: 6,
   },
-  selectecText:{
+  selectecText: {
     fontSize: 16,
     color: Color.LIGHTGREEN,
-    fontFamily:Font.EBGaramond_SemiBold
-  }
-
+    fontFamily: Font.EBGaramond_SemiBold,
+  },
 });

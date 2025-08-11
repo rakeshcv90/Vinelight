@@ -82,6 +82,7 @@ const Meditation = () => {
             <Image
               source={ImageData.PLAYBUTTON}
               style={{width: 40, height: 40}}
+              tintColor={Color.blue}
             />
           </TouchableOpacity>
         </View>
@@ -129,6 +130,7 @@ const Meditation = () => {
               }}>
               <Image
                 source={ImageData.PLAYBUTTON}
+                tintColor={Color.blue}
                 style={{width: 40, height: 40, justifyContent: 'center'}}
               />
             </TouchableOpacity>
@@ -217,11 +219,13 @@ const Meditation = () => {
               }}>
               <FastImage
                 source={ImageData.LEFT}
+                tintColor={Color.blue}
                 resizeMode={FastImage.resizeMode.contain}
                 style={{width: 31, height: 31}}
               />
               <FastImage
                 source={ImageData.RIGHT}
+                tintColor={Color.blue}
                 resizeMode={FastImage.resizeMode.contain}
                 style={{
                   width: 31,
@@ -277,6 +281,7 @@ const Meditation = () => {
                   }}>
                   <Image
                     source={IconData.GLOVE}
+                    tintColor={Color.blue}
                     style={{width: 16, height: 16}}
                   />
                   <Text
@@ -310,6 +315,7 @@ const Meditation = () => {
                   }}>
                   <Image
                     source={IconData.DRIVE}
+                    tintColor={Color.blue}
                     style={{width: 16, height: 16}}
                   />
                   <Text
@@ -395,6 +401,7 @@ const Meditation = () => {
               }}>
               <FastImage
                 source={ImageData.BACKLEFT}
+                tintColor={Color.blue}
                 resizeMode="contain"
                 style={{
                   width: 31,
@@ -404,6 +411,7 @@ const Meditation = () => {
 
               <FastImage
                 source={ImageData.BACKRIGHT}
+                tintColor={Color.blue}
                 resizeMode="contain"
                 style={{
                   width: 31,
@@ -438,7 +446,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: Color.BROWN3,
+    backgroundColor: '#D5B0FF',
     paddingTop: 10,
     paddingLeft: 12,
     paddingRight: 12,
@@ -446,7 +454,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'space-between',
-    // margin: 1,
     marginTop: 10,
   },
   content: {
@@ -478,7 +485,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: Color.BROWN4,
+    borderColor: '#671AAF',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
