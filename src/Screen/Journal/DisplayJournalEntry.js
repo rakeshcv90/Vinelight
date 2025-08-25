@@ -33,6 +33,7 @@ import Button2 from '../../Component/Button2';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {RichEditor} from 'react-native-pell-rich-editor';
 import {Platform} from 'react-native';
+import {isCoupanValid, isSubscriptionValid} from '../utils';
 
 const fonts = [
   {label: 'Georgia', value: 'Georgia'},
@@ -68,7 +69,10 @@ const DisplayJournalEntry = ({route, navigation}) => {
   const getJournalData = useSelector(state => state?.user?.getJournalData);
   const getDreamData = useSelector(state => state?.user?.getDreamData);
   const goalData = useSelector(state => state.user?.goalByDate || []);
-  console.log('dddddddd', getJournalData);
+  const subscription = useSelector(state => state?.user?.subscription);
+  const coupaDetails = useSelector(state => state?.user?.coupaDetails);
+  const hasAccess =
+    isSubscriptionValid(subscription) || isCoupanValid(coupaDetails);
   const richText = useRef();
   useEffect(() => {
     const filteredData = getJournalData?.filter(dream => {
@@ -145,7 +149,9 @@ const DisplayJournalEntry = ({route, navigation}) => {
             color: Color.LIGHTGREEN,
             textAlign: 'center',
           }}>
-          No goals data available.
+          {hasAccess
+            ? ' No goals data available.'
+            : 'Subscribe to VineLight to unlock this feature and more!'}
         </Text>
         <View
           style={{
@@ -157,21 +163,35 @@ const DisplayJournalEntry = ({route, navigation}) => {
             marginTop: height * 0.12,
             flexDirection: 'row',
           }}>
-          <Button2
-            width={280}
-            height={50}
-            buttonTitle={'New Goal'}
-            img={IconData.PLUS}
-            left={true}
-            size={20}
-            onPress={() => {
-              navigation.navigate('MainPage', {
-                initialTab: 'Goal',
-                selectedDate: currentDate,
-                modalOpenData: true,
-              });
-            }}
-          />
+          {hasAccess ? (
+            <Button2
+              width={280}
+              height={50}
+              buttonTitle={'New Goal'}
+              img={IconData.PLUS}
+              left={true}
+              size={20}
+              onPress={() => {
+                navigation.navigate('MainPage', {
+                  initialTab: 'Goal',
+                  selectedDate: currentDate,
+                  modalOpenData: true,
+                });
+              }}
+            />
+          ) : (
+            <Button2
+              width={280}
+              height={50}
+              buttonTitle={'Upgrade To Pro'}
+              img={ImageData.CROWN}
+              left={true}
+              size={20}
+              onPress={() => {
+                navigation.navigate('Subscription');
+              }}
+            />
+          )}
         </View>
       </View>
     );
@@ -464,13 +484,13 @@ const DisplayJournalEntry = ({route, navigation}) => {
                       {selectedButton == 2 &&
                         (dreamData?.[0]?.dream?.dreamContent ? (
                           <>
-                            {Platform.OS=='ios'?
-                               <WebView
-                              originWhitelist={['*']}
-                              scrollEnabled={true} // Let ScrollView handle scrolling
-                              showsVerticalScrollIndicator={false}
-                              source={{
-                                html: `
+                            {Platform.OS == 'ios' ? (
+                              <WebView
+                                originWhitelist={['*']}
+                                scrollEnabled={true} // Let ScrollView handle scrolling
+                                showsVerticalScrollIndicator={false}
+                                source={{
+                                  html: `
         <html>
           <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -496,16 +516,16 @@ const DisplayJournalEntry = ({route, navigation}) => {
   </body>
         </html>
       `,
-                              }}
-                              style={{width: '100%'}}
-                            /> :
-                          
-                            <RichEditor
-                              ref={richText}
-                              initialHeight={300}
-                              disabled={true}
-                              editorStyle={{
-                                contentCSSText: `
+                                }}
+                                style={{width: '100%'}}
+                              />
+                            ) : (
+                              <RichEditor
+                                ref={richText}
+                                initialHeight={300}
+                                disabled={true}
+                                editorStyle={{
+                                  contentCSSText: `
       font-family: ${selectedFont.value};
       font-size: 16px;
       overflow-x: hidden;
@@ -513,8 +533,9 @@ const DisplayJournalEntry = ({route, navigation}) => {
       white-space: normal;
       max-width: 100%;
     `,
-                              }}
-                            />  }
+                                }}
+                              />
+                            )}
                           </>
                         ) : (
                           <>
@@ -527,7 +548,11 @@ const DisplayJournalEntry = ({route, navigation}) => {
                                 // marginTop: height * 0.05,
                               }}>
                               <Image
-                                source={IconData.NODATA}
+                                source={
+                                  hasAccess
+                                    ? IconData.NODATA
+                                    : ImageData.SUBSCRIPTIONIMAGE
+                                }
                                 resizeMode="contain"
                                 style={{
                                   width: width * 0.5,
@@ -541,7 +566,9 @@ const DisplayJournalEntry = ({route, navigation}) => {
                                   color: Color.LIGHTGREEN,
                                   textAlign: 'center',
                                 }}>
-                                No dream journal content available
+                                {hasAccess
+                                  ? 'No dream journal content available'
+                                  : 'Subscribe to VineLight to unlock this feature and more!'}
                               </Text>
                             </View>
                             <View
@@ -554,20 +581,34 @@ const DisplayJournalEntry = ({route, navigation}) => {
                                 gap: 20,
                                 flexDirection: 'row',
                               }}>
-                              <Button2
-                                width={280}
-                                height={50}
-                                buttonTitle={'New Dream Journal Entry'}
-                                img={IconData.PLUS}
-                                left={true}
-                                size={20}
-                                onPress={() => {
-                                  navigation.navigate('CreateDream', {
-                                    selectedDate: currentDate,
-                                  });
-                                  // navigation.navigate('CreateDream');
-                                }}
-                              />
+                              {hasAccess ? (
+                                <Button2
+                                  width={280}
+                                  height={50}
+                                  buttonTitle={'New Dream Journal Entry'}
+                                  img={IconData.PLUS}
+                                  left={true}
+                                  size={20}
+                                  onPress={() => {
+                                    navigation.navigate('CreateDream', {
+                                      selectedDate: currentDate,
+                                    });
+                                    // navigation.navigate('CreateDream');
+                                  }}
+                                />
+                              ) : (
+                                <Button2
+                                  width={280}
+                                  height={50}
+                                  buttonTitle={'Upgrade To Pro'}
+                                  img={ImageData.CROWN}
+                                  left={true}
+                                  size={20}
+                                  onPress={() => {
+                                    navigation.navigate('Subscription');
+                                  }}
+                                />
+                              )}
                             </View>
                           </>
                         ))}

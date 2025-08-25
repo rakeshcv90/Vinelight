@@ -324,6 +324,31 @@ const Profile = ({navigation}) => {
                     alignItems: 'center',
                     borderColor: Color?.BROWN2,
                   }}>
+                  {(isSubscriptionValid(subscription) ||
+                    isCoupanValid(coupaDetails)) && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        right: -10,
+                        top: '5%',
+                        transform: [{translateY: -8}],
+                        zIndex: 999,
+
+                        paddingHorizontal: 5,
+                        paddingVertical: 2,
+                        minWidth: 15,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}>
+                      <Image
+                        source={require('../../assets/Image/img/pro.png')}
+                        style={{
+                          width: 40,
+                          height: 40,
+                        }}
+                      />
+                    </View>
+                  )}
                   <View
                     style={{
                       width: 100,
@@ -473,17 +498,27 @@ const Profile = ({navigation}) => {
                         }}>
                         <Image
                           source={IconData.JOURNALA}
-                          style={{width: 24, height: 24}}
+                          style={{width: 20, height: 20}}
                           tintColor={Color.LIGHTGREEN}
+                          resizeMode="contain"
                         />
                         <Text
                           style={{
                             fontSize: 16,
                             color: Color.LIGHTGREEN,
                             marginLeft: 20,
-                            fontFamily: Font.EB_Garamond_Bold,
+                            fontFamily: Font.EBGaramond_Regular,
                           }}>
-                          250+ Integration Journal Prompts
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              color: Color.LIGHTGREEN,
+                              marginLeft: 20,
+                              fontFamily: Font.EBGaramond_SemiBold,
+                            }}>
+                            250
+                          </Text>
+                          + Integration Journal Prompts
                         </Text>
                       </View>
                       <View
@@ -491,21 +526,54 @@ const Profile = ({navigation}) => {
                           width: '100%',
                           flexDirection: 'row',
                           alignItems: 'center',
-                          top: 10,
+                          top: 7,
                         }}>
                         <Image
                           source={IconData.DREAMA}
-                          style={{width: 24, height: 24}}
+                          style={{width: 20, height: 20}}
                           tintColor={Color.LIGHTGREEN}
+                          resizeMode="contain"
                         />
                         <Text
                           style={{
                             fontSize: 16,
                             color: Color.LIGHTGREEN,
                             marginLeft: 20,
-                            fontFamily: Font.EB_Garamond_Bold,
+                            fontFamily: Font.EBGaramond_Regular,
                           }}>
-                          100+ Dream Journal Prompts
+                          Dream Journal
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '100%',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          top: 14,
+                        }}>
+                        <Image
+                          source={IconData.DREAMA}
+                          style={{width: 20, height: 20}}
+                          tintColor={Color.LIGHTGREEN}
+                          resizeMode="contain"
+                        />
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            color: Color.LIGHTGREEN,
+                            marginLeft: 20,
+                            fontFamily: Font.EBGaramond_Regular,
+                          }}>
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              color: Color.LIGHTGREEN,
+                              marginLeft: 20,
+                              fontFamily: Font.EBGaramond_SemiBold,
+                            }}>
+                            100
+                          </Text>
+                          + Dream Journal Prompts
                         </Text>
                       </View>
                       <View
@@ -517,17 +585,64 @@ const Profile = ({navigation}) => {
                         }}>
                         <Image
                           source={IconData.MEDITATIONA}
-                          style={{width: 24, height: 24}}
+                          style={{width: 20, height: 20}}
                           tintColor={Color.LIGHTGREEN}
+                          resizeMode="contain"
                         />
                         <Text
                           style={{
                             fontSize: 16,
                             color: Color.LIGHTGREEN,
                             marginLeft: 20,
-                            fontFamily: Font.EB_Garamond_Bold,
+                            fontFamily: Font.EBGaramond_Regular,
                           }}>
                           Guided Meditations
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '100%',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          top: 25,
+                        }}>
+                        <Image
+                          source={IconData.CEREMONYA}
+                          style={{width: 20, height: 20}}
+                          tintColor={Color.LIGHTGREEN}
+                          resizeMode="contain"
+                        />
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            color: Color.LIGHTGREEN,
+                            marginLeft: 20,
+                            fontFamily: Font.EBGaramond_Regular,
+                          }}>
+                          Ceremony Tracker
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '100%',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          top: 33,
+                        }}>
+                        <Image
+                          source={IconData.GOALA}
+                          style={{width: 20, height: 20}}
+                          tintColor={Color.LIGHTGREEN}
+                          resizeMode="contain"
+                        />
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            color: Color.LIGHTGREEN,
+                            marginLeft: 20,
+                            fontFamily: Font.EBGaramond_Regular,
+                          }}>
+                          Goal Tracker
                         </Text>
                       </View>
                       {isSubscriptionValid(subscription) ||

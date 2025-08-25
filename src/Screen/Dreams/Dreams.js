@@ -18,6 +18,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {deleteDreamData} from '../../redux/actions';
 import moment from 'moment';
 import WebView from 'react-native-webview';
+import {isCoupanValid, isSubscriptionValid} from '../utils';
 const {width, height} = Dimensions.get('window');
 const Dreams = () => {
   const navigation = useNavigation();
@@ -28,9 +29,14 @@ const Dreams = () => {
   const [tooltipPosition, setTooltipPosition] = useState({x: 0, y: 0});
   const [selectedDream, setSelectedDream] = useState(null);
   const [editSet, setEditSet] = useState(false);
+  const subscription = useSelector(state => state?.user?.subscription);
+  const coupaDetails = useSelector(state => state?.user?.coupaDetails);
   const [currentDat, setCurrentDate] = useState(
     moment().local().format('YYYY-MM-DD'),
   );
+
+  const hasAccess =
+    isSubscriptionValid(subscription) || isCoupanValid(coupaDetails);
   // const flattenDreamData = dreamData => {
   //   const result = [];
 
@@ -82,9 +88,10 @@ const Dreams = () => {
       <View
         style={{
           flex: 1,
-          justifyContent: 'center',
+          // justifyContent: 'center',
           alignItems: 'center',
-          gap: 30,
+          gap: 20,
+          marginTop: height * 0.03,
         }}>
         <Image
           source={IconData.NODATA}
@@ -97,6 +104,7 @@ const Dreams = () => {
         <Text
           style={{
             fontSize: 24,
+            textAlign: 'center',
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
           }}>
@@ -227,21 +235,23 @@ const Dreams = () => {
                 alignSelf: 'center',
                 top: -height * 0.01,
               }}>
-              <FlatList
-                data={flattenDreamData(getDreamData)} // Use the updated function
-                contentContainerStyle={{paddingBottom: 20}}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={emptyComponent}
-                keyExtractor={(item, index) =>
-                  item.type === 'header'
-                    ? `header-${item.date}`
-                    : `dream-${item.dream.id}`
-                }
-                renderItem={({item, index}) => {
-                  const htmlContent =
-                    item?.dream?.dreamContent || '<p>No content available</p>';
+              {hasAccess ? (
+                <FlatList
+                  data={flattenDreamData(getDreamData)} // Use the updated function
+                  contentContainerStyle={{paddingBottom: 20}}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={emptyComponent}
+                  keyExtractor={(item, index) =>
+                    item.type === 'header'
+                      ? `header-${item.date}`
+                      : `dream-${item.dream.id}`
+                  }
+                  renderItem={({item, index}) => {
+                    const htmlContent =
+                      item?.dream?.dreamContent ||
+                      '<p>No content available</p>';
 
-                  const wrappedHtml = `
+                    const wrappedHtml = `
     <html>
     <head>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -268,100 +278,129 @@ const Dreams = () => {
   </html>
   `;
 
-                  if (item.type === 'header') {
-                    return (
-                      <View
-                        style={{
-                          width: '100%',
-                          height: 30,
-                          marginTop: index === 0 ? 0 : 20,
-                        }}>
+                    if (item.type === 'header') {
+                      return (
                         <View
                           style={{
                             width: '100%',
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
+                            height: 30,
+                            marginTop: index === 0 ? 0 : 20,
                           }}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              const clickedDateData = getDreamData.find(
-                                d => d?.currentDat === item?.date,
-                              );
-
-                              setSelectedDream(clickedDateData);
-                              navigation.navigate('DreamView', {
-                                dreaItem: clickedDateData,
-                              });
+                          <View
+                            style={{
+                              width: '100%',
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
                             }}>
-                            <Text style={styles.dateText}>
-                              {formatDate(item.date)}
-                            </Text>
-                          </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => {
+                                const clickedDateData = getDreamData.find(
+                                  d => d?.currentDat === item?.date,
+                                );
 
-                          <TouchableOpacity
-                            onPressIn={event => {
-                              const {pageX, pageY} = event.nativeEvent;
-                              setTooltipPosition({x: pageX, y: pageY});
+                                setSelectedDream(clickedDateData);
+                                navigation.navigate('DreamView', {
+                                  dreaItem: clickedDateData,
+                                });
+                              }}>
+                              <Text style={styles.dateText}>
+                                {formatDate(item.date)}
+                              </Text>
+                            </TouchableOpacity>
 
-                              setToolVisible(true);
-                              const clickedDateData = getDreamData.find(
-                                d => d?.currentDat === item?.date,
-                              );
+                            <TouchableOpacity
+                              onPressIn={event => {
+                                const {pageX, pageY} = event.nativeEvent;
+                                setTooltipPosition({x: pageX, y: pageY});
 
-                              setSelectedDream(clickedDateData);
-                            }}>
-                            <Image
-                              source={IconData.DOTS}
-                              style={{width: 25, height: 25}}
-                            />
-                          </TouchableOpacity>
+                                setToolVisible(true);
+                                const clickedDateData = getDreamData.find(
+                                  d => d?.currentDat === item?.date,
+                                );
+
+                                setSelectedDream(clickedDateData);
+                              }}>
+                              <Image
+                                source={IconData.DOTS}
+                                style={{width: 25, height: 25}}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            style={{
+                              width: '100%',
+                              height: 2,
+                              backgroundColor: Color.BROWN2,
+                              marginVertical: 5,
+                            }}
+                          />
                         </View>
-                        <View
-                          style={{
-                            width: '100%',
-                            height: 2,
-                            backgroundColor: Color.BROWN2,
-                            marginVertical: 5,
-                          }}
-                        />
-                      </View>
-                    );
-                  }
+                      );
+                    }
 
-                  // DREAM item
-                  const {dream} = item;
+                    // DREAM item
+                    const {dream} = item;
 
-                  return (
-                    <TouchableOpacity
-                      style={styles.taskRow}
-                      onPress={() => {
-                        const clickedDateData = getDreamData.find(
-                          d => d?.currentDat === item?.date,
-                        );
+                    return (
+                      <TouchableOpacity
+                        style={styles.taskRow}
+                        onPress={() => {
+                          const clickedDateData = getDreamData.find(
+                            d => d?.currentDat === item?.date,
+                          );
 
-                        setSelectedDream(clickedDateData);
-                        navigation.navigate('DreamView', {
-                          dreaItem: clickedDateData,
-                        });
-                      }}>
-                      {/* <Text style={styles.taskText} numberOfLines={2}>
+                          setSelectedDream(clickedDateData);
+                          navigation.navigate('DreamView', {
+                            dreaItem: clickedDateData,
+                          });
+                        }}>
+                        {/* <Text style={styles.taskText} numberOfLines={2}>
                         {dream?.dreamContent
                           ? htmlToPlainText(dream.dreamContent)
                           : 'No content available'}
                       </Text> */}
 
-                      <WebView
-                        originWhitelist={['*']}
-                        source={{html: wrappedHtml}}
-                        style={{height: 20, backgroundColor: 'transparent'}} // or use styles.webview
-                        scrollEnabled={false}
-                      />
-                    </TouchableOpacity>
-                  );
-                }}
-              />
+                        <WebView
+                          originWhitelist={['*']}
+                          source={{html: wrappedHtml}}
+                          style={{height: 20, backgroundColor: 'transparent'}} // or use styles.webview
+                          scrollEnabled={false}
+                        />
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 20,
+                    marginTop: height * 0.02,
+                  }}>
+                  <Image
+                    source={ImageData.SUBSCRIPTIONIMAGE}
+                    resizeMode="contain"
+                    style={{
+                      width: width * 0.5,
+                      height: height * 0.2,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontFamily: Font.EBGaramond_SemiBold,
+                      color: Color.LIGHTGREEN,
+                      textAlign: 'center',
+                    }}>
+                    Subscribe to VineLight to unlock this feature and more!
+                  </Text>
+                </View>
+              )}
             </View>
+
             <View
               style={{
                 width: '96%',
@@ -375,11 +414,57 @@ const Dreams = () => {
                     ? height * 0.035
                     : height >= 780
                     ? height * 0.025
-                    : height * 0.035,
+                    : height * 0.03,
                 gap: 20,
                 flexDirection: 'row',
               }}>
-              {!editSet ? (
+              {isSubscriptionValid(subscription) ||
+              isCoupanValid(coupaDetails) ? (
+                !editSet ? (
+                  <Button2
+                    width={280}
+                    height={50}
+                    buttonTitle={'New Dream Journal Entry'}
+                    img={IconData.PLUS}
+                    left={true}
+                    size={20}
+                    onPress={() => {
+                      navigation.navigate('CreateDream');
+                    }}
+                  />
+                ) : (
+                  <Button2
+                    width={280}
+                    height={50}
+                    buttonTitle={'Edit Dream Journal Entry'}
+                    img={IconData.PEN2}
+                    left={true}
+                    size={20}
+                    onPress={() => {
+                      const clickedDateData = getDreamData.find(
+                        d => d?.currentDat === currentDat,
+                      );
+
+                      navigation.navigate('EditDream', {
+                        dreamData: clickedDateData,
+                      });
+                    }}
+                  />
+                )
+              ) : (
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'Upgrade To Pro'}
+                  img={ImageData.CROWN}
+                  left={true}
+                  size={20}
+                  onPress={() => {
+                    navigation.navigate('Subscription');
+                  }}
+                />
+              )}
+              {/* {!editSet ? (
                 <Button2
                   width={280}
                   height={50}
@@ -409,7 +494,7 @@ const Dreams = () => {
                     });
                   }}
                 />
-              )}
+              )} */}
             </View>
 
             <View

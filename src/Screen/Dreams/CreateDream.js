@@ -340,7 +340,11 @@ const CreateDream = ({navigation, route}) => {
                 source={ImageData.BACKGROUND}
                 style={styles.primaryBackground}
                 resizeMode="cover">
-                <View style={{flex: 0.13, marginTop: -height * 0.04}}>
+                <View
+                  style={{
+                    flex: 0.13,
+                    marginTop: height >= 844 ? -height * 0.055 : -height * 0.04,
+                  }}>
                   <CustomeHeader
                     onClear={() => {
                       clearEditorContent();
@@ -440,9 +444,15 @@ const CreateDream = ({navigation, route}) => {
                             androidLayerType="software"
                             // onChange={richTextHandle}
                             editorStyle={{
-                              contentCSSText: `font-family: ${selectedFont.value}; font-size: 16px;`,
+                              contentCSSText: `font-family: ${selectedFont.value}; 
+                              font-size: 16px;line-height: 22px;   
+                               white-space: pre-wrap;   
+                                word-wrap: break-word;
+                                  display: block;`
+                                ,
                             }}
-                            style={styles.richEditor}
+                            // style={styles.richEditor}
+                            style={{minHeight: height * 0.7, flex: 1}}
                           />
                         </View>
                       </ScrollView>
@@ -636,6 +646,8 @@ const CreateDream = ({navigation, route}) => {
                       bottom: isKeyboardVisible
                         ? height <= 800
                           ? 30
+                          : height >= 844
+                          ? 35
                           : 45
                         : 10,
                     },

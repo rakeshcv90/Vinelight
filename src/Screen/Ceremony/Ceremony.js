@@ -29,9 +29,12 @@ import FastImage from 'react-native-fast-image';
 import uuid from 'react-native-uuid';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
+import {isCoupanValid, isSubscriptionValid} from '../utils';
 const {width, height} = Dimensions.get('window');
 const Ceremony = ({isActive}) => {
   const [modalCeremonyopen, setModalCeromonyOpen] = useState(false);
+  const subscription = useSelector(state => state?.user?.subscription);
+  const coupaDetails = useSelector(state => state?.user?.coupaDetails);
   const navigation = useNavigation();
   const [currentDat, setCurrentDate] = useState(
     moment().local().format('YYYY-MM-DD'),
@@ -42,6 +45,8 @@ const Ceremony = ({isActive}) => {
   );
 
   const [selectedHeader, setSelectedHeader] = useState(0);
+  const hasAccess =
+    isSubscriptionValid(subscription) || isCoupanValid(coupaDetails);
   useEffect(() => {
     if (!isActive) {
       setModalCeromonyOpen(false);
@@ -449,7 +454,7 @@ const Ceremony = ({isActive}) => {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          gap: 30,
+          gap: 20,
         }}>
         <Image
           source={IconData.NODATA}
@@ -464,6 +469,7 @@ const Ceremony = ({isActive}) => {
             fontSize: 24,
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
+            textAlign: 'center',
           }}>
           No ceremony data available.
         </Text>
@@ -547,79 +553,92 @@ const Ceremony = ({isActive}) => {
               }}>
               <Text style={styles.subText}>Ceremonies</Text>
             </View>
-            <View
-              style={{
-                width: '80%',
-                height: '10%',
-                flexDirection: 'row',
-                top: -height * 0.045,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: Color.BROWN4,
-                borderRadius: 10,
-                borderWidth: 2,
-                borderColor: Color.BROWN2,
-                // gap: 5,
-              }}>
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedHeader(0);
-                }}
-                activeOpacity={0.7}
+            {isSubscriptionValid(subscription) ||
+            isCoupanValid(coupaDetails) ? (
+              <View
                 style={{
-                  width: '50%',
-                  height: '100%',
-
+                  width: '80%',
+                  height: '10%',
+                  flexDirection: 'row',
+                  top: -height * 0.045,
                   justifyContent: 'center',
                   alignItems: 'center',
-                  backgroundColor:
-                    selectedHeader == 0 ? Color.BROWN3 : 'transparent',
-                  borderRadius: selectedHeader == 0 ? 10 : 0,
-                  borderWidth: selectedHeader == 0 ? 2 : 0,
-                  borderColor:
-                    selectedHeader == 0 ? Color.BROWN2 : 'transparent',
+                  backgroundColor: Color.BROWN4,
+                  borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor: Color.BROWN2,
+                  // gap: 5,
                 }}>
-                <Text
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedHeader(0);
+                  }}
+                  activeOpacity={0.7}
                   style={{
-                    fontSize: 16,
-                    fontFamily: Font.EBGaramond_Regular,
-                    // lineHeight: 24,
-                    color: Color.LIGHTGREEN,
-                  }}>
-                  Days since
-                </Text>
-              </TouchableOpacity>
+                    width: '50%',
+                    height: '100%',
 
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedHeader(1);
-                }}
-                activeOpacity={0.7}
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor:
+                      selectedHeader == 0 ? Color.BROWN3 : 'transparent',
+                    borderRadius: selectedHeader == 0 ? 10 : 0,
+                    borderWidth: selectedHeader == 0 ? 2 : 0,
+                    borderColor:
+                      selectedHeader == 0 ? Color.BROWN2 : 'transparent',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontFamily: Font.EBGaramond_Regular,
+                      // lineHeight: 24,
+                      color: Color.LIGHTGREEN,
+                    }}>
+                    Days since
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedHeader(1);
+                  }}
+                  activeOpacity={0.7}
+                  style={{
+                    width: '50%',
+                    height: '100%',
+
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor:
+                      selectedHeader == 1 ? Color.BROWN3 : 'transparent',
+                    borderRadius: selectedHeader == 1 ? 10 : 0,
+                    borderWidth: selectedHeader == 1 ? 2 : 0,
+                    borderColor:
+                      selectedHeader == 1 ? Color.BROWN2 : 'transparent',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontFamily: Font.EBGaramond_Regular,
+                      // lineHeight: 24,
+                      color: Color.LIGHTGREEN,
+                      textAlign: 'center',
+                    }}>
+                    Days until
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View
                 style={{
-                  width: '50%',
-                  height: '100%',
+                  width: '80%',
+                  height: '10%',
 
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor:
-                    selectedHeader == 1 ? Color.BROWN3 : 'transparent',
-                  borderRadius: selectedHeader == 1 ? 10 : 0,
-                  borderWidth: selectedHeader == 1 ? 2 : 0,
-                  borderColor:
-                    selectedHeader == 1 ? Color.BROWN2 : 'transparent',
-                }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontFamily: Font.EBGaramond_Regular,
-                    // lineHeight: 24,
-                    color: Color.LIGHTGREEN,
-                    textAlign: 'center',
-                  }}>
-                  Days until
-                </Text>
-              </TouchableOpacity>
-            </View>
+                  top: -height * 0.045,
+
+                  // gap: 5,
+                }}></View>
+            )}
             <View
               style={{
                 width: '96%',
@@ -628,16 +647,103 @@ const Ceremony = ({isActive}) => {
                 alignSelf: 'center',
                 top: -height * 0.03,
               }}>
-              <FlatList
-                data={filterdata(existingCeremonies)}
-                keyExtractor={(item, index) => index.toString()}
-                contentContainerStyle={{paddingBottom: 20}}
-                showsVerticalScrollIndicator={false}
-                renderItem={renderItem}
-                ListEmptyComponent={emptyComponent}
-              />
+              {hasAccess ? (
+                <FlatList
+                  data={filterdata(existingCeremonies)}
+                  keyExtractor={(item, index) => index.toString()}
+                  contentContainerStyle={{paddingBottom: 20}}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={renderItem}
+                  ListEmptyComponent={emptyComponent}
+                />
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 20,
+                    marginTop: Platform.OS == 'ios' ? height * 0.007 : 0,
+                  }}>
+                  <Image
+                    source={ImageData.SUBSCRIPTIONIMAGE}
+                    resizeMode="contain"
+                    style={{
+                      width: width * 0.5,
+                      height: height * 0.2,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontFamily: Font.EBGaramond_SemiBold,
+                      color: Color.LIGHTGREEN,
+                      textAlign: 'center',
+                    }}>
+                    Subscribe to VineLight to unlock this feature and more!
+                  </Text>
+                </View>
+              )}
             </View>
-            <View
+            {isSubscriptionValid(subscription) ||
+            isCoupanValid(coupaDetails) ? (
+              <View
+                style={{
+                  width: '96%',
+                  height: '10%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  alignSelf: 'center',
+                  // top: height * 0.035,
+                  top:
+                    Platform.OS == 'ios'
+                      ? height * 0.035
+                      : height >= 780
+                      ? height * 0.025
+                      : height * 0.03,
+                  flexDirection: 'row',
+                }}>
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'New Ceremony'}
+                  img={IconData.PLUS}
+                  left={true}
+                  size={20}
+                  onPress={() => setModalCeromonyOpen(true)}
+                />
+              </View>
+            ) : (
+              <View
+                style={{
+                  width: '96%',
+                  height: '10%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  alignSelf: 'center',
+                  // top: height * 0.035,
+                  top:
+                    Platform.OS == 'ios'
+                      ? height * 0.035
+                      : height >= 780
+                      ? height * 0.025
+                      : height * 0.03,
+                  flexDirection: 'row',
+                }}>
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'Upgrade To Pro'}
+                  img={ImageData.CROWN}
+                  left={true}
+                  size={20}
+                  onPress={() => {
+                    navigation.navigate('Subscription');
+                  }}
+                />
+              </View>
+            )}
+            {/* <View
               style={{
                 width: '96%',
                 height: '10%',
@@ -650,7 +756,7 @@ const Ceremony = ({isActive}) => {
                     ? height * 0.035
                     : height >= 780
                     ? height * 0.025
-                    : height * 0.035,
+                    : height * 0.03,
                 flexDirection: 'row',
               }}>
               <Button2
@@ -662,7 +768,7 @@ const Ceremony = ({isActive}) => {
                 size={20}
                 onPress={() => setModalCeromonyOpen(true)}
               />
-            </View>
+            </View> */}
 
             <View
               style={{

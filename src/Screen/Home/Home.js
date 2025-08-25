@@ -83,7 +83,7 @@ const today = moment().tz(deviceTimeZone).format('YYYY-MM-DD');
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
    const editjournal = useSelector(state => state?.user?.editjournal);
-  console.log('Home getJournalData', editjournal);
+ 
 
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   const [editSet, setEditSet] = useState(false);

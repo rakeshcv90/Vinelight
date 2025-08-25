@@ -35,6 +35,7 @@ import {
   setAppliedCoupan,
   setCoupanDetails,
   setSubscriptionDetails,
+  setSubscriptionProducts,
 } from '../redux/actions';
 import axios from 'axios';
 import {isSubscriptionValid} from './utils';
@@ -45,13 +46,54 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 const deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 const {width, height} = Dimensions.get('window');
-
+const products = Platform.select({
+  ios: ['plan_monthly', 'plan_yearly'],
+  android: ['plan_monthly', 'plan_yearly'],
+});
 const Subscription = ({navigation}) => {
   const [loader, setLoader] = useState(false);
   const [coupanModal, setCoupanModal] = useState(false);
   const subscription = useSelector(state => state?.user?.subscription);
 
   const subscription_products = useSelector(state => state?.user?.getProducts);
+  useEffect(() => {
+    RNIap.initConnection().then(() => {
+      getPlanData();
+    });
+
+    return () => {
+      RNIap.endConnection();
+    };
+  }, []);
+  const getPlanData = () => {
+    Platform.OS === 'ios'
+      ? RNIap.initConnection()
+          .catch(() => {
+            console.log('error connecting to store');
+          })
+          .then(() => {
+            RNIap.getProducts({skus: products})
+              .catch(() => {
+                console.log('error finding purchase');
+              })
+              .then(res => {
+                dispatch(setSubscriptionProducts(res));
+              });
+          })
+      : RNIap.initConnection()
+          .catch(() => {
+            console.log('error connecting to store');
+          })
+          .then(() => {
+            RNIap.getSubscriptions({skus: products})
+              .catch(() => {
+                console.log('error finding purchase');
+              })
+              .then(res => {
+                dispatch(setSubscriptionProducts(res));
+              });
+          });
+  };
 
   const Plat = 'Ios';
   const dispatch = useDispatch();
@@ -63,7 +105,7 @@ const Subscription = ({navigation}) => {
     item: subscription_products[1]?.productId,
     offerToken:
       Platform.OS == 'android'
-        ? subscription_products[1]?.subscriptionOfferDetails[0].offerToken
+        ? subscription_products[1]?.subscriptionOfferDetails[0]?.offerToken
         : null,
   });
 
@@ -487,25 +529,126 @@ const Subscription = ({navigation}) => {
         });
         setLoader(false);
         dispatch(setSubscriptionDetails(subscriptionData));
-      } else {
+      }
+      //  else {
+      //   const latestPurchase = purchases[purchases.length - 1];
+      //   const apiRequestBody = {
+      //     'receipt-data': latestPurchase.transactionReceipt,
+      //     password: 'f41a27c3319749ccb2e0e4607ecb0664',
+      //     'exclude-old-transactions': true, // optional
+      //   };
+
+      //   try {
+      //     let result = await axios(
+      //       'https://buy.itunes.apple.com/verifyReceipt',
+      //       {
+      //         method: 'POST',
+      //         headers: {
+      //           'Content-Type': 'application/json',
+      //         },
+      //         data: apiRequestBody,
+      //       },
+      //     );
+      //     if (result.data.status === 21007) {
+      //       result = await axios.post(
+      //         'https://sandbox.itunes.apple.com/verifyReceipt',
+      //         apiRequestBody,
+      //         {headers: {'Content-Type': 'application/json'}},
+      //       );
+      //     }
+      //     const receipt = purchases.transactionReceipt;
+      //     const isAndroid = Platform.OS === 'android';
+      //     const isIos = Platform.OS === 'ios';
+      //     const isAndroidPurchased =
+      //       isAndroid && purchases?.purchaseStateAndroid === 1;
+      //     const isAndroidPending =
+      //       isAndroid && purchases?.purchaseStateAndroid === 2;
+      //     const isIosValid = isIos && receipt;
+
+      //     let timestamp =
+      //       result.data.latest_receipt_info[0].original_purchase_date;
+
+      //     const [datePart] = timestamp.split(' ');
+
+      //     if (result.data) {
+      //       const renewalHistory = result.data.pending_renewal_info;
+      //       console.log('renewalHistory', renewalHistory);
+
+      //       const activeSubs = renewalHistory.filter(item => {
+      //         if (item.auto_renew_status == '1') {
+      //           // Prepare subscription data
+      //           const subscriptionData = {
+      //             productId: item?.product_id,
+      //             transactionId: item?.transaction_id,
+      //             transactionDate: item?.purchase_date_ms,
+      //             subscriptionStatus: 'Active',
+      //             receipt: receipt,
+      //             platform: Platform.OS,
+      //             ...(isAndroid && {purchaseToken: purchases.purchaseToken}),
+      //             ...(isIos && {
+      //               originalTransactionId:
+      //                 purchases.originalTransactionIdentifierIOS,
+      //               originalTransactionDate:
+      //                 purchases.originalTransactionDateIOS,
+      //             }),
+      //           };
+
+      //           Toast.show({
+      //             type: 'custom',
+      //             position: 'top',
+      //             props: {
+      //               icon: IconData.SUCCx, // your custom image
+      //               text: 'Subscription activated successfully!',
+      //             },
+      //           });
+      //           setLoader(false);
+      //           dispatch(setSubscriptionDetails(subscriptionData));
+      //         } else {
+      //           Toast.show({
+      //             type: 'custom',
+      //             position: 'top',
+      //             props: {
+      //               icon: IconData.ERR, // your custom image
+      //               text: 'No Active Subscription Found!',
+      //             },
+      //           });
+      //           setLoader(false);
+      //           dispatch(setSubscriptionDetails([]));
+      //         }
+      //       });
+      //     } else {
+      //       Toast.show({
+      //         type: 'custom',
+      //         position: 'top',
+      //         props: {
+      //           icon: IconData.ERR, // your custom image
+      //           text: 'No Active Subscription Found!',
+      //         },
+      //       });
+      //       setLoader(false);
+      //     }
+      //   } catch (error) {
+      //     setLoader(false);
+      //     console.log('Reeeeeeeee', error);
+      //   }
+      // }
+      else {
         const latestPurchase = purchases[purchases.length - 1];
+
         const apiRequestBody = {
           'receipt-data': latestPurchase.transactionReceipt,
-          password: 'f41a27c3319749ccb2e0e4607ecb0664',
-          'exclude-old-transactions': true, // optional
+          password: 'f41a27c3319749ccb2e0e4607ecb0664', // App Store shared secret
+          'exclude-old-transactions': true,
         };
 
         try {
-          let result = await axios(
+          let result = await axios.post(
             'https://buy.itunes.apple.com/verifyReceipt',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              data: apiRequestBody,
-            },
+            apiRequestBody,
+            {headers: {'Content-Type': 'application/json'}},
           );
+
+          // Sandbox check
           if (result.data.status === 21007) {
             result = await axios.post(
               'https://sandbox.itunes.apple.com/verifyReceipt',
@@ -513,72 +656,59 @@ const Subscription = ({navigation}) => {
               {headers: {'Content-Type': 'application/json'}},
             );
           }
-          const receipt = purchases.transactionReceipt;
-          const isAndroid = Platform.OS === 'android';
-          const isIos = Platform.OS === 'ios';
-          const isAndroidPurchased =
-            isAndroid && purchases?.purchaseStateAndroid === 1;
-          const isAndroidPending =
-            isAndroid && purchases?.purchaseStateAndroid === 2;
-          const isIosValid = isIos && receipt;
 
-          let timestamp =
-            result.data.latest_receipt_info[0].original_purchase_date;
+          if (result.data && result.data.latest_receipt_info) {
+            // Sort receipts by expiry
+            const sortedReceipts = result.data.latest_receipt_info.sort(
+              (a, b) => Number(b.expires_date_ms) - Number(a.expires_date_ms),
+            );
+            const latest = sortedReceipts[0];
+            const now = Date.now();
 
-          const [datePart] = timestamp.split(' ');
+            const expiryDate = Number(latest.expires_date_ms);
+            const isActive = expiryDate > now;
 
-          if (result.data) {
-            const renewalHistory = result.data.pending_renewal_info;
-            console.log('renewalHistory', renewalHistory);
+            if (isActive) {
+              const subscriptionData = {
+                productId: latest.product_id,
+                transactionId: latest.transaction_id,
+                transactionDate: latest.purchase_date_ms,
+                expiryDate,
+                subscriptionStatus: 'Active',
+                isTrial: latest.is_trial_period === 'true',
+                autoRenewStatus:
+                  result.data.pending_renewal_info?.[0]?.auto_renew_status ??
+                  'unknown',
+                receipt: result.data.latest_receipt,
+                platform: Platform.OS,
+                originalTransactionId: latest.original_transaction_id,
+              };
 
-            const activeSubs = renewalHistory.filter(item => {
-              if (item.auto_renew_status == '1') {
-                // Prepare subscription data
-                const subscriptionData = {
-                  productId: item?.product_id,
-                  transactionId: item?.transaction_id,
-                  transactionDate: item?.purchase_date_ms,
-                  subscriptionStatus: 'Active',
-                  receipt: receipt,
-                  platform: Platform.OS,
-                  ...(isAndroid && {purchaseToken: purchases.purchaseToken}),
-                  ...(isIos && {
-                    originalTransactionId:
-                      purchases.originalTransactionIdentifierIOS,
-                    originalTransactionDate:
-                      purchases.originalTransactionDateIOS,
-                  }),
-                };
-
-                Toast.show({
-                  type: 'custom',
-                  position: 'top',
-                  props: {
-                    icon: IconData.SUCCx, // your custom image
-                    text: 'Subscription activated successfully!',
-                  },
-                });
-                setLoader(false);
-                dispatch(setSubscriptionDetails(subscriptionData));
-              } else {
-                Toast.show({
-                  type: 'custom',
-                  position: 'top',
-                  props: {
-                    icon: IconData.ERR, // your custom image
-                    text: 'No Active Subscription Found!',
-                  },
-                });
-                setLoader(false);
-                dispatch(setSubscriptionDetails([]));
-              }
-            });
+              Toast.show({
+                type: 'custom',
+                position: 'top',
+                props: {icon: IconData.SUCCx, text: 'Subscription restored!'},
+              });
+              setLoader(false);
+              dispatch(setSubscriptionDetails(subscriptionData));
+            } else {
+              Toast.show({
+                type: 'custom',
+                position: 'top',
+                props: {
+                  icon: IconData.ERR,
+                  text: 'No Active Subscription Found!',
+                },
+              });
+              setLoader(false);
+              dispatch(setSubscriptionDetails([]));
+            }
           } else {
             Toast.show({
               type: 'custom',
               position: 'top',
               props: {
-                icon: IconData.ERR, // your custom image
+                icon: IconData.ERR,
                 text: 'No Active Subscription Found!',
               },
             });
@@ -586,7 +716,7 @@ const Subscription = ({navigation}) => {
           }
         } catch (error) {
           setLoader(false);
-          console.log('Reeeeeeeee', error);
+          console.log('Restore Error', error);
         }
       }
     }
@@ -1246,98 +1376,152 @@ const Subscription = ({navigation}) => {
                                 </View>
                               );
                             })
-                          : subscription_products.map((item, index) => {
-                              return (
-                                <View
-                                  key={item.productId || index}
-                                  style={{marginHorizontal: 2}}>
-                                  {item?.title === 'Yearly' &&
-                                  monthlyPrice > 0 &&
-                                  yearlyPrice > 0 ? (
-                                    <View
+                          : subscription_products
+                              ?.slice()
+                              .sort((a, b) => {
+                                const order = ['monthly', 'yearly']; // define your order
+                                const aIndex = order.findIndex(o =>
+                                  (a?.title || '').toLowerCase().includes(o),
+                                );
+                                const bIndex = order.findIndex(o =>
+                                  (b?.title || '').toLowerCase().includes(o),
+                                );
+                                return aIndex - bIndex;
+                              })
+                              .map((item, index) => {
+                                const hasFreeTrial =
+                                  item?.introductoryPricePaymentModeIOS ===
+                                    'FREETRIAL' &&
+                                  parseInt(
+                                    item?.introductoryPriceNumberOfPeriodsIOS,
+                                    10,
+                                  ) > 0;
+
+                                const trialPrice =
+                                  hasFreeTrial &&
+                                  item?.introductoryPrice === '₹ 0.00'
+                                    ? 'Free'
+                                    : item?.introductoryPrice;
+
+                                const trialDuration =
+                                  hasFreeTrial &&
+                                  item?.introductoryPriceNumberOfPeriodsIOS
+                                    ? `${
+                                        item?.introductoryPriceNumberOfPeriodsIOS
+                                      } ${item?.introductoryPriceSubscriptionPeriodIOS.toLowerCase()}${
+                                        item?.introductoryPriceNumberOfPeriodsIOS >
+                                        1
+                                          ? 's'
+                                          : ''
+                                      }`
+                                    : '';
+                                return (
+                                  <View
+                                    key={item.productId || index}
+                                    style={{marginHorizontal: 2}}>
+                                    {item?.title === 'Yearly' &&
+                                    monthlyPrice > 0 &&
+                                    yearlyPrice > 0 ? (
+                                      <View
+                                        style={{
+                                          width: 120,
+                                          height: 24,
+                                          borderTopLeftRadius: 8,
+                                          borderTopRightRadius: 8,
+                                          alignSelf: 'center',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                          backgroundColor: Color.BROWN,
+                                        }}>
+                                        <Text
+                                          style={{
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                          }}>
+                                          {(
+                                            ((monthlyPrice * 12 - yearlyPrice) /
+                                              (monthlyPrice * 12)) *
+                                            100
+                                          ).toFixed(1)}
+                                          % Savings
+                                        </Text>
+                                      </View>
+                                    ) : (
+                                      <View
+                                        style={{
+                                          width: 120,
+                                          height: 24,
+                                          borderTopLeftRadius: 8,
+                                          borderTopRightRadius: 8,
+                                          alignSelf: 'center',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                          backgroundColor: 'transparent',
+                                        }}
+                                      />
+                                    )}
+
+                                    <TouchableOpacity
+                                      activeOpacity={0.7}
+                                      onPress={() => {
+                                        setSelectedPackage({
+                                          item: item?.productId,
+                                        });
+                                      }}
                                       style={{
-                                        width: 120,
-                                        height: 24,
-                                        borderTopLeftRadius: 8,
-                                        borderTopRightRadius: 8,
-                                        alignSelf: 'center',
-                                        justifyContent: 'center',
+                                        width: width * 0.35,
+                                        height: 96,
+
+                                        borderRadius: 8,
+                                        borderWidth:
+                                          selectedPackege?.item ==
+                                          item?.productId
+                                            ? 1
+                                            : 0,
+                                        borderColor:
+                                          selectedPackege?.item ==
+                                          item?.productId
+                                            ? Color.BROWN
+                                            : 'transparent',
+                                        backgroundColor: Color?.BROWN3,
                                         alignItems: 'center',
-                                        backgroundColor: Color.BROWN,
+                                        justifyContent: 'center',
                                       }}>
+                                      {hasFreeTrial && (
+                                        <Text
+                                          style={{
+                                            color: Color.LIGHTGREEN,
+                                            fontSize: 14,
+                                            fontFamily: Font.EBGaramond_Medium,
+                                          }}>
+                                          Trial: {trialPrice}
+                                          {trialDuration
+                                            ? ` (${trialDuration})`
+                                            : ''}
+                                        </Text>
+                                      )}
+
                                       <Text
                                         style={{
-                                          color: 'white',
-                                          fontWeight: 'bold',
+                                          color: Color.BROWN,
+                                          fontFamily: Font.EBGaramond_SemiBold,
+                                          fontSize: 25,
                                         }}>
-                                        {(
-                                          ((monthlyPrice * 12 - yearlyPrice) /
-                                            (monthlyPrice * 12)) *
-                                          100
-                                        ).toFixed(1)}
-                                        % Savings
+                                        {item?.localizedPrice}
                                       </Text>
-                                    </View>
-                                  ) : (
-                                    <View
-                                      style={{
-                                        width: 120,
-                                        height: 24,
-                                        borderTopLeftRadius: 8,
-                                        borderTopRightRadius: 8,
-                                        alignSelf: 'center',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        backgroundColor: 'transparent',
-                                      }}
-                                    />
-                                  )}
 
-                                  <TouchableOpacity
-                                    activeOpacity={0.7}
-                                    onPress={() => {
-                                      setSelectedPackage({
-                                        item: item?.productId,
-                                      });
-                                    }}
-                                    style={{
-                                      width: width * 0.35,
-                                      height: 96,
-
-                                      borderRadius: 8,
-                                      borderWidth:
-                                        selectedPackege?.item == item?.productId
-                                          ? 1
-                                          : 0,
-                                      borderColor:
-                                        selectedPackege?.item == item?.productId
-                                          ? Color.BROWN
-                                          : 'transparent',
-                                      backgroundColor: Color?.BROWN3,
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                    }}>
-                                    <Text
-                                      style={{
-                                        color: Color.BROWN,
-                                        fontFamily: Font.EBGaramond_SemiBold,
-                                        fontSize: 25,
-                                      }}>
-                                      {item?.localizedPrice}
-                                    </Text>
-
-                                    <Text
-                                      style={{
-                                        fontFamily: Font.EBGaramond_Medium,
-                                        fontSize: 18,
-                                        color: Color.LIGHTGREEN,
-                                      }}>
-                                      {item?.title}
-                                    </Text>
-                                  </TouchableOpacity>
-                                </View>
-                              );
-                            })}
+                                      <Text
+                                        style={{
+                                          fontFamily: Font.EBGaramond_Medium,
+                                          fontSize: 18,
+                                          color: Color.LIGHTGREEN,
+                                        }}>
+                                        {item?.title}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                );
+                              })}
                       </View>
                       {Platform.OS == 'android' && (
                         <TouchableOpacity

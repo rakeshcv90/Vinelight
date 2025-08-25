@@ -371,7 +371,7 @@ const Meditation = () => {
                     ? height * 0.011
                     : height >= 780
                     ? -height * 0.005
-                    : height * 0.01,
+                    : height * 0.003,
                 flexDirection: 'row',
               }}>
               <Button2

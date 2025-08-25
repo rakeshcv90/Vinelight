@@ -448,7 +448,7 @@ const EditDream = ({route, navigation}) => {
                 source={ImageData.BACKGROUND}
                 style={styles.primaryBackground}
                 resizeMode="cover">
-                <View style={{flex: 0.13, marginTop: -height * 0.04}}>
+                <View style={{flex: 0.13,  marginTop: height >= 844 ? -height * 0.055 : -height * 0.04,}}>
                   <CustomeHeader
                     onClear={() => {
                       handleInsertContent();
@@ -753,6 +753,8 @@ const EditDream = ({route, navigation}) => {
                       bottom: isKeyboardVisible
                         ? height <= 800
                           ? 30
+                          : height >= 844
+                          ? 35
                           : 45
                         : 10,
                     },

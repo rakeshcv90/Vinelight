@@ -34,8 +34,8 @@ import CustomeHeader3 from '../../Component/CustomeHeader3';
 import Button2 from '../../Component/Button2';
 import Toast from 'react-native-toast-message';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {isCoupanValid, isSubscriptionValid} from '../utils';
 const {width, height} = Dimensions.get('window');
-
 
 const fonts = [
   {label: 'Georgia', value: 'Georgia'},
@@ -63,14 +63,19 @@ const DreamView = ({route, navigation}) => {
     moment().format(route?.params?.dreaItem?.currentDat),
   );
   const scrollRef = useRef();
-    const [selectedFont, setSelectedFont] = useState(fonts[0]);
+  const [selectedFont, setSelectedFont] = useState(fonts[0]);
   const [journalData, setjournalData] = useState();
   const [goaldisplayData, setGoalDisplayData] = useState();
   const [selectedButton, setSelectedButton] = useState(2);
   const getDreamData = useSelector(state => state?.user?.getDreamData);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
   const goalData = useSelector(state => state.user?.goalByDate || []);
-   const richText = useRef();
+  const richText = useRef();
+
+  const subscription = useSelector(state => state?.user?.subscription);
+  const coupaDetails = useSelector(state => state?.user?.coupaDetails);
+  const hasAccess =
+    isSubscriptionValid(subscription) || isCoupanValid(coupaDetails);
   useEffect(() => {
     const filteredData = getJournalData?.filter(dream => {
       return dream?.currentDat == currentDate;
@@ -135,7 +140,9 @@ const DreamView = ({route, navigation}) => {
             color: Color.LIGHTGREEN,
             textAlign: 'center',
           }}>
-          No goals data available.
+          {hasAccess
+            ? ' No goals data available.'
+            : 'Subscribe to VineLight to unlock this feature and more!'}
         </Text>
         <View
           style={{
@@ -147,21 +154,35 @@ const DreamView = ({route, navigation}) => {
             marginTop: height * 0.045,
             flexDirection: 'row',
           }}>
-          <Button2
-            width={280}
-            height={50}
-            buttonTitle={'New Goal'}
-            img={IconData.PLUS}
-            left={true}
-            size={20}
-            onPress={() => {
-              navigation.navigate('MainPage', {
-                initialTab: 'Goal',
-                selectedDate: currentDate,
-                modalOpenData: true,
-              });
-            }}
-          />
+          {hasAccess ? (
+            <Button2
+              width={280}
+              height={50}
+              buttonTitle={'New Goal'}
+              img={IconData.PLUS}
+              left={true}
+              size={20}
+              onPress={() => {
+                navigation.navigate('MainPage', {
+                  initialTab: 'Goal',
+                  selectedDate: currentDate,
+                  modalOpenData: true,
+                });
+              }}
+            />
+          ) : (
+            <Button2
+              width={280}
+              height={50}
+              buttonTitle={'New Goal'}
+              img={IconData.PLUS}
+              left={true}
+              size={20}
+              onPress={() => {
+                navigation.navigate('Subscription');
+              }}
+            />
+          )}
         </View>
       </View>
     );
@@ -179,36 +200,36 @@ const DreamView = ({route, navigation}) => {
     dispatch(updateAllGoalData(data));
   };
 
-   useEffect(() => {
-      if (selectedButton == 1) {
-        if (journalData?.[0]?.journal?.journalContent && richText.current) {
-          setTimeout(() => {
-            handleInsertContent(journalData?.[0]?.journal?.journalContent);
-          }, 200);
-        }
-      } else if (selectedButton == 2) {
-        if (currentDream?.[0]?.dream?.dreamContent  && richText.current) {
-          setTimeout(() => {
-            handleInsertContent(currentDream?.[0]?.dream?.dreamContent );
-          }, 200);
-        }
+  useEffect(() => {
+    if (selectedButton == 1) {
+      if (journalData?.[0]?.journal?.journalContent && richText.current) {
+        setTimeout(() => {
+          handleInsertContent(journalData?.[0]?.journal?.journalContent);
+        }, 200);
       }
-    }, [journalData,selectedButton,currentDream]);
-  
-    const handleInsertContent = (itemData) => {
-      // Get the HTML content
-      let rawHTML =itemData|| '';
-  
-      // Remove any cursor marker if it exists (optional cleanup)
-      rawHTML = rawHTML
-        .replace(/<span id="cursor-marker"[^>]*>(.*?)<\/span>/g, '$1')
-        .replace(/<span id="cursor-marker"><\/span>/g, '')
-        .replace(/<div[^>]*id="cursor-marker"[^>]*>.*?<\/div>/g, '')
-        .replace(/<p[^>]*id="cursor-marker"[^>]*>.*?<\/p>/g, '');
-  
-      // Set the HTML content without inserting a cursor
-      richText.current?.setContentHTML(rawHTML);
-    };
+    } else if (selectedButton == 2) {
+      if (currentDream?.[0]?.dream?.dreamContent && richText.current) {
+        setTimeout(() => {
+          handleInsertContent(currentDream?.[0]?.dream?.dreamContent);
+        }, 200);
+      }
+    }
+  }, [journalData, selectedButton, currentDream]);
+
+  const handleInsertContent = itemData => {
+    // Get the HTML content
+    let rawHTML = itemData || '';
+
+    // Remove any cursor marker if it exists (optional cleanup)
+    rawHTML = rawHTML
+      .replace(/<span id="cursor-marker"[^>]*>(.*?)<\/span>/g, '$1')
+      .replace(/<span id="cursor-marker"><\/span>/g, '')
+      .replace(/<div[^>]*id="cursor-marker"[^>]*>.*?<\/div>/g, '')
+      .replace(/<p[^>]*id="cursor-marker"[^>]*>.*?<\/p>/g, '');
+
+    // Set the HTML content without inserting a cursor
+    richText.current?.setContentHTML(rawHTML);
+  };
   return (
     <>
       <ImageBackground
@@ -381,13 +402,13 @@ const DreamView = ({route, navigation}) => {
                       {selectedButton == 1 &&
                         (journalData?.[0]?.journal?.journalContent ? (
                           <>
-                            {Platform.OS=='ios'?
-                               <WebView
-                              originWhitelist={['*']}
-                              scrollEnabled={true} // Let ScrollView handle scrolling
-                              showsVerticalScrollIndicator={false}
-                              source={{
-                                html: `
+                            {Platform.OS == 'ios' ? (
+                              <WebView
+                                originWhitelist={['*']}
+                                scrollEnabled={true} // Let ScrollView handle scrolling
+                                showsVerticalScrollIndicator={false}
+                                source={{
+                                  html: `
         <html>
           <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -413,15 +434,16 @@ const DreamView = ({route, navigation}) => {
   </body>
         </html>
       `,
-                              }}
-                              style={{width: '100%'}}
-                            /> :
-                               <RichEditor
-                                                          ref={richText}
-                                                          initialHeight={300}
-                                                          disabled={true}
-                                                          editorStyle={{
-                                                            contentCSSText: `
+                                }}
+                                style={{width: '100%'}}
+                              />
+                            ) : (
+                              <RichEditor
+                                ref={richText}
+                                initialHeight={300}
+                                disabled={true}
+                                editorStyle={{
+                                  contentCSSText: `
                                   font-family: ${selectedFont.value};
                                   font-size: 16px;
                                   overflow-x: hidden;
@@ -429,8 +451,9 @@ const DreamView = ({route, navigation}) => {
                                   white-space: normal;
                                   max-width: 100%;
                                 `,
-                                                          }}
-                                                        />}
+                                }}
+                              />
+                            )}
                           </>
                         ) : (
                           <>
@@ -494,13 +517,13 @@ const DreamView = ({route, navigation}) => {
                       {selectedButton == 2 &&
                         (currentDream?.[0]?.dream?.dreamContent ? (
                           <>
-                            {Platform.OS=='ios'?
-                               <WebView
-                              originWhitelist={['*']}
-                              scrollEnabled={true} // Let ScrollView handle scrolling
-                              showsVerticalScrollIndicator={false}
-                              source={{
-                                html: `
+                            {Platform.OS == 'ios' ? (
+                              <WebView
+                                originWhitelist={['*']}
+                                scrollEnabled={true} // Let ScrollView handle scrolling
+                                showsVerticalScrollIndicator={false}
+                                source={{
+                                  html: `
         <html>
           <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -526,15 +549,16 @@ const DreamView = ({route, navigation}) => {
   </body>
         </html>
       `,
-                              }}
-                              style={{width: '100%'}}
-                            /> :
-                               <RichEditor
-                                                          ref={richText}
-                                                          initialHeight={300}
-                                                          disabled={true}
-                                                          editorStyle={{
-                                                            contentCSSText: `
+                                }}
+                                style={{width: '100%'}}
+                              />
+                            ) : (
+                              <RichEditor
+                                ref={richText}
+                                initialHeight={300}
+                                disabled={true}
+                                editorStyle={{
+                                  contentCSSText: `
                                   font-family: ${selectedFont.value};
                                   font-size: 16px;
                                   overflow-x: hidden;
@@ -542,8 +566,9 @@ const DreamView = ({route, navigation}) => {
                                   white-space: normal;
                                   max-width: 100%;
                                 `,
-                                                          }}
-                                                        />}
+                                }}
+                              />
+                            )}
                           </>
                         ) : (
                           <>
@@ -570,7 +595,9 @@ const DreamView = ({route, navigation}) => {
                                   color: Color.LIGHTGREEN,
                                   textAlign: 'center',
                                 }}>
-                                No dream journal content available
+                                {hasAccess
+                                  ? 'No dream journal content available'
+                                  : 'Subscribe to VineLight to unlock this feature and more!'}
                               </Text>
                             </View>
                             <View
@@ -583,20 +610,35 @@ const DreamView = ({route, navigation}) => {
                                 gap: 20,
                                 flexDirection: 'row',
                               }}>
-                              <Button2
-                                width={280}
-                                height={50}
-                                buttonTitle={'New Dream Journal Entry'}
-                                img={IconData.PLUS}
-                                left={true}
-                                size={20}
-                                onPress={() => {
-                                  navigation.navigate('CreateDream', {
-                                    selectedDate: currentDate,
-                                  });
-                                  // navigation.navigate('CreateDream');
-                                }}
-                              />
+                              {hasAccess ? (
+                                <Button2
+                                  width={280}
+                                  height={50}
+                                  buttonTitle={'New Dream Journal Entry'}
+                                  img={IconData.PLUS}
+                                  left={true}
+                                  size={20}
+                                  onPress={() => {
+                                    navigation.navigate('CreateDream', {
+                                      selectedDate: currentDate,
+                                    });
+                                    // navigation.navigate('CreateDream');
+                                  }}
+                                />
+                              ) : (
+                                <Button2
+                                  width={280}
+                                  height={50}
+                                  buttonTitle={'Upgrade To Pro'}
+                                  img={ImageData.CROWN}
+                                  left={true}
+                                  size={20}
+                                  onPress={() => {
+                                    navigation.navigate('Subscription');
+                                    // navigation.navigate('CreateDream');
+                                  }}
+                                />
+                              )}
                             </View>
                           </>
                         ))}
@@ -714,7 +756,7 @@ const DreamView = ({route, navigation}) => {
               style={[
                 styles.thirdBackground,
                 {
-                  bottom: height <=900&& height >=800 ? 40 : 15,
+                  bottom: height <= 900 && height >= 800 ? 40 : 15,
                 },
               ]}
               resizeMode="contain">

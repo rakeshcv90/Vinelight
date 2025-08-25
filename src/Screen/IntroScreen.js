@@ -44,8 +44,8 @@ const IntroScreen = ({navigation}) => {
     },
     {
       id: 2,
-      text: 'Enjoy the free version or subscribe for over 300 journal prompts and guided meditations!',
-      image: ImageData.BOOK,
+      text: 'Your all-inclusive ceremony integration journal, dream journal, goal-tracking app, and meditation timer!',
+      image: ImageData.SUBSCRIPTIONIMAGE,
     },
     {
       id: 3,
@@ -157,12 +157,10 @@ const IntroScreen = ({navigation}) => {
   };
   return (
     <>
-      {/* {Platform.OS == 'ios' ? ( */}
-
-           <ImageBackground
-            source={ImageData.BACKGROUND}
-            style={{flex: 1}}
-            resizeMode="cover">
+      <ImageBackground
+        source={ImageData.BACKGROUND}
+        style={{flex: 1}}
+        resizeMode="cover">
         <SafeAreaView style={styles.container}>
           <StatusBar
             translucent
@@ -170,8 +168,8 @@ const IntroScreen = ({navigation}) => {
             barStyle="light-content"
           />
           <KeyboardAvoidingView
-           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             style={{flex: 1}}>
             <ScrollView
               contentContainerStyle={{flexGrow: 1}}
@@ -269,16 +267,179 @@ const IntroScreen = ({navigation}) => {
                             style={{
                               width: '90%',
                               height: '80%',
-                              justifyContent: 'center',
+                              //  justifyContent: 'center',
                               alignItems: 'center',
                             }}>
-                            <Text
-                              style={[
-                                styles.titleText,
-                                {marginVertical: currentPage === 2 ? 20 : 0},
-                              ]}>
-                              {subTitleText[currentPage]?.text}
-                            </Text>
+                            {currentPage === 1 ? (
+                              <>
+                                <View
+                                  style={{
+                                    width: '100%',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    marginBottom: 10,
+                                  }}>
+                                  <Text style={styles.subtitle}>
+                                    Unlock Extra Features
+                                  </Text>
+                                </View>
+                                <View
+                                  style={{
+                                    width: '90%',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                  }}>
+                                  <View
+                                    style={{
+                                      width: '100%',
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
+                                      // top: -5,
+                                    }}>
+                                    <Image
+                                      source={IconData.JOURNALA}
+                                      style={{width: 20, height: 20}}
+                                      tintColor={Color.LIGHTGREEN}
+                                      resizeMode="contain"
+                                    />
+                                    <Text
+                                      style={{
+                                        fontSize: 16,
+                                        color: Color.LIGHTGREEN,
+                                        marginLeft: 20,
+                                        fontFamily: Font.EBGaramond_Regular,
+                                      }}>
+                                      250+ Integration Journal Prompts
+                                    </Text>
+                                  </View>
+                                   <View
+                                    style={{
+                                      width: '100%',
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
+                                      top: 5,
+                                    }}>
+                                    <Image
+                                      source={IconData.DREAMA}
+                                      style={{width: 20, height: 20}}
+                                      tintColor={Color.LIGHTGREEN}
+                                      resizeMode="contain"
+                                    />
+                                    <Text
+                                      style={{
+                                        fontSize: 16,
+                                        color: Color.LIGHTGREEN,
+                                        marginLeft: 20,
+                                        fontFamily: Font.EBGaramond_Regular,
+                                      }}>
+                                      Dream Journal 
+                                    </Text>
+                                  </View>
+                                  <View
+                                    style={{
+                                      width: '100%',
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
+                                      top: 8,
+                                    }}>
+                                    <Image
+                                      source={IconData.DREAMA}
+                                      style={{width: 20, height: 20}}
+                                      tintColor={Color.LIGHTGREEN}
+                                      resizeMode="contain"
+                                    />
+                                    <Text
+                                      style={{
+                                        fontSize: 16,
+                                        color: Color.LIGHTGREEN,
+                                        marginLeft: 20,
+                                        fontFamily: Font.EBGaramond_Regular,
+                                      }}>
+                                      100+ Dream Journal Prompts
+                                    </Text>
+                                  </View>
+                                 
+                                  <View
+                                    style={{
+                                      width: '100%',
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
+                                      top: 10,
+                                    }}>
+                                    <Image
+                                      source={IconData.MEDITATIONA}
+                                      style={{width: 20, height: 20}}
+                                      tintColor={Color.LIGHTGREEN}
+                                      resizeMode="contain"
+                                    />
+                                    <Text
+                                      style={{
+                                        fontSize: 16,
+                                        color: Color.LIGHTGREEN,
+                                        marginLeft: 20,
+                                        fontFamily: Font.EBGaramond_Regular,
+                                      }}>
+                                      Guided Meditations
+                                    </Text>
+                                  </View>
+                                  <View
+                                    style={{
+                                      width: '100%',
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
+                                      top: 15,
+                                    }}>
+                                    <Image
+                                      source={IconData.CEREMONYA}
+                                      style={{width: 20, height: 20}}
+                                      tintColor={Color.LIGHTGREEN}
+                                      resizeMode="contain"
+                                    />
+                                    <Text
+                                      style={{
+                                        fontSize: 16,
+                                        color: Color.LIGHTGREEN,
+                                        marginLeft: 20,
+                                        fontFamily: Font.EBGaramond_Regular,
+                                      }}>
+                                      Ceremony Tracker
+                                    </Text>
+                                  </View>
+                                  <View
+                                    style={{
+                                      width: '100%',
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
+                                      top: 20,
+                                    }}>
+                                    <Image
+                                      source={IconData.GOALA}
+                                      style={{width: 20, height: 20}}
+                                      tintColor={Color.LIGHTGREEN}
+                                      resizeMode="contain"
+                                    />
+                                    <Text
+                                      style={{
+                                        fontSize: 16,
+                                        color: Color.LIGHTGREEN,
+                                        marginLeft: 20,
+                                        fontFamily: Font.EBGaramond_Regular,
+                                      }}>
+                                      Goal Tracker
+                                    </Text>
+                                  </View>
+                                </View>
+                              </>
+                            ) : (
+                              <Text
+                                style={[
+                                  styles.titleText,
+                                  {marginVertical: currentPage === 2 ? 20 : 0},
+                                ]}>
+                                {subTitleText[currentPage]?.text}
+                              </Text>
+                            )}
+
                             {currentPage === 2 && (
                               <View
                                 style={{
@@ -380,7 +541,7 @@ const IntroScreen = ({navigation}) => {
                     width: height >= 900 ? '90%' : '95%',
                     height: 56,
                     position: 'absolute',
-                    bottom: height * 0.04,
+                    bottom: height * 0.02,
                     alignSelf: 'center',
                     zIndex: 1,
                   }}>
@@ -430,287 +591,8 @@ const IntroScreen = ({navigation}) => {
               </ImageBackground>
             </ScrollView>
           </KeyboardAvoidingView>
-        </SafeAreaView></ImageBackground>
-      {/* ) : (
-        <>
-          <ImageBackground
-            source={ImageData.BACKGROUND}
-            style={{flex: 1}}
-            resizeMode="cover">
-            <SafeAreaView style={styles.container}>
-              <StatusBar
-                translucent
-                backgroundColor="transparent"
-                barStyle="light-content"
-              />
-              <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-                style={{flex: 1}}>
-                <ScrollView
-                  contentContainerStyle={{flexGrow: 1}}
-                  keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={false}>
-                  <ActivityLoader visible={loader} />
-                  <ImageBackground
-                    source={ImageData.BACKGROUND}
-                    style={styles.primaryBackground}
-                    resizeMode="cover">
-                    <View style={styles.secondaryContainer}>
-                      <ImageBackground
-                        source={ImageData.MAINBACKGROUND}
-                        style={styles.secondaryBackground}
-                        resizeMode="stretch">
-                        <View
-                          style={{
-                            width: '100%',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginVertical: '35%',
-                            paddingVertical: '5%',
-                          }}>
-                          <Text style={styles.title}>Welcome To</Text>
-                          <Text style={styles.title2}>VineLight</Text>
-                          <View
-                            style={{
-                              width: '90%',
-                              height: '80%',
-                              alignItems: 'center',
-                              marginTop: '5%',
-                              borderWidth: currentPage === 2 ? 0 : 1,
-                              borderColor: Color.LIGHTGREEN,
-                              backgroundColor: Color?.LIGHTBROWN,
-                            }}>
-                            <View
-                              style={{
-                                width: '100%',
-                                height: '10%',
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                              }}>
-                              {currentPage !== 2 && (
-                                <>
-                                  <Image
-                                    source={ImageData.LEFT}
-                                    resizeMode="contain"
-                                    style={{width: 31, height: 31}}
-                                  />
-                                  <Image
-                                    source={ImageData.RIGHT}
-                                    resizeMode="contain"
-                                    style={{width: 31, height: 31}}
-                                  />
-                                </>
-                              )}
-                            </View>
-                            <TouchableOpacity
-                              style={{
-                                width: '100%',
-                                height: '25%',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                              disabled={currentPage !== 2}
-                              onPress={openLibrary}>
-                              <Image
-                                source={
-                                  currentPage === 2 && image
-                                    ? {uri: image?.uri}
-                                    : subTitleText[currentPage]?.image ??
-                                      ImageData.NOIMAGE
-                                }
-                                resizeMode="contain"
-                                style={{
-                                  width: 100,
-                                  height: 100,
-                                  borderWidth: currentPage === 2 ? 3 : 0,
-                                  borderRadius: currentPage === 2 ? 50 : 0,
-                                  borderColor:
-                                    currentPage === 2
-                                      ? Color.LIGHTGREEN
-                                      : 'transparent',
-                                }}
-                              />
-                            </TouchableOpacity>
-                            <View
-                              style={{
-                                width: '100%',
-                                height: '56%',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}>
-                              <View
-                                style={{
-                                  width: '90%',
-                                  height: '80%',
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
-                                }}>
-                                <Text
-                                  style={[
-                                    styles.titleText,
-                                    {
-                                      marginVertical:
-                                        currentPage === 2 ? 20 : 0,
-                                    },
-                                  ]}>
-                                  {subTitleText[currentPage]?.text}
-                                </Text>
-                                {currentPage === 2 && (
-                                  <View
-                                    style={{
-                                      width: '100%',
-                                      height: 52,
-                                      borderRadius: 12,
-                                      borderWidth: 1,
-                                      borderColor: Color.LIGHTGREEN,
-                                      justifyContent: 'center',
-                                      alignItems: 'center',
-                                      backgroundColor: 'white',
-                                    }}>
-                                    <TextInput
-                                      value={name}
-                                      onChangeText={text => {
-                                        const filteredText = text.replace(
-                                          /[^a-zA-Z\s]/g,
-                                          '',
-                                        ); // allow only letters and spaces
-                                        setName(filteredText);
-                                      }}
-                                      placeholder="Enter your name"
-                                      placeholderTextColor={Color.LIGHTGREEN}
-                                      style={{
-                                        width: '90%',
-                                        height: '100%',
-                                        color: Color.LIGHTGREEN,
-                                        fontSize: 16,
-                                        fontFamily: Font.EBGaramond_Regular,
-                                      }}
-                                      selectionColor={Color.LIGHTGREEN}
-                                    />
-                                  </View>
-                                )}
-                              </View>
-                              <View
-                                style={{
-                                  width: '90%',
-                                  height: '10%',
-                                  alignItems: 'center',
-                                  top: 20,
-                                }}>
-                                <View style={styles.dotsContainer}>
-                                  {[0, 1, 2].map(index => (
-                                    <View
-                                      key={index}
-                                      style={{
-                                        width: 8,
-                                        height: 8,
-                                        top: 5,
-                                        borderRadius: 4,
-                                        marginHorizontal: 2,
-                                        backgroundColor:
-                                          index === currentPage
-                                            ? Color.LIGHTGREEN
-                                            : Color.BROWN,
-                                      }}
-                                    />
-                                  ))}
-                                </View>
-                              </View>
-                            </View>
-                            <View
-                              style={{
-                                width: '100%',
-                                height: '10%',
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                              }}>
-                              {currentPage !== 2 && (
-                                <>
-                                  <Image
-                                    source={ImageData.BACKLEFT}
-                                    resizeMode="contain"
-                                    style={{
-                                      width: 31,
-                                      height: 31,
-                                      top: height >= 844 ? height * 0.005 : 0,
-                                    }}
-                                  />
-                                  <Image
-                                    source={ImageData.BACKRIGHT}
-                                    resizeMode="contain"
-                                    style={{
-                                      width: 31,
-                                      height: 31,
-                                      top: height >= 844 ? height * 0.005 : 0,
-                                    }}
-                                  />
-                                </>
-                              )}
-                            </View>
-                          </View>
-                        </View>
-                      </ImageBackground>
-                    </View>
-                    <View
-                      style={{
-                        width: height >= 900 ? '90%' : '95%',
-                        height: 56,
-                        position: 'absolute',
-                        bottom: height * 0.02,
-                        alignSelf: 'center',
-                        zIndex: 1,
-                      }}>
-                      <ImageBackground
-                        source={ImageData.TABBACKGROUND}
-                        style={styles.thirdBackground}
-                        resizeMode="contain">
-                        <View
-                          style={{
-                            width: '95%',
-                            height: '100%',
-                            flexDirection: 'row',
-                            justifyContent:
-                              currentPage != 0 ? 'space-between' : 'flex-end',
-                            alignItems: 'center',
-                          }}>
-                          {currentPage != 0 && (
-                            <TouchableOpacity
-                              onPress={handleBack}
-                              disabled={currentPage === 0}>
-                              <Image
-                                source={IconData.BACK}
-                                style={{width: 25, height: 25, left: 5}}
-                              />
-                            </TouchableOpacity>
-                          )}
-
-                          <Button
-                            img={ImageData.ARROWNEXT}
-                            text="Next"
-                            left={false}
-                            onPress={handleNext}
-                            style={{
-                              width: '50%',
-                              backgroundColor: 'red',
-                              zIndex: -1,
-                            }}
-                            width={91}
-                            height={40}
-                            backgroundColor={Color.BROWN4}
-                            size={15}
-                            font={Font.EBGaramond_SemiBold}
-                          />
-                        </View>
-                      </ImageBackground>
-                    </View>
-                  </ImageBackground>
-                </ScrollView>
-              </KeyboardAvoidingView>
-            </SafeAreaView>
-          </ImageBackground>
-        </>
-      )} */}
+        </SafeAreaView>
+      </ImageBackground>
     </>
   );
 };
@@ -728,7 +610,7 @@ const styles = StyleSheet.create({
   },
   secondaryContainer: {
     width: '90%',
-    height: '85%',
+    height: '90%',
   },
   secondaryBackground: {
     width: '100%', // Fills the parent container
@@ -774,5 +656,12 @@ const styles = StyleSheet.create({
     color: Color.LIGHTGREEN,
     lineHeight: 35,
     textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Color.LIGHTGREEN,
+
+    fontFamily: Font.EBGaramond_Regular,
   },
 });

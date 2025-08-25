@@ -20,6 +20,8 @@ export const ImageData = {
   SELECTIMAGE: require('../assets/Image/img/image.png'),
   MEDATATION: require('../assets/Image/img/medatation.webp'),
   PLAYBUTTON: require('../assets/Image/img/play_button.png'),
+  SUBSCRIPTIONIMAGE: require('../assets/Image/img/subscription.png'),
+  CROWN: require('../assets/Image/img/crown.png'),
 };
 
 export const IconData = {
@@ -40,7 +42,7 @@ export const IconData = {
   CEREMONYA: require('../assets/Image/icon/ceremonyA.png'),
   GOALA: require('../assets/Image/icon/goalsA.png'),
   PEN: require('../assets/Image/icon/pen.png'),
-    PEN2: require('../assets/Image/icon/pen2.png'),
+  PEN2: require('../assets/Image/icon/pen2.png'),
   SAVE: require('../assets/Image/icon/save.png'),
   UPGRADE: require('../assets/Image/icon/upgrade.png'),
   FACEBOOK: require('../assets/Image/icon/fb.png'),

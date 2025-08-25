@@ -8,7 +8,7 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {ImageData} from '../../assets/Image';
 import {storage} from '../Component/Storage';
 import {useDispatch, useSelector} from 'react-redux';
@@ -24,6 +24,7 @@ import {
 } from '../redux/actions';
 
 import axios from 'axios';
+import {useFocusEffect} from '@react-navigation/native';
 
 const Splash = ({navigation}) => {
   const dispatch = useDispatch();
@@ -34,139 +35,314 @@ const Splash = ({navigation}) => {
   const appliedCoupanDetails = useSelector(
     state => state?.user?.appliedCoupanDetails,
   );
-  useEffect(() => {
-    const initIAP = async () => {
-      try {
-        // Initialize IAP module
-        await RNIap.initConnection();
+  //   useEffect(() => {
+  //     const initIAP = async () => {
+  //       try {
+  //         // Initialize IAP module
+  //         await RNIap.initConnection();
 
-        // Get available purchases
-        const purchases = await RNIap.getAvailablePurchases();
+  //         // Get available purchases
+  //         const purchases = await RNIap.getAvailablePurchases();
 
-        if (purchases?.length === 0) {
-          dispatch(setSubscriptionDetails([]));
-          return;
-        }
+  //         if (purchases?.length === 0) {
+  //           dispatch(setSubscriptionDetails([]));
+  //           return;
+  //         }
 
-        if (Platform.OS == 'android') {
-          const sortedPurchases = purchases.sort(
-            (a, b) => b.transactionDate - a.transactionDate,
-          );
-          const activePurchase = sortedPurchases.find(
-            purchase =>
-              purchase.purchaseStateAndroid === 1 && // 1 = PURCHASED
-              purchase.isAcknowledgedAndroid === true && // Must be acknowledged
-              purchase.autoRenewingAndroid === true && // Either auto-renewing OR
-              purchase.transactionDate > Date.now() - 30 * 24 * 60 * 60 * 1000, // Or purchased recently
-          );
+  //         if (Platform.OS == 'android') {
+  //           const sortedPurchases = purchases.sort(
+  //             (a, b) => b.transactionDate - a.transactionDate,
+  //           );
+  //           const activePurchase = sortedPurchases.find(
+  //             purchase =>
+  //               purchase.purchaseStateAndroid === 1 && // 1 = PURCHASED
+  //               purchase.isAcknowledgedAndroid === true && // Must be acknowledged
+  //               purchase.autoRenewingAndroid === true && // Either auto-renewing OR
+  //               purchase.transactionDate > Date.now() - 30 * 24 * 60 * 60 * 1000, // Or purchased recently
+  //           );
 
-          if (!activePurchase) {
-            patch(setSubscriptionDetails());
+  //           if (!activePurchase) {
+  //             patch(setSubscriptionDetails());
+  //             return;
+  //           }
+
+  //           const isAndroid = Platform.OS === 'android';
+  //           const isIos = Platform.OS === 'ios';
+  //           const receipt = activePurchase.transactionReceipt;
+
+  //           const subscriptionData = {
+  //             productId: activePurchase.productId,
+  //             transactionId: activePurchase.transactionId,
+  //             transactionDate: activePurchase.transactionDate,
+  //             receipt: receipt,
+  //             subscriptionStatus: 'Active',
+  //             platform: Platform.OS,
+  //             ...(isAndroid && {purchaseToken: activePurchase.purchaseToken}),
+  //             ...(isIos && {
+  //               originalTransactionId:
+  //                 activePurchase.originalTransactionIdentifierIOS,
+  //               originalTransactionDate:
+  //                 activePurchase.originalTransactionDateIOS,
+  //             }),
+  //           };
+
+  //           // Determine plan type
+  //           const planType = activePurchase.productId.includes('monthly')
+  //             ? 'Monthly'
+  //             : 'Yearly';
+
+  //           dispatch(setSubscriptionDetails(subscriptionData));
+  //         } else {
+  //           const latestPurchase = purchases[purchases.length - 1];
+
+  //           const apiRequestBody = {
+  //             'receipt-data': latestPurchase.transactionReceipt,
+  //             password: 'f41a27c3319749ccb2e0e4607ecb0664', // App Store shared secret
+  //             'exclude-old-transactions': true,
+  //           };
+
+  //           try {
+  //             const result = await axios.post(
+  //               __DEV__
+  //                 ? 'https://sandbox.itunes.apple.com/verifyReceipt'
+  //                 : 'https://buy.itunes.apple.com/verifyReceipt',
+  //               apiRequestBody,
+  //               {headers: {'Content-Type': 'application/json'}},
+  //             );
+
+  //             if (result.data && result.data.latest_receipt_info) {
+  //               const latestReceiptInfo = result.data.latest_receipt_info;
+
+  //               // Sort by expiry date
+  //               const sortedReceipts = latestReceiptInfo.sort(
+  //                 (a, b) => Number(b.expires_date_ms) - Number(a.expires_date_ms),
+  //               );
+  //               const latest = sortedReceipts[0];
+  //               const now = Date.now();
+
+  //               const expiryDate = Number(latest.expires_date_ms);
+  //               const isActive = expiryDate > now;
+  // console.log("Test zxczxcxzcxzcxcx",expiryDate,isActive)
+  //               if (isActive) {
+  //                 const subscriptionData = {
+  //                   productId: latest.product_id,
+  //                   transactionId: latest.transaction_id,
+  //                   transactionDate: latest.purchase_date_ms,
+  //                   expiryDate: expiryDate,
+  //                   subscriptionStatus: 'Active',
+  //                   isTrial: latest.is_trial_period === 'true',
+  //                   autoRenewStatus:
+  //                     result.data.pending_renewal_info?.[0]?.auto_renew_status ??
+  //                     'unknown',
+  //                   receipt: result.data.latest_receipt,
+  //                   platform: Platform.OS,
+  //                   originalTransactionId: latest.original_transaction_id,
+  //                 };
+
+  //                 dispatch(setSubscriptionDetails(subscriptionData));
+  //               } else {
+  //                 dispatch(setSubscriptionDetails([]));
+  //               }
+  //             } else {
+  //               dispatch(setSubscriptionDetails([]));
+  //             }
+  //           } catch (error) {
+  //             console.log('Subscription Error', error);
+  //             dispatch(setSubscriptionDetails([]));
+  //           }
+
+  //           // const latestPurchase = purchases[purchases.length - 1];
+
+  //           // const apiRequestBody = {
+  //           //   'receipt-data': latestPurchase.transactionReceipt,
+  //           //   password: 'f41a27c3319749ccb2e0e4607ecb0664',
+  //           //   'exclude-old-transactions': true, // optional
+  //           // };
+
+  //           // try {
+  //           //   const result = await axios(
+  //           //     'https://buy.itunes.apple.com/verifyReceipt',
+  //           //     {
+  //           //       method: 'POST',
+  //           //       headers: {
+  //           //         'Content-Type': 'application/json',
+  //           //       },
+  //           //       data: apiRequestBody,
+  //           //     },
+  //           //   );
+
+  //           //   const receipt = purchases.transactionReceipt;
+  //           //   const isAndroid = Platform.OS === 'android';
+  //           //   const isIos = Platform.OS === 'ios';
+
+  //           //   const isAndroidPurchased =
+  //           //     isAndroid && purchases?.purchaseStateAndroid === 1;
+  //           //   const isAndroidPending =
+  //           //     isAndroid && purchases?.purchaseStateAndroid === 2;
+  //           //   const isIosValid = isIos && receipt;
+
+  //           //   let timestamp =
+  //           //     result.data.latest_receipt_info[0].original_purchase_date;
+
+  //           //   const [datePart] = timestamp.split(' ');
+
+  //           //   if (result.data) {
+  //           //     const renewalHistory = result.data.pending_renewal_info;
+
+  //           //     const activeSubs = renewalHistory.filter(item => {
+  //           //       if (item.auto_renew_status == '1') {
+  //           //         const subscriptionData = {
+  //           //           productId: item?.product_id,
+  //           //           transactionId: item?.transaction_id,
+  //           //           transactionDate: item?.purchase_date_ms,
+  //           //           subscriptionStatus: 'Active',
+  //           //           receipt: receipt,
+  //           //           platform: Platform.OS,
+  //           //           ...(isAndroid && {purchaseToken: purchases.purchaseToken}),
+  //           //           ...(isIos && {
+  //           //             originalTransactionId:
+  //           //               purchases.originalTransactionIdentifierIOS,
+  //           //             originalTransactionDate:
+  //           //               purchases.originalTransactionDateIOS,
+  //           //           }),
+  //           //         };
+
+  //           //         dispatch(setSubscriptionDetails(subscriptionData));
+  //           //       } else {
+  //           //         dispatch(setSubscriptionDetails([]));
+  //           //       }
+  //           //     });
+  //           //   } else {
+  //           //   }
+  //           // } catch (error) {
+  //           //   console.log('Subscription Error', error);
+  //           // }
+  //         }
+  //       } catch (error) {
+  //         // console.error('Subscription error:', error);
+  //         dispatch(setSubscriptionDetails([]));
+  //       }
+  //     };
+
+  //     initIAP();
+  //   }, [dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const initIAP = async () => {
+        try {
+          // Initialize IAP module
+          await RNIap.initConnection();
+
+          // Get available purchases
+          const purchases = await RNIap.getAvailablePurchases();
+
+          if (purchases?.length === 0) {
+            dispatch(setSubscriptionDetails([]));
             return;
           }
 
-          const isAndroid = Platform.OS === 'android';
-          const isIos = Platform.OS === 'ios';
-          const receipt = activePurchase.transactionReceipt;
-
-          const subscriptionData = {
-            productId: activePurchase.productId,
-            transactionId: activePurchase.transactionId,
-            transactionDate: activePurchase.transactionDate,
-            receipt: receipt,
-            subscriptionStatus: 'Active',
-            platform: Platform.OS,
-            ...(isAndroid && {purchaseToken: activePurchase.purchaseToken}),
-            ...(isIos && {
-              originalTransactionId:
-                activePurchase.originalTransactionIdentifierIOS,
-              originalTransactionDate:
-                activePurchase.originalTransactionDateIOS,
-            }),
-          };
-
-          // Determine plan type
-          const planType = activePurchase.productId.includes('monthly')
-            ? 'Monthly'
-            : 'Yearly';
-
-          dispatch(setSubscriptionDetails(subscriptionData));
-        } else {
-          const latestPurchase = purchases[purchases.length - 1];
-
-          const apiRequestBody = {
-            'receipt-data': latestPurchase.transactionReceipt,
-            password: 'f41a27c3319749ccb2e0e4607ecb0664',
-            'exclude-old-transactions': true, // optional
-          };
-
-          try {
-            const result = await axios(
-              'https://buy.itunes.apple.com/verifyReceipt',
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                data: apiRequestBody,
-              },
+          if (Platform.OS === 'android') {
+            const sortedPurchases = purchases.sort(
+              (a, b) => b.transactionDate - a.transactionDate,
+            );
+            const activePurchase = sortedPurchases.find(
+              purchase =>
+                purchase.purchaseStateAndroid === 1 && // PURCHASED
+                purchase.isAcknowledgedAndroid === true && // Acknowledged
+                purchase.autoRenewingAndroid === true && // Still auto-renewing
+                purchase.transactionDate >
+                  Date.now() - 30 * 24 * 60 * 60 * 1000, // purchased recently
             );
 
-            const receipt = purchases.transactionReceipt;
-            const isAndroid = Platform.OS === 'android';
-            const isIos = Platform.OS === 'ios';
+            if (!activePurchase) {
+              dispatch(setSubscriptionDetails([]));
+              return;
+            }
 
-            const isAndroidPurchased =
-              isAndroid && purchases?.purchaseStateAndroid === 1;
-            const isAndroidPending =
-              isAndroid && purchases?.purchaseStateAndroid === 2;
-            const isIosValid = isIos && receipt;
+            const subscriptionData = {
+              productId: activePurchase.productId,
+              transactionId: activePurchase.transactionId,
+              transactionDate: activePurchase.transactionDate,
+              receipt: activePurchase.transactionReceipt,
+              subscriptionStatus: 'Active',
+              platform: Platform.OS,
+              purchaseToken: activePurchase.purchaseToken,
+            };
 
-            let timestamp =
-              result.data.latest_receipt_info[0].original_purchase_date;
+            dispatch(setSubscriptionDetails(subscriptionData));
+          } 
+          else {
+            const latestPurchase = purchases[purchases.length - 1];
 
-            const [datePart] = timestamp.split(' ');
+            const apiRequestBody = {
+              'receipt-data': latestPurchase.transactionReceipt,
+              password: 'f41a27c3319749ccb2e0e4607ecb0664', // 🔑 App Store shared secret
+              'exclude-old-transactions': true,
+            };
 
-            if (result.data) {
-              const renewalHistory = result.data.pending_renewal_info;
+            try {
+              const result = await axios.post(
+                __DEV__
+                  ? 'https://sandbox.itunes.apple.com/verifyReceipt'
+                  : 'https://buy.itunes.apple.com/verifyReceipt',
+                apiRequestBody,
+                {headers: {'Content-Type': 'application/json'}},
+              );
 
-              const activeSubs = renewalHistory.filter(item => {
-                if (item.auto_renew_status == '1') {
+              if (result.data && result.data.latest_receipt_info) {
+                const sortedReceipts = result.data.latest_receipt_info.sort(
+                  (a, b) =>
+                    Number(b.expires_date_ms) - Number(a.expires_date_ms),
+                );
+                const latest = sortedReceipts[0];
+                const now = Date.now();
+
+                const expiryDate = Number(latest.expires_date_ms);
+                const isActive = expiryDate > now;
+                console.log('Test SUbScription ', isActive, expiryDate);
+                if (isActive) {
                   const subscriptionData = {
-                    productId: item?.product_id,
-                    transactionId: item?.transaction_id,
-                    transactionDate: item?.purchase_date_ms,
+                    productId: latest.product_id,
+                    transactionId: latest.transaction_id,
+                    transactionDate: latest.purchase_date_ms,
+                    expiryDate,
                     subscriptionStatus: 'Active',
-                    receipt: receipt,
+                    isTrial: latest.is_trial_period === 'true',
+                    autoRenewStatus:
+                      result.data.pending_renewal_info?.[0]
+                        ?.auto_renew_status ?? 'unknown',
+                    receipt: result.data.latest_receipt,
                     platform: Platform.OS,
-                    ...(isAndroid && {purchaseToken: purchases.purchaseToken}),
-                    ...(isIos && {
-                      originalTransactionId:
-                        purchases.originalTransactionIdentifierIOS,
-                      originalTransactionDate:
-                        purchases.originalTransactionDateIOS,
-                    }),
+                    originalTransactionId: latest.original_transaction_id,
                   };
 
                   dispatch(setSubscriptionDetails(subscriptionData));
                 } else {
                   dispatch(setSubscriptionDetails([]));
                 }
-              });
-            } else {
+              } else {
+                dispatch(setSubscriptionDetails([]));
+              }
+            } catch (error) {
+              console.log('Subscription Error', error);
+              dispatch(setSubscriptionDetails([]));
             }
-          } catch (error) {
-            console.log('Subscription Error', error);
           }
+        } catch (error) {
+          dispatch(setSubscriptionDetails([]));
         }
-      } catch (error) {
-        // console.error('Subscription error:', error);
-        dispatch(setSubscriptionDetails([]));
-      }
-    };
+      };
 
-    initIAP();
-  }, [dispatch]);
+      initIAP();
+
+      // cleanup (optional, if you want to close IAP connection on blur)
+      return () => {
+        RNIap.endConnection();
+      };
+    }, [dispatch]),
+  );
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       Animated.parallel([
@@ -191,7 +367,7 @@ const Splash = ({navigation}) => {
           navigation.replace('Intro');
         }
       });
-    }, 3000); // Optional: 0.5s delay before animation starts
+    }, 6000); // Optional: 0.5s delay before animation starts
 
     return () => clearTimeout(timeout);
   }, [scaleAnim, opacityAnim]);
@@ -210,9 +386,8 @@ const Splash = ({navigation}) => {
     }
   };
   const fetchData2 = async () => {
-
     try {
-      if(!appliedCoupanDetails?.length) {
+      if (!appliedCoupanDetails?.length) {
         dispatch(setCoupanDetails([]));
         return;
       }
@@ -221,7 +396,6 @@ const Splash = ({navigation}) => {
       );
       if (data3?.status === true) {
         dispatch(setCoupanDetails(data3?.data));
-
       } else {
         dispatch(setCoupanDetails([]));
       }
