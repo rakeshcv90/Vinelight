@@ -919,7 +919,7 @@ const Goal = ({isActive}) => {
                 <Button2
                   width={280}
                   height={50}
-                  buttonTitle={'New Goal'}
+                  buttonTitle={'New Goals'}
                   img={IconData.PLUS}
                   left={true}
                   size={20}

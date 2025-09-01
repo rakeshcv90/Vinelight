@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
 
   calendarWrapper: {
     width: '100%',
-    height: height <= 800 ? height * 0.3 : height * 0.25,
+    height: height <= 800 ? height * 0.35 : height * 0.3,
 
     overflow: 'visible',
     backgroundColor: 'transparent',

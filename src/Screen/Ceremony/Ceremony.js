@@ -663,8 +663,9 @@ const Ceremony = ({isActive}) => {
                     justifyContent: 'center',
                     alignItems: 'center',
                     gap: 20,
-                    marginTop: Platform.OS == 'ios' ? height * 0.007 : 0,
+                    marginTop: Platform.OS == 'ios' ? height * 0.007 :height<720?-1:-5,
                   }}>
+                  {console.log('no access',height)}
                   <Image
                     source={ImageData.SUBSCRIPTIONIMAGE}
                     resizeMode="contain"
@@ -706,7 +707,7 @@ const Ceremony = ({isActive}) => {
                 <Button2
                   width={280}
                   height={50}
-                  buttonTitle={'New Ceremony'}
+                  buttonTitle={'New Ceremonies'}
                   img={IconData.PLUS}
                   left={true}
                   size={20}

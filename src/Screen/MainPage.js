@@ -389,8 +389,8 @@ const MainPage = ({navigation, route}) => {
     {key: 'Journal', activeIcon: IconData?.JOURNALA},
     {key: 'Dreams', activeIcon: IconData?.DREAMA},
     {key: 'Meditate', activeIcon: IconData?.MEDITATIONA},
-    {key: 'Ceremony', activeIcon: IconData?.CEREMONYA},
-    {key: 'Goal', activeIcon: IconData?.GOALA},
+    {key: 'Ceremonies', activeIcon: IconData?.CEREMONYA},
+    {key: 'Goals', activeIcon: IconData?.GOALA},
   ];
 
   // Map tabs to components
@@ -399,8 +399,8 @@ const MainPage = ({navigation, route}) => {
     Journal: <Journal isActive={activeTab === 'Journal'} />,
     Dreams: <Dreams isActive={activeTab === 'Dreams'} />,
     Meditate: <Meditation isActive={activeTab === 'Meditate'} />,
-    Ceremony: <Ceremony isActive={activeTab === 'Ceremony'} />,
-    Goal: <Goal isActive={activeTab === 'Goal'} />,
+    Ceremonies: <Ceremony isActive={activeTab === 'Ceremonies'} />,
+    Goals: <Goal isActive={activeTab === 'Goals'} />,
   };
 
   return (
