@@ -34,7 +34,11 @@ import {
   upDateGoalById,
 } from '../../redux/actions';
 import uuid from 'react-native-uuid';
-import {getDatesForMultipleDaysOverMonths} from '../utils';
+import {
+  getDatesForMultipleDaysOverMonths,
+  isCoupanValid,
+  isSubscriptionValid,
+} from '../utils';
 import Toast from 'react-native-toast-message';
 import FastImage from 'react-native-fast-image';
 import DeleteModal from '../../Component/DeleteModal';
@@ -47,6 +51,10 @@ const Goal = ({isActive}) => {
   const navigation = useNavigation();
   const DataCurrent = route?.params?.modalOpenData;
 
+  const subscription = useSelector(state => state?.user?.subscription);
+  const coupaDetails = useSelector(state => state?.user?.coupaDetails);
+  const hasAccess =
+    isSubscriptionValid(subscription) || isCoupanValid(coupaDetails);
   const [modalopen, setModalOpen] = useState(
     DataCurrent == undefined ? false : true,
   );
@@ -74,7 +82,8 @@ const Goal = ({isActive}) => {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          gap: 30,
+          gap: 20,
+          marginTop: height * 0.06,
         }}>
         <Image
           source={IconData.NODATA}
@@ -89,6 +98,7 @@ const Goal = ({isActive}) => {
             fontSize: 24,
             fontFamily: Font.EBGaramond_SemiBold,
             color: Color.LIGHTGREEN,
+            textAlign: 'center',
           }}>
           No goals data available.
         </Text>
@@ -354,30 +364,6 @@ const Goal = ({isActive}) => {
                       </>
                     </View>
 
-                    {/* <View
-                      style={{
-                        width: '90%',
-                        height: 120,
-                        borderRadius: 12,
-
-                        backgroundColor: 'white',
-                      }}>
-                      <TextInput
-                        value={goalName}
-                        // autoFocus={true}
-                        onChangeText={text => setGoalName(text)}
-                        placeholder=" Name"
-                        placeholderTextColor={Color.GREEN}
-                        multiline={true}
-                        textAlignVertical="top"
-                        style={{
-                          color: Color.LIGHTGREEN,
-                          fontSize: 16,
-                          fontFamily: Font.EBGaramond_Regular,
-                        }}
-                        selectionColor={Color.LIGHTGREEN}
-                      />
-                    </View> */}
                     <TouchableOpacity
                       activeOpacity={1}
                       onPress={() => goalInputRef.current?.focus()}
@@ -577,15 +563,14 @@ const Goal = ({isActive}) => {
                           onClose={() => setTooltipVisible(false)}
                         />
                       </View>
-                     {console.log("dddddddd",height)}
+
                       <View
                         // style={{
                         //   right: height <= 900 ? height*0.0045 : 0,
                         // }}
-                            style={{
-                          right: height <= 800 ? height*0.0045 : 0,
-                        }}
-                        >
+                        style={{
+                          right: height <= 800 ? height * 0.0045 : 0,
+                        }}>
                         <Button
                           img={IconData.SAVE}
                           text="Save"
@@ -781,133 +766,196 @@ const Goal = ({isActive}) => {
                 alignSelf: 'center',
                 top: -height * 0.03,
               }}>
-              <FlatList
-                data={flattenGoalData(goalData)}
-                contentContainerStyle={{paddingBottom: 20}}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={emptyComponent}
-                keyExtractor={(item, index) =>
-                  item.type === 'header'
-                    ? `header-${item.date}`
-                    : `task-${item.task.id}`
-                }
-                renderItem={({item, index}) => {
-                  if (item.type === 'header') {
-                    return (
-                      <View
-                        style={{
-                          width: '100%',
-                          height: 30,
-                          marginTop: index === 0 ? 0 : 20,
-                        }}>
+              {hasAccess ? (
+                <FlatList
+                  data={flattenGoalData(goalData)}
+                  contentContainerStyle={{paddingBottom: 20}}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={emptyComponent}
+                  keyExtractor={(item, index) =>
+                    item.type === 'header'
+                      ? `header-${item.date}`
+                      : `task-${item.task.id}`
+                  }
+                  renderItem={({item, index}) => {
+                    if (item.type === 'header') {
+                      return (
                         <View
                           style={{
                             width: '100%',
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
+                            height: 30,
+                            marginTop: index === 0 ? 0 : 20,
                           }}>
-                          <Text style={styles.dateText}>
-                            {formatDate(item.date)}
-                            {/* {item.date} */}
-                          </Text>
-                          <TouchableOpacity
-                            onPressIn={event => {
-                              const {pageX, pageY} = event.nativeEvent;
-                              setTooltipPosition({x: pageX, y: pageY});
-                              setSelectedGoal(item);
-                              setToolGoalVisible(true);
+                          <View
+                            style={{
+                              width: '100%',
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
                             }}>
-                            <Image
-                              source={IconData.DOTS}
-                              style={{width: 25, height: 25}}
-                            />
-                          </TouchableOpacity>
+                            <Text style={styles.dateText}>
+                              {formatDate(item.date)}
+                              {/* {item.date} */}
+                            </Text>
+                            <TouchableOpacity
+                              onPressIn={event => {
+                                const {pageX, pageY} = event.nativeEvent;
+                                setTooltipPosition({x: pageX, y: pageY});
+                                setSelectedGoal(item);
+                                setToolGoalVisible(true);
+                              }}>
+                              <Image
+                                source={IconData.DOTS}
+                                style={{width: 25, height: 25}}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            style={{
+                              width: '100%',
+                              height: 2,
+                              backgroundColor: Color.BROWN2,
+                              marginVertical: 5,
+                            }}
+                          />
                         </View>
-                        <View
-                          style={{
-                            width: '100%',
-                            height: 2,
-                            backgroundColor: Color.BROWN2,
-                            marginVertical: 5,
-                          }}
-                        />
+                      );
+                    }
+
+                    const {task} = item;
+
+                    return (
+                      <View style={styles.taskRow}>
+                        <TouchableOpacity
+                          style={styles.iconWrap}
+                          onPress={() => {
+                            updateTask(item);
+                          }}>
+                          <Image
+                            source={
+                              task?.completed
+                                ? IconData.CHECK
+                                : IconData.UNCHECK
+                            }
+                            style={{width: 24, height: 24, marginRight: 20}}
+                            resizeMode="contain"
+                          />
+                        </TouchableOpacity>
+                        <Text
+                          style={[
+                            styles.taskText,
+                            task.completed && styles.completedTaskText,
+                          ]}>
+                          {task.text}
+                        </Text>
+                        <TouchableOpacity
+                          style={styles.menuWrap}
+                          onPress={() => {
+                            if (task?.repeatId == undefined) {
+                              deleteTask(task);
+                            } else {
+                              setSelectedData(task);
+
+                              setDeleteModaldata(true);
+                            }
+                          }}>
+                          <Image
+                            source={IconData.DELETE}
+                            tintColor={Color.LIGHTGREEN}
+                            style={{width: 24, height: 20}}
+                          />
+                        </TouchableOpacity>
                       </View>
                     );
-                  }
-
-                  const {task} = item;
-
-                  return (
-                    <View style={styles.taskRow}>
-                      <TouchableOpacity
-                        style={styles.iconWrap}
-                        onPress={() => {
-                          updateTask(item);
-                        }}>
-                        <Image
-                          source={
-                            task?.completed ? IconData.CHECK : IconData.UNCHECK
-                          }
-                          style={{width: 24, height: 24, marginRight: 20}}
-                          resizeMode="contain"
-                        />
-                      </TouchableOpacity>
-                      <Text
-                        style={[
-                          styles.taskText,
-                          task.completed && styles.completedTaskText,
-                        ]}>
-                        {task.text}
-                      </Text>
-                      <TouchableOpacity
-                        style={styles.menuWrap}
-                        onPress={() => {
-                          if (task?.repeatId == undefined) {
-                            deleteTask(task);
-                          } else {
-                            setSelectedData(task);
-
-                            setDeleteModaldata(true);
-                          }
-                        }}>
-                        <Image
-                          source={IconData.DELETE}
-                          tintColor={Color.LIGHTGREEN}
-                          style={{width: 24, height: 20}}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  );
-                }}
-              />
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 20,
+                    marginTop: height * 0.06,
+                  }}>
+                  <Image
+                    source={ImageData.SUBSCRIPTIONIMAGE}
+                    resizeMode="contain"
+                    style={{
+                      width: width * 0.5,
+                      height: height * 0.2,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontFamily: Font.EBGaramond_SemiBold,
+                      color: Color.LIGHTGREEN,
+                      textAlign: 'center',
+                    }}>
+                    Subscribe to VineLight to unlock this feature and more!
+                  </Text>
+                </View>
+              )
+              }
             </View>
-            <View
-              style={{
-                width: '96%',
-                height: '10%',
-                justifyContent: 'center',
-                alignItems: 'center',
-                alignSelf: 'center',
-                // top: height * 0.036,
-                top:
-                  Platform.OS == 'ios'
-                    ? height * 0.035
-                    : height >= 780
-                    ? height * 0.025
-                    : height * 0.035,
-                flexDirection: 'row',
-              }}>
-              <Button2
-                width={280}
-                height={50}
-                buttonTitle={'New Goal'}
-                img={IconData.PLUS}
-                left={true}
-                size={20}
-                onPress={() => setModalOpen(true)}
-              />
-            </View>
+            {hasAccess ? (
+              <View
+                style={{
+                  width: '96%',
+                  height: '10%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  alignSelf: 'center',
+                  // top: height * 0.036,
+                  top:
+                    Platform.OS == 'ios'
+                      ? height * 0.035
+                      : height >= 780
+                      ? height * 0.025
+                      : height * 0.03,
+                  flexDirection: 'row',
+                }}>
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'New Goals'}
+                  img={IconData.PLUS}
+                  left={true}
+                  size={20}
+                  onPress={() => setModalOpen(true)}
+                />
+              </View>
+            ) : (
+              <View
+                style={{
+                  width: '96%',
+                  height: '10%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  alignSelf: 'center',
+                  // top: height * 0.036,
+                  top:
+                    Platform.OS == 'ios'
+                      ? height * 0.035
+                      : height >= 780
+                      ? height * 0.025
+                      : height * 0.03,
+                  flexDirection: 'row',
+                }}>
+                <Button2
+                  width={280}
+                  height={50}
+                  buttonTitle={'Upgrade To Pro'}
+                  img={ImageData.CROWN}
+                  left={true}
+                  size={20}
+                  onPress={() => {
+                    navigation.navigate('Subscription');
+                  }}
+                />
+              </View>
+            )}
 
             <View
               style={{

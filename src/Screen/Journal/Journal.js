@@ -768,7 +768,7 @@ const Journal = ({}) => {
                           ? height * 0.035
                           : height >= 780
                           ? height * 0.025
-                          : height * 0.035,
+                          : height * 0.030,
                       gap: 20,
                       flexDirection: 'row',
                     }}>

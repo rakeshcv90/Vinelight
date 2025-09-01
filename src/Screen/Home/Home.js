@@ -83,7 +83,7 @@ const today = moment().tz(deviceTimeZone).format('YYYY-MM-DD');
   const prompt = useSelector(state => state?.user?.getDailyPrompt);
   const getJournalData = useSelector(state => state?.user?.getJournalData);
    const editjournal = useSelector(state => state?.user?.editjournal);
-  console.log('Home getJournalData', editjournal);
+ 
 
   const memoizedBackground = useMemo(() => ImageData.MAINBACKGROUND, []);
   const [editSet, setEditSet] = useState(false);
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
 
   calendarWrapper: {
     width: '100%',
-    height: height <= 800 ? height * 0.3 : height * 0.25,
+    height: height <= 800 ? height * 0.35 : height * 0.3,
 
     overflow: 'visible',
     backgroundColor: 'transparent',

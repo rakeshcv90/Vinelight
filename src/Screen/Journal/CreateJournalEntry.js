@@ -430,7 +430,11 @@ const CreateJournalEntry = ({navigation, route}) => {
                 source={ImageData.BACKGROUND}
                 style={styles.primaryBackground}
                 resizeMode="cover">
-                <View style={{flex: 0.13, marginTop: -height * 0.04}}>
+                <View
+                  style={{
+                    flex: 0.13,
+                    marginTop: height >= 844 ? -height * 0.06 : -height * 0.04,
+                  }}>
                   <CustomeHeader
                     onClear={() => {
                       clearEditorContent();
@@ -734,6 +738,8 @@ const CreateJournalEntry = ({navigation, route}) => {
                       bottom: isKeyboardVisible
                         ? height <= 800
                           ? 30
+                          : height >= 844
+                          ? 35
                           : 45
                         : 10,
                     },
@@ -846,28 +852,26 @@ const CreateJournalEntry = ({navigation, route}) => {
               </ImageBackground>
             </TouchableWithoutFeedback>
           </KeyboardAvoidingView>
-         
         </SafeAreaView>
       </ImageBackground>
-       <PromptModal
-            visible={propmModalOpen}
-            promptData={promptData}
-            setPromptData={setPromptData}
-            onClose={() => {
-              setPromptMOdalOpen(false);
-            }}
-          />
-          <ColorToolModal
-            visible={colorModal}
-            selectedColor={style.color}
-            onSelect={hex => {
-              onColorSelect(hex);
-              setColorModa(false);
-            }}
-            onClose={() => setColorModa(false)}
-          />
+      <PromptModal
+        visible={propmModalOpen}
+        promptData={promptData}
+        setPromptData={setPromptData}
+        onClose={() => {
+          setPromptMOdalOpen(false);
+        }}
+      />
+      <ColorToolModal
+        visible={colorModal}
+        selectedColor={style.color}
+        onSelect={hex => {
+          onColorSelect(hex);
+          setColorModa(false);
+        }}
+        onClose={() => setColorModa(false)}
+      />
     </>
-
   );
 };
 const styles = StyleSheet.create({
