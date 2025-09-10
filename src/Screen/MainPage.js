@@ -302,7 +302,7 @@ import {isCoupanValid, isSubscriptionValid} from './utils';
 const {width, height} = Dimensions.get('window');
 const products = Platform.select({
   ios: ['plan_monthly', 'plan_yearly'],
-  android: ['plan_monthly', 'plan_yearly'],
+  android: ['plan_monthly', 'new_year'],
 });
 const MainPage = ({navigation, route}) => {
   const dispatch = useDispatch();
@@ -354,6 +354,7 @@ const MainPage = ({navigation, route}) => {
                 console.log('error finding purchase');
               })
               .then(res => {
+                console.log('Products', res);
                 dispatch(setSubscriptionProducts(res));
               });
           });

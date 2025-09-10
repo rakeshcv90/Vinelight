@@ -48,7 +48,7 @@ const deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const {width, height} = Dimensions.get('window');
 const products = Platform.select({
   ios: ['plan_monthly', 'plan_yearly'],
-  android: ['plan_monthly', 'plan_yearly'],
+  android: ['plan_monthly', 'new_year'],
 });
 const Subscription = ({navigation}) => {
   const [loader, setLoader] = useState(false);
@@ -107,7 +107,14 @@ const Subscription = ({navigation}) => {
       Platform.OS == 'android'
         ? subscription_products[1]?.subscriptionOfferDetails[0]?.offerToken
         : null,
+    price:
+      Platform.OS == 'android'
+        ? subscription_products[1]?.subscriptionOfferDetails[0]?.pricingPhases
+            ?.pricingPhaseList[0]?.formattedPrice ||
+          subscription_products[1]?.price
+        : subscription_products[1]?.localizedPrice,
   });
+
 
   const handlePress = useCallback(async () => {
     const supported = await Linking.canOpenURL(url);
@@ -166,97 +173,6 @@ const Subscription = ({navigation}) => {
       }
     }
   });
-  // useEffect(() => {
-  //   if (Platform.OS !== 'android') return;
-  //   let hasHandled = false;
-
-  //   const purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
-  //     async purchase => {
-  //       try {
-  //         const receipt = purchase.transactionReceipt;
-  //         const isAndroid = Platform.OS === 'android';
-  //         const isIos = Platform.OS === 'ios';
-
-  //         const isAndroidPurchased =
-  //           isAndroid && purchase?.purchaseStateAndroid === 1;
-  //         const isAndroidPending =
-  //           isAndroid && purchase?.purchaseStateAndroid === 2;
-  //         const isIosValid = isIos && receipt;
-  //         if (isAndroidPending) {
-  //           console.log(
-  //             'ℹ️ Purchase pending, waiting for completion:',
-  //             purchase.productId,
-  //           );
-
-  //           Toast.show({
-  //             type: 'error',
-  //             text1: 'Subscription Purchase',
-  //             text2: 'Your purchase is pending completion',
-  //             visibilityTime: 1500,
-  //             position: 'top',
-  //           });
-  //           return;
-  //         }
-  //         if ((isAndroidPurchased || isIosValid) && receipt) {
-  //           // First finish the transaction to prevent duplicate processing
-  //           await RNIap.finishTransaction({purchase, isConsumable: false});
-
-  //           // Prepare subscription data
-  //           const subscriptionData = {
-  //             productId: purchase.productId,
-  //             transactionId: purchase.transactionId,
-  //             transactionDate: purchase.transactionDate,
-  //             subscriptionStatus: 'Active',
-  //             receipt: receipt,
-  //             platform: Platform.OS,
-  //             ...(isAndroid && {purchaseToken: purchase.purchaseToken}),
-  //             ...(isIos && {
-  //               originalTransactionId:
-  //                 purchase.originalTransactionIdentifierIOS,
-  //               originalTransactionDate: purchase.originalTransactionDateIOS,
-  //             }),
-  //           };
-
-  //           Toast.show({
-  //             type: 'success',
-  //             text1: 'Subscription Purchase',
-  //             text2: 'Subscription activated successfully!',
-  //             visibilityTime: 1500,
-  //             position: 'top',
-  //           });
-  //           console.log('✅ Subscription processed:', subscriptionData);
-  //           dispatch(setSubscriptionDetails(subscriptionData));
-  //         }
-  //       } catch (err) {
-  //         console.warn('⚠️ Error finalizing transaction', err);
-  //       }
-  //     },
-  //   );
-
-  //   const purchaseErrorSubscription = RNIap.purchaseErrorListener(error => {
-  //     if (error.code === 'E_USER_CANCELLED' || error.responseCode === '2') {
-  //       console.log('User cancelled the purchase');
-  //       // Don't show error for cancellations
-  //     } else {
-  //       Toast.show({
-  //         type: 'error',
-  //         text1: 'Subscription Purchase',
-  //         text2: getPurchaseErrorMessage(error),
-  //         visibilityTime: 1500,
-  //         position: 'top',
-  //       });
-  //     }
-  //   });
-
-  //   return () => {
-  //     if (purchaseUpdateSubscription) {
-  //       purchaseUpdateSubscription.remove();
-  //     }
-  //     if (purchaseErrorSubscription) {
-  //       purchaseErrorSubscription.remove();
-  //     }
-  //   };
-  // }, []);
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
@@ -357,7 +273,6 @@ const Subscription = ({navigation}) => {
   };
 
   const purchaseItems = async items => {
-    // setForLoading(true);
     try {
       const purchase = await RNIap.requestSubscription({
         sku: items,
@@ -417,7 +332,6 @@ const Subscription = ({navigation}) => {
             },
           });
 
-          console.log('✅ Subscription processed:', subscriptionData);
           dispatch(setSubscriptionDetails(subscriptionData));
         }
       } catch (err) {
@@ -448,7 +362,7 @@ const Subscription = ({navigation}) => {
   const restorePurchase = async () => {
     setLoader(true);
     const purchases = await RNIap.getAvailablePurchases();
-
+console.log('Latest Purchase:', purchases);
     if (purchases?.length == 0) {
       Toast.show({
         type: 'custom',
@@ -462,177 +376,168 @@ const Subscription = ({navigation}) => {
       dispatch(setSubscriptionDetails([]));
       return;
     } else {
-      if (Platform.OS == 'android') {
-        setLoader(true);
-        const sortedPurchases = purchases.sort(
-          (a, b) => b.transactionDate - a.transactionDate,
-        );
-        const activePurchase = sortedPurchases.find(
-          purchase =>
-            purchase.purchaseStateAndroid === 1 && // 1 = PURCHASED
-            purchase.isAcknowledgedAndroid === true && // Must be acknowledged
-            purchase.autoRenewingAndroid === true && // Either auto-renewing OR
-            purchase.transactionDate > Date.now() - 30 * 24 * 60 * 60 * 1000, // Or purchased recently
-        );
+      // if (Platform.OS == 'android') {
+      //   setLoader(true);
+      //   const sortedPurchases = purchases.sort(
+      //     (a, b) => Number(b.transactionDate) - Number(a.transactionDate),
+      //   );
 
-        if (!activePurchase) {
-          setLoader(false);
+      //   const isValidSubscription = purchase => {
+      //     let duration = 0;
+      //     const purchaseTime = Number(purchase.transactionDate);
 
-          // Toast.show({
-          //   type: 'custom',
-          //   position: 'top',
-          //   props: {
-          //     icon: IconData.ERR, // your custom image
-          //     text: 'No Active Subscription Found!',
-          //   },
-          // });
-          dispatch(setSubscriptionDetails([]));
-          return;
-        }
+      //     if (purchase.productId.includes('plan_monthly')) {
+      //       duration = 30 * 24 * 60 * 60 * 1000; // ~30 days
+      //     } else if (purchase.productId.includes('new_year')) {
+      //       duration = 365 * 24 * 60 * 60 * 1000; // ~365 days
+      //     }
 
-        const isAndroid = Platform.OS === 'android';
-        const isIos = Platform.OS === 'ios';
-        const receipt = activePurchase.transactionReceipt;
+      //     const expiryTime = purchaseTime + duration;
 
-        const subscriptionData = {
-          productId: activePurchase.productId,
-          transactionId: activePurchase.transactionId,
-          transactionDate: activePurchase.transactionDate,
-          receipt: receipt,
-          subscriptionStatus: 'Active',
-          platform: Platform.OS,
-          ...(isAndroid && {purchaseToken: activePurchase.purchaseToken}),
-          ...(isIos && {
-            originalTransactionId:
-              activePurchase.originalTransactionIdentifierIOS,
-            originalTransactionDate: activePurchase.originalTransactionDateIOS,
-          }),
-        };
+      //     console.log('Purchase Date:', new Date(purchaseTime));
+      //     console.log('Expiry Date:', new Date(expiryTime));
+      //     console.log('Now:', new Date());
 
-        console.log('Active Subscription Data:', sortedPurchases);
-        // Determine plan type
-        const planType = activePurchase.productId.includes('monthly')
-          ? 'Monthly'
-          : 'Yearly';
-
-        Toast.show({
-          type: 'custom',
-          position: 'top',
-          props: {
-            icon: IconData.SUCC, // your custom image
-            text: `Your ${planType} plan is active! ${
-              activePurchase.autoRenewingAndroid
-                ? '(Auto-renewing)'
-                : '(Not auto-renewing)'
-            }`,
-          },
-        });
-        setLoader(false);
-        dispatch(setSubscriptionDetails(subscriptionData));
-      }
-      //  else {
-      //   const latestPurchase = purchases[purchases.length - 1];
-      //   const apiRequestBody = {
-      //     'receipt-data': latestPurchase.transactionReceipt,
-      //     password: 'f41a27c3319749ccb2e0e4607ecb0664',
-      //     'exclude-old-transactions': true, // optional
+      //     return (
+      //       purchase.purchaseStateAndroid === 1 && // PURCHASED
+      //       purchase.isAcknowledgedAndroid === true &&
+      //       Date.now() <= expiryTime // Still valid
+      //     );
       //   };
 
-      //   try {
-      //     let result = await axios(
-      //       'https://buy.itunes.apple.com/verifyReceipt',
-      //       {
-      //         method: 'POST',
-      //         headers: {
-      //           'Content-Type': 'application/json',
-      //         },
-      //         data: apiRequestBody,
-      //       },
-      //     );
-      //     if (result.data.status === 21007) {
-      //       result = await axios.post(
-      //         'https://sandbox.itunes.apple.com/verifyReceipt',
-      //         apiRequestBody,
-      //         {headers: {'Content-Type': 'application/json'}},
-      //       );
-      //     }
-      //     const receipt = purchases.transactionReceipt;
-      //     const isAndroid = Platform.OS === 'android';
-      //     const isIos = Platform.OS === 'ios';
-      //     const isAndroidPurchased =
-      //       isAndroid && purchases?.purchaseStateAndroid === 1;
-      //     const isAndroidPending =
-      //       isAndroid && purchases?.purchaseStateAndroid === 2;
-      //     const isIosValid = isIos && receipt;
+      //   const activePurchase = sortedPurchases.find(isValidSubscription);
+      //   consoleqole.log('Active Purchase:', activePurchase);
 
-      //     let timestamp =
-      //       result.data.latest_receipt_info[0].original_purchase_date;
-
-      //     const [datePart] = timestamp.split(' ');
-
-      //     if (result.data) {
-      //       const renewalHistory = result.data.pending_renewal_info;
-      //       console.log('renewalHistory', renewalHistory);
-
-      //       const activeSubs = renewalHistory.filter(item => {
-      //         if (item.auto_renew_status == '1') {
-      //           // Prepare subscription data
-      //           const subscriptionData = {
-      //             productId: item?.product_id,
-      //             transactionId: item?.transaction_id,
-      //             transactionDate: item?.purchase_date_ms,
-      //             subscriptionStatus: 'Active',
-      //             receipt: receipt,
-      //             platform: Platform.OS,
-      //             ...(isAndroid && {purchaseToken: purchases.purchaseToken}),
-      //             ...(isIos && {
-      //               originalTransactionId:
-      //                 purchases.originalTransactionIdentifierIOS,
-      //               originalTransactionDate:
-      //                 purchases.originalTransactionDateIOS,
-      //             }),
-      //           };
-
-      //           Toast.show({
-      //             type: 'custom',
-      //             position: 'top',
-      //             props: {
-      //               icon: IconData.SUCCx, // your custom image
-      //               text: 'Subscription activated successfully!',
-      //             },
-      //           });
-      //           setLoader(false);
-      //           dispatch(setSubscriptionDetails(subscriptionData));
-      //         } else {
-      //           Toast.show({
-      //             type: 'custom',
-      //             position: 'top',
-      //             props: {
-      //               icon: IconData.ERR, // your custom image
-      //               text: 'No Active Subscription Found!',
-      //             },
-      //           });
-      //           setLoader(false);
-      //           dispatch(setSubscriptionDetails([]));
-      //         }
-      //       });
-      //     } else {
-      //       Toast.show({
-      //         type: 'custom',
-      //         position: 'top',
-      //         props: {
-      //           icon: IconData.ERR, // your custom image
-      //           text: 'No Active Subscription Found!',
-      //         },
-      //       });
-      //       setLoader(false);
-      //     }
-      //   } catch (error) {
+      //   if (!activePurchase) {
       //     setLoader(false);
-      //     console.log('Reeeeeeeee', error);
+
+      //     dispatch(setSubscriptionDetails([]));
+      //     return;
       //   }
+
+      //   const isAndroid = Platform.OS === 'android';
+      //   const isIos = Platform.OS === 'ios';
+      //   const receipt = activePurchase.transactionReceipt;
+
+      //   const subscriptionData = {
+      //     productId: activePurchase.productId,
+      //     transactionId: activePurchase.transactionId,
+      //     transactionDate: activePurchase.transactionDate,
+      //     receipt: receipt,
+      //     subscriptionStatus: 'Active',
+      //     platform: Platform.OS,
+      //     ...(isAndroid && {purchaseToken: activePurchase.purchaseToken}),
+      //     ...(isIos && {
+      //       originalTransactionId:
+      //         activePurchase.originalTransactionIdentifierIOS,
+      //       originalTransactionDate: activePurchase.originalTransactionDateIOS,
+      //     }),
+      //   };
+
+      //   const planType = activePurchase.productId.includes('plan_monthly')
+      //     ? 'Monthly'
+      //     : 'Yearly';
+
+      //   Toast.show({
+      //     type: 'custom',
+      //     position: 'top',
+      //     props: {
+      //       icon: IconData.SUCC, // your custom image
+      //       text: `Your ${planType} plan is active! ${
+      //         activePurchase.autoRenewingAndroid
+      //           ? '(Auto-renewing)'
+      //           : '(Not auto-renewing)'
+      //       }`,
+      //     },
+      //   });
+      //   setLoader(false);
+      //   dispatch(setSubscriptionDetails(subscriptionData));
       // }
-      else {
+      if (Platform.OS === 'android') {
+        setLoader(true);
+
+        try {
+          const sortedPurchases = purchases.sort(
+            (a, b) => Number(b.transactionDate) - Number(a.transactionDate),
+          );
+
+          const isValidSubscription = purchase => {
+            let duration = 0;
+            const purchaseTime = Number(purchase.transactionDate);
+
+            if (purchase.productId.includes('plan_monthly')) {
+              duration = 30 * 24 * 60 * 60 * 1000; // ~30 days
+            } else if (purchase.productId.includes('new_year')) {
+              duration = 365 * 24 * 60 * 60 * 1000; // ~365 days
+            }
+
+            const expiryTime = purchaseTime + duration;
+
+            console.log('Purchase Date:', new Date(purchaseTime));
+            console.log('Expiry Date:', new Date(expiryTime));
+            console.log('Now:', new Date());
+
+            return (
+              purchase.purchaseStateAndroid === 1 &&
+              purchase.isAcknowledgedAndroid === true &&
+              Date.now() <= expiryTime
+            );
+          };
+
+          const activePurchase = sortedPurchases.find(isValidSubscription);
+          console.log('Active Purchase:', activePurchase);
+
+          if (!activePurchase) {
+            dispatch(setSubscriptionDetails([]));
+            return;
+          }
+
+          const isAndroid = Platform.OS === 'android';
+          const isIos = Platform.OS === 'ios';
+          const receipt = activePurchase.transactionReceipt;
+
+          const subscriptionData = {
+            productId: activePurchase.productId,
+            transactionId: activePurchase.transactionId,
+            transactionDate: activePurchase.transactionDate,
+            receipt,
+            subscriptionStatus: 'Active',
+            platform: Platform.OS,
+            ...(isAndroid && {purchaseToken: activePurchase.purchaseToken}),
+            ...(isIos && {
+              originalTransactionId:
+                activePurchase.originalTransactionIdentifierIOS,
+              originalTransactionDate:
+                activePurchase.originalTransactionDateIOS,
+            }),
+          };
+
+          const planType = activePurchase.productId.includes('plan_monthly')
+            ? 'Monthly'
+            : 'Yearly';
+
+          Toast.show({
+            type: 'custom',
+            position: 'top',
+            props: {
+              icon: IconData.SUCC,
+              text: `Your ${planType} plan is active! ${
+                activePurchase.autoRenewingAndroid
+                  ? '(Auto-renewing)'
+                  : '(Not auto-renewing)'
+              }`,
+            },
+          });
+
+          dispatch(setSubscriptionDetails(subscriptionData));
+        } catch (error) {
+          console.error('Restore failed:', error);
+          dispatch(setSubscriptionDetails([]));
+        } finally {
+          // ✅ Always close loader
+          setLoader(false);
+        }
+      } else {
         const latestPurchase = purchases[purchases.length - 1];
 
         const apiRequestBody = {
@@ -781,7 +686,7 @@ const Subscription = ({navigation}) => {
     const fetchData2 = async data => {
       try {
         const data3 = await callApi1(`${Api.COUPAN_STATUS}/${data}`);
-        console.log('Test Data', data3);
+
         if (data3?.status === true) {
           dispatch(setCoupanDetails(data3?.data));
         } else {
@@ -1099,6 +1004,7 @@ const Subscription = ({navigation}) => {
             backgroundColor="transparent"
             barStyle="light-content"
           />
+
           <ActivityLoader visible={loader} />
           <FastImage
             source={ImageData.BACKGROUND}
@@ -1159,7 +1065,7 @@ const Subscription = ({navigation}) => {
                 source={ImageData.MAINBACKGROUND}
                 style={styles.secondaryBackground}
                 resizeMode={FastImage.resizeMode.stretch}>
-                <ActivityLoader visible={loader} />
+                {/* <ActivityLoader visible={loader} /> */}
                 <View
                   style={{
                     width: '100%',
@@ -1226,156 +1132,173 @@ const Subscription = ({navigation}) => {
                           justifyContent: 'center',
                           alignItems: 'center',
                           flexDirection: 'row',
-
                           gap: 5,
                         }}>
                         {Platform.OS == 'android'
-                          ? subscription_products?.map((item, index) => {
-                              const offers =
-                                item.subscriptionOfferDetails || [];
+                          ? subscription_products
+                              ?.slice()
+                              .sort((a, b) => {
+                                const order = ['monthly', 'yearly']; // define your order
+                                const aIndex = order.findIndex(o =>
+                                  (a?.title || '').toLowerCase().includes(o),
+                                );
+                                const bIndex = order.findIndex(o =>
+                                  (b?.title || '').toLowerCase().includes(o),
+                                );
+                                return aIndex - bIndex;
+                              })
+                              .map((item, index) => {
+                                const offers =
+                                  item.subscriptionOfferDetails || [];
 
-                              const trialOffer = offers.find(
-                                offer =>
-                                  offer.offerId &&
-                                  offer.offerId.toLowerCase().includes('trial'),
-                              );
+                                const trialOffer = offers.find(
+                                  offer =>
+                                    offer.offerId &&
+                                    offer.offerId
+                                      .toLowerCase()
+                                      .includes('trial'),
+                                );
 
-                              const trialPrice = trialOffer
-                                ? trialOffer.pricingPhases.pricingPhaseList[0]
-                                    ?.formattedPrice || 'Free'
-                                : null;
+                                const trialPrice = trialOffer
+                                  ? trialOffer.pricingPhases.pricingPhaseList[0]
+                                      ?.formattedPrice || 'Free'
+                                  : null;
 
-                              let regularPrice = null;
-                              if (trialOffer) {
-                                const pricingList =
-                                  trialOffer.pricingPhases.pricingPhaseList;
-                                regularPrice =
-                                  pricingList[pricingList.length - 1]
-                                    ?.formattedPrice || null;
-                              } else if (offers.length > 0) {
-                                const pricingList =
-                                  offers[0].pricingPhases.pricingPhaseList;
-                                regularPrice =
-                                  pricingList[pricingList.length - 1]
-                                    ?.formattedPrice || null;
-                              }
+                                let regularPrice = null;
+                                if (trialOffer) {
+                                  const pricingList =
+                                    trialOffer.pricingPhases.pricingPhaseList;
+                                  regularPrice =
+                                    pricingList[pricingList.length - 1]
+                                      ?.formattedPrice || null;
+                                } else if (offers.length > 0) {
+                                  const pricingList =
+                                    offers[0].pricingPhases.pricingPhaseList;
+                                  regularPrice =
+                                    pricingList[pricingList.length - 1]
+                                      ?.formattedPrice || null;
+                                }
 
-                              const trialDuration = trialOffer
-                                ? parseBillingPeriod(
-                                    trialOffer.pricingPhases.pricingPhaseList[0]
-                                      ?.billingPeriod,
-                                  )
-                                : null;
+                                const trialDuration = trialOffer
+                                  ? parseBillingPeriod(
+                                      trialOffer.pricingPhases
+                                        .pricingPhaseList[0]?.billingPeriod,
+                                    )
+                                  : null;
 
-                              return (
-                                <View
-                                  key={item.productId || index}
-                                  style={{marginHorizontal: 2}}>
-                                  {item?.name.toLowerCase() === 'yearly' &&
-                                  monthlyPrice > 0 &&
-                                  yearlyPrice > 0 ? (
-                                    <View
-                                      style={{
-                                        width: 120,
-                                        height: 24,
-                                        borderTopLeftRadius: 8,
-                                        borderTopRightRadius: 8,
-                                        alignSelf: 'center',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        backgroundColor: Color.BROWN,
-                                      }}>
-                                      <Text
+                                return (
+                                  <View
+                                    key={item.productId || index}
+                                    style={{marginHorizontal: 2}}>
+                                    {item?.name.toLowerCase() === 'yearly' &&
+                                    monthlyPrice > 0 &&
+                                    yearlyPrice > 0 ? (
+                                      <View
                                         style={{
-                                          color: 'white',
-                                          fontWeight: 'bold',
+                                          width: 120,
+                                          height: 24,
+                                          borderTopLeftRadius: 8,
+                                          borderTopRightRadius: 8,
+                                          alignSelf: 'center',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                          backgroundColor: Color.BROWN,
                                         }}>
-                                        {(
-                                          ((monthlyPrice * 12 - yearlyPrice) /
-                                            (monthlyPrice * 12)) *
-                                          100
-                                        ).toFixed(1)}
-                                        % Savings
-                                      </Text>
-                                    </View>
-                                  ) : (
-                                    <View
-                                      style={{
-                                        width: 120,
-                                        height: 24,
-                                        borderTopLeftRadius: 8,
-                                        borderTopRightRadius: 8,
-                                        alignSelf: 'center',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        backgroundColor: 'transparent',
+                                        <Text
+                                          style={{
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                          }}>
+                                          {(
+                                            ((monthlyPrice * 12 - yearlyPrice) /
+                                              (monthlyPrice * 12)) *
+                                            100
+                                          ).toFixed(1)}
+                                          % Savings
+                                        </Text>
+                                      </View>
+                                    ) : (
+                                      <View
+                                        style={{
+                                          width: 120,
+                                          height: 24,
+                                          borderTopLeftRadius: 8,
+                                          borderTopRightRadius: 8,
+                                          alignSelf: 'center',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                          backgroundColor: 'transparent',
+                                        }}
+                                      />
+                                    )}
+
+                                    <TouchableOpacity
+                                      activeOpacity={0.7}
+                                      onPress={() => {
+                                        setSelectedPackage({
+                                          item: item.productId,
+                                          offerToken:
+                                            item.subscriptionOfferDetails[0]
+                                              .offerToken,
+                                          price: regularPrice,
+                                        });
                                       }}
-                                    />
-                                  )}
-
-                                  <TouchableOpacity
-                                    activeOpacity={0.7}
-                                    onPress={() => {
-                                      setSelectedPackage({
-                                        item: item.productId,
-                                        offerToken:
-                                          item.subscriptionOfferDetails[0]
-                                            .offerToken,
-                                      });
-                                    }}
-                                    style={{
-                                      width: width * 0.37,
-                                      height: 96,
-                                      borderRadius: 8,
-                                      borderWidth:
-                                        selectedPackege?.item == item?.productId
-                                          ? 1
-                                          : 0,
-                                      borderColor:
-                                        selectedPackege?.item == item?.productId
-                                          ? Color.BROWN
-                                          : 'transparent',
-                                      backgroundColor: Color?.BROWN3,
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                    }}>
-                                    {trialPrice && (
-                                      <Text
-                                        style={{
-                                          color: Color.LIGHTGREEN,
-                                          fontSize: 14,
-                                          fontFamily: Font.EBGaramond_Medium,
-                                        }}>
-                                        Trial: {trialPrice}
-                                        {trialDuration
-                                          ? ` (${trialDuration})`
-                                          : ''}
-                                      </Text>
-                                    )}
-
-                                    {regularPrice && (
-                                      <Text
-                                        style={{
-                                          color: Color.BROWN,
-                                          fontFamily: Font.EBGaramond_SemiBold,
-                                          fontSize: 20,
-                                        }}>
-                                        {regularPrice}
-                                      </Text>
-                                    )}
-
-                                    <Text
                                       style={{
-                                        fontFamily: Font.EBGaramond_Medium,
-                                        fontSize: 16,
-                                        color: Color.LIGHTGREEN,
+                                        width: width * 0.37,
+                                        height: 96,
+                                        borderRadius: 8,
+                                        borderWidth:
+                                          selectedPackege?.item ==
+                                          item?.productId
+                                            ? 1
+                                            : 0,
+                                        borderColor:
+                                          selectedPackege?.item ==
+                                          item?.productId
+                                            ? Color.BROWN
+                                            : 'transparent',
+                                        backgroundColor: Color?.BROWN3,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
                                       }}>
-                                      {item?.name}
-                                    </Text>
-                                  </TouchableOpacity>
-                                </View>
-                              );
-                            })
+                                      {trialPrice && (
+                                        <Text
+                                          style={{
+                                            color: Color.LIGHTGREEN,
+                                            fontSize: 14,
+                                            fontFamily: Font.EBGaramond_Medium,
+                                          }}>
+                                          Trial: {trialPrice}
+                                          {trialDuration
+                                            ? ` (${trialDuration})`
+                                            : ''}
+                                        </Text>
+                                      )}
+
+                                      {regularPrice && (
+                                        <Text
+                                          style={{
+                                            color: Color.BROWN,
+                                            fontFamily:
+                                              Font.EBGaramond_SemiBold,
+                                            fontSize: 20,
+                                          }}>
+                                          {regularPrice}
+                                        </Text>
+                                      )}
+
+                                      <Text
+                                        style={{
+                                          fontFamily: Font.EBGaramond_Medium,
+                                          fontSize: 16,
+                                          color: Color.LIGHTGREEN,
+                                        }}>
+                                        {item?.name}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                );
+                              })
                           : subscription_products
                               ?.slice()
                               .sort((a, b) => {
@@ -1466,6 +1389,7 @@ const Subscription = ({navigation}) => {
                                       onPress={() => {
                                         setSelectedPackage({
                                           item: item?.productId,
+                                          price: item?.localizedPrice,
                                         });
                                       }}
                                       style={{
@@ -1580,6 +1504,7 @@ const Subscription = ({navigation}) => {
                               }}>
                               Active Plan :
                             </Text>
+
                             <Text
                               style={{
                                 fontFamily: Font.EB_Garamond_Bold,
@@ -1587,9 +1512,9 @@ const Subscription = ({navigation}) => {
                                 color: Color.LIGHTGREEN,
                                 textAlign: 'center',
                               }}>
-                              {subscription[0].productId == 'plan_yearly'
-                                ? 'Yearly'
-                                : 'Monthly'}
+                              {subscription[0].productId == 'plan_monthly'
+                                ? 'Monthly'
+                                : 'Yearly'}
                             </Text>
                           </View>
                         ) : (
@@ -1782,16 +1707,11 @@ const Subscription = ({navigation}) => {
                               fontSize: 14,
                               color: Color.LIGHTGREEN,
                             }}>
-                            Please NOTE: You will be charged for the selected
-                            plan immediately. Your subscription will
-                            automatically renew unless auto-renew is turned off
-                            24 hours before the end of the current period. You
-                            can manage or cancel your subscription in your
-                            iTunes & App Store / Apple ID account settings
-                            anytime. If you are unsure how to cancel a
-                            subscription, please visit the Apple Support
-                            Website. Note that deleting the app does not cancel
-                            your subscription.
+                            {selectedPackege?.item === 'plan_monthly'
+                              ? ` Enjoy a 7-day free trial with the Monthly Plan. After the trial ends, you will be charged ${selectedPackege?.price} per month unless you cancel before the trial period ends. Your subscription will renew automatically until you cancel. You can manage or cancel your subscription anytime from your Apple ID account → Subscriptions. If you are unsure how to cancel a subscription, please visit the Apple Support page. Note that deleting the app does not cancel your subscription.
+`
+                              : `The Yearly Plan costs ${selectedPackege?.price} per year (no free trial). Your subscription will renew automatically until you cancel. You can manage or cancel your subscription anytime from your Apple ID account → Subscriptions. If you are unsure how to cancel a subscription, please visit the Apple Support website. Note that deleting the app does not cancel your subscription.
+`}
                           </Text>
                         ) : (
                           <Text
@@ -1800,22 +1720,48 @@ const Subscription = ({navigation}) => {
                               fontSize: 15,
                               color: Color.LIGHTGREEN,
                             }}>
-                            Please NOTE: Enjoy the 30 days free trial then you
-                            will be charged for your selected plan. You can
-                            cancel the subscription before your trial period
-                            ends if you do not want to convert to a paid
-                            subscription. Your subscription will renew
-                            automatically until you cancel the subscription, you
-                            can manage or cancel your subscription anytime from
-                            the Google Play Store. If you are unsure how to
-                            cancel a subscription, please visit the Google
-                            Support website. Note that deleting the app does not
-                            cancel your subscription.
+                            Please NOTE:
+                            {selectedPackege?.item === 'plan_monthly'
+                              ? `Enjoy a 7-day free trial with the Monthly Plan. After the trial ends, you will be charged ${selectedPackege?.price} per month unless you cancel before the trial period ends.Your subscription will renew automatically until you cancel. You can manage or cancel your subscription anytime from the Google Play Store → Subscriptions.
+If you are unsure how to cancel a subscription, please visit the Google Play Help Center. Note that deleting the app does not cancel your subscription.`
+                              : `The Yearly Plan costs ${selectedPackege?.price} per year (no free trial). Your subscription will renew automatically until you cancel. You can manage or cancel your subscription anytime from the Google Play Store → Subscriptions.
+If you are unsure how to cancel a subscription, please visit the Google Play Help Center. Note that deleting the app does not cancel your subscription.`}
                           </Text>
                         )}
-                        {/* </ScrollView> */}
                       </View>
+                      {/* <Text
+                            style={{
+                              fontFamily: Font.EBGaramond_Medium,
+                              fontSize: 15,
+                              color: Color.LIGHTGREEN,
+                            }}>
+                            Please NOTE:
+                   
+                            {
+                              selectedPackege?.item =='plan_monthly'?`Enjoy a 7-day free trial with the Monthly Plan.
+                            After the trial ends, you will be charged $1.99 per
+                            month unless you cancel before the trial period
+                            ends. Your subscription will renew automatically
+                            until you cancel. You can manage or cancel your
+                            subscription anytime from the Google Play Store →
+                            Subscriptions. If you are unsure how to cancel a
+                            subscription, please visit the Google Play Help
+                            Center. Note that deleting the app does not cancel
+                            your subscription.`:`Enjoy a 7-day free trial with the Monthly Plan.
+                            After the trial ends, you will be charged $1.99 per
+                            month unless you cancel before the trial period
+                            ends. Your subscription will renew automatically
+                            until you cancel. You can manage or cancel your
+                            subscription anytime from the Google Play Store →
+                            Subscriptions. If you are unsure how to cancel a
+                            subscription, please visit the Google Play Help
+                            Center. Note that deleting the app does not cancel
+                            your subscription.`
+                            }
+                            
+                          </Text> */}
                     </ScrollView>
+
                     <View
                       style={{
                         width: '100%',

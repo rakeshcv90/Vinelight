@@ -35,204 +35,13 @@ const Splash = ({navigation}) => {
   const appliedCoupanDetails = useSelector(
     state => state?.user?.appliedCoupanDetails,
   );
-  //   useEffect(() => {
-  //     const initIAP = async () => {
-  //       try {
-  //         // Initialize IAP module
-  //         await RNIap.initConnection();
 
-  //         // Get available purchases
-  //         const purchases = await RNIap.getAvailablePurchases();
-
-  //         if (purchases?.length === 0) {
-  //           dispatch(setSubscriptionDetails([]));
-  //           return;
-  //         }
-
-  //         if (Platform.OS == 'android') {
-  //           const sortedPurchases = purchases.sort(
-  //             (a, b) => b.transactionDate - a.transactionDate,
-  //           );
-  //           const activePurchase = sortedPurchases.find(
-  //             purchase =>
-  //               purchase.purchaseStateAndroid === 1 && // 1 = PURCHASED
-  //               purchase.isAcknowledgedAndroid === true && // Must be acknowledged
-  //               purchase.autoRenewingAndroid === true && // Either auto-renewing OR
-  //               purchase.transactionDate > Date.now() - 30 * 24 * 60 * 60 * 1000, // Or purchased recently
-  //           );
-
-  //           if (!activePurchase) {
-  //             patch(setSubscriptionDetails());
-  //             return;
-  //           }
-
-  //           const isAndroid = Platform.OS === 'android';
-  //           const isIos = Platform.OS === 'ios';
-  //           const receipt = activePurchase.transactionReceipt;
-
-  //           const subscriptionData = {
-  //             productId: activePurchase.productId,
-  //             transactionId: activePurchase.transactionId,
-  //             transactionDate: activePurchase.transactionDate,
-  //             receipt: receipt,
-  //             subscriptionStatus: 'Active',
-  //             platform: Platform.OS,
-  //             ...(isAndroid && {purchaseToken: activePurchase.purchaseToken}),
-  //             ...(isIos && {
-  //               originalTransactionId:
-  //                 activePurchase.originalTransactionIdentifierIOS,
-  //               originalTransactionDate:
-  //                 activePurchase.originalTransactionDateIOS,
-  //             }),
-  //           };
-
-  //           // Determine plan type
-  //           const planType = activePurchase.productId.includes('monthly')
-  //             ? 'Monthly'
-  //             : 'Yearly';
-
-  //           dispatch(setSubscriptionDetails(subscriptionData));
-  //         } else {
-  //           const latestPurchase = purchases[purchases.length - 1];
-
-  //           const apiRequestBody = {
-  //             'receipt-data': latestPurchase.transactionReceipt,
-  //             password: 'f41a27c3319749ccb2e0e4607ecb0664', // App Store shared secret
-  //             'exclude-old-transactions': true,
-  //           };
-
-  //           try {
-  //             const result = await axios.post(
-  //               __DEV__
-  //                 ? 'https://sandbox.itunes.apple.com/verifyReceipt'
-  //                 : 'https://buy.itunes.apple.com/verifyReceipt',
-  //               apiRequestBody,
-  //               {headers: {'Content-Type': 'application/json'}},
-  //             );
-
-  //             if (result.data && result.data.latest_receipt_info) {
-  //               const latestReceiptInfo = result.data.latest_receipt_info;
-
-  //               // Sort by expiry date
-  //               const sortedReceipts = latestReceiptInfo.sort(
-  //                 (a, b) => Number(b.expires_date_ms) - Number(a.expires_date_ms),
-  //               );
-  //               const latest = sortedReceipts[0];
-  //               const now = Date.now();
-
-  //               const expiryDate = Number(latest.expires_date_ms);
-  //               const isActive = expiryDate > now;
-  // console.log("Test zxczxcxzcxzcxcx",expiryDate,isActive)
-  //               if (isActive) {
-  //                 const subscriptionData = {
-  //                   productId: latest.product_id,
-  //                   transactionId: latest.transaction_id,
-  //                   transactionDate: latest.purchase_date_ms,
-  //                   expiryDate: expiryDate,
-  //                   subscriptionStatus: 'Active',
-  //                   isTrial: latest.is_trial_period === 'true',
-  //                   autoRenewStatus:
-  //                     result.data.pending_renewal_info?.[0]?.auto_renew_status ??
-  //                     'unknown',
-  //                   receipt: result.data.latest_receipt,
-  //                   platform: Platform.OS,
-  //                   originalTransactionId: latest.original_transaction_id,
-  //                 };
-
-  //                 dispatch(setSubscriptionDetails(subscriptionData));
-  //               } else {
-  //                 dispatch(setSubscriptionDetails([]));
-  //               }
-  //             } else {
-  //               dispatch(setSubscriptionDetails([]));
-  //             }
-  //           } catch (error) {
-  //             console.log('Subscription Error', error);
-  //             dispatch(setSubscriptionDetails([]));
-  //           }
-
-  //           // const latestPurchase = purchases[purchases.length - 1];
-
-  //           // const apiRequestBody = {
-  //           //   'receipt-data': latestPurchase.transactionReceipt,
-  //           //   password: 'f41a27c3319749ccb2e0e4607ecb0664',
-  //           //   'exclude-old-transactions': true, // optional
-  //           // };
-
-  //           // try {
-  //           //   const result = await axios(
-  //           //     'https://buy.itunes.apple.com/verifyReceipt',
-  //           //     {
-  //           //       method: 'POST',
-  //           //       headers: {
-  //           //         'Content-Type': 'application/json',
-  //           //       },
-  //           //       data: apiRequestBody,
-  //           //     },
-  //           //   );
-
-  //           //   const receipt = purchases.transactionReceipt;
-  //           //   const isAndroid = Platform.OS === 'android';
-  //           //   const isIos = Platform.OS === 'ios';
-
-  //           //   const isAndroidPurchased =
-  //           //     isAndroid && purchases?.purchaseStateAndroid === 1;
-  //           //   const isAndroidPending =
-  //           //     isAndroid && purchases?.purchaseStateAndroid === 2;
-  //           //   const isIosValid = isIos && receipt;
-
-  //           //   let timestamp =
-  //           //     result.data.latest_receipt_info[0].original_purchase_date;
-
-  //           //   const [datePart] = timestamp.split(' ');
-
-  //           //   if (result.data) {
-  //           //     const renewalHistory = result.data.pending_renewal_info;
-
-  //           //     const activeSubs = renewalHistory.filter(item => {
-  //           //       if (item.auto_renew_status == '1') {
-  //           //         const subscriptionData = {
-  //           //           productId: item?.product_id,
-  //           //           transactionId: item?.transaction_id,
-  //           //           transactionDate: item?.purchase_date_ms,
-  //           //           subscriptionStatus: 'Active',
-  //           //           receipt: receipt,
-  //           //           platform: Platform.OS,
-  //           //           ...(isAndroid && {purchaseToken: purchases.purchaseToken}),
-  //           //           ...(isIos && {
-  //           //             originalTransactionId:
-  //           //               purchases.originalTransactionIdentifierIOS,
-  //           //             originalTransactionDate:
-  //           //               purchases.originalTransactionDateIOS,
-  //           //           }),
-  //           //         };
-
-  //           //         dispatch(setSubscriptionDetails(subscriptionData));
-  //           //       } else {
-  //           //         dispatch(setSubscriptionDetails([]));
-  //           //       }
-  //           //     });
-  //           //   } else {
-  //           //   }
-  //           // } catch (error) {
-  //           //   console.log('Subscription Error', error);
-  //           // }
-  //         }
-  //       } catch (error) {
-  //         // console.error('Subscription error:', error);
-  //         dispatch(setSubscriptionDetails([]));
-  //       }
-  //     };
-
-  //     initIAP();
-  //   }, [dispatch]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const initIAP = async () => {
-        try {
-          // Initialize IAP module
-          await RNIap.initConnection();
+  useEffect(() => {
+ 
+    const initIAP = async () => {
+      try {
+        // Initialize IAP module
+        await RNIap.initConnection();
 
           // Get available purchases
           const purchases = await RNIap.getAvailablePurchases();
@@ -243,17 +52,46 @@ const Splash = ({navigation}) => {
           }
 
           if (Platform.OS === 'android') {
+            // const sortedPurchases = purchases.sort(
+            //   (a, b) => b.transactionDate - a.transactionDate,
+            // );
+            // const activePurchase = sortedPurchases.find(
+            //   purchase =>
+            //     purchase.purchaseStateAndroid === 1 && // PURCHASED
+            //     purchase.isAcknowledgedAndroid === true && // Acknowledged
+            //     purchase.autoRenewingAndroid === true && // Still auto-renewing
+            //     purchase.transactionDate >
+            //       Date.now() - 30 * 24 * 60 * 60 * 1000, // purchased recently
+            // );
+
             const sortedPurchases = purchases.sort(
-              (a, b) => b.transactionDate - a.transactionDate,
+              (a, b) => Number(b.transactionDate) - Number(a.transactionDate),
             );
-            const activePurchase = sortedPurchases.find(
-              purchase =>
+
+            const isValidSubscription = purchase => {
+              let duration = 0;
+              const purchaseTime = Number(purchase.transactionDate);
+
+              if (purchase.productId.includes('plan_monthly')) {
+                duration = 30 * 24 * 60 * 60 * 1000; // ~30 days
+              } else if (purchase.productId.includes('new_year')) {
+                duration = 365 * 24 * 60 * 60 * 1000; // ~365 days
+              }
+
+              const expiryTime = purchaseTime + duration;
+
+              console.log('Purchase Date:', new Date(purchaseTime));
+              console.log('Expiry Date:', new Date(expiryTime));
+              console.log('Now:', new Date());
+
+              return (
                 purchase.purchaseStateAndroid === 1 && // PURCHASED
-                purchase.isAcknowledgedAndroid === true && // Acknowledged
-                purchase.autoRenewingAndroid === true && // Still auto-renewing
-                purchase.transactionDate >
-                  Date.now() - 30 * 24 * 60 * 60 * 1000, // purchased recently
-            );
+                purchase.isAcknowledgedAndroid === true &&
+                Date.now() <= expiryTime // Still valid
+              );
+            };
+
+            const activePurchase = sortedPurchases.find(isValidSubscription);
 
             if (!activePurchase) {
               dispatch(setSubscriptionDetails([]));
@@ -271,10 +109,9 @@ const Splash = ({navigation}) => {
             };
 
             dispatch(setSubscriptionDetails(subscriptionData));
-          } 
-          else {
+          } else {
             const latestPurchase = purchases[purchases.length - 1];
-
+            console.log('Latest Purchase:', latestPurchase);
             const apiRequestBody = {
               'receipt-data': latestPurchase.transactionReceipt,
               password: 'f41a27c3319749ccb2e0e4607ecb0664', // 🔑 App Store shared secret
@@ -330,18 +167,19 @@ const Splash = ({navigation}) => {
             }
           }
         } catch (error) {
+             console.log("DScdsfdsfdsf, Error", error);
           dispatch(setSubscriptionDetails([]));
         }
       };
 
       initIAP();
 
-      // cleanup (optional, if you want to close IAP connection on blur)
+     
       return () => {
         RNIap.endConnection();
       };
-    }, [dispatch]),
-  );
+    } , [dispatch]);
+
 
   useEffect(() => {
     const timeout = setTimeout(() => {
