@@ -205,7 +205,7 @@ const Splash = ({navigation}) => {
           navigation.replace('Intro');
         }
       });
-    }, 6000); // Optional: 0.5s delay before animation starts
+    }, 2000); // Optional: 0.5s delay before animation starts
 
     return () => clearTimeout(timeout);
   }, [scaleAnim, opacityAnim]);
