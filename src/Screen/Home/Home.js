@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
 
   calendarWrapper: {
     width: '100%',
-    height: height <= 800 ? height * 0.35 : height * 0.3,
+    // height: height <= 800 ? height * 0.35 : height * 0.3,
 
     overflow: 'visible',
     backgroundColor: 'transparent',
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
   },
   calendar: {
     width: '100%',
-    height: height * 0.35, // 77% of screen height
+    // height: height * 0.35, // 77% of screen height
     overflow: 'hidden',
     marginTop: -height * 0.02,
     backgroundColor: 'transparent',

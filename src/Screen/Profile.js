@@ -34,7 +34,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 const products = Platform.select({
   ios: ['plan_monthly', 'plan_yearly'],
-  android: ['plan_monthly', 'plan_yearly'],
+   android: ['plan_monthly', 'new_year'],
 });
 
 const {width, height} = Dimensions.get('window');

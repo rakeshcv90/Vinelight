@@ -22,30 +22,7 @@ const ActivityLoader = (props) => {
   }, [icon]);
   const {visible} = props;
   return (
-    // <Modal visible={visible} transparent={true} animationType="fade">
-    //   <View
-    //     style={{
-    //       height: height * 0.1,
-    //       width: width * 0.2,
-    //       backgroundColor:Color.BROWN3,
-    //       alignItems: 'center',
-    //       justifyContent: 'center',
-    //       alignSelf: 'center',
-    //       borderRadius: 15,
-    //       marginTop: 'auto',
-    //       marginBottom: 'auto',
-    //       zIndex:1
-    //     }}>
-    //     <AnimatedLottieView
-    
-    //       source={require('../../assets/loader2.json')}
-    //       speed={2}
-    //       autoPlay
-    //       loop
-    //       style={{width: width * 0.2, height: height * 0.1}}
-    //     />
-    //   </View>
-    // </Modal>
+   
     <Modal visible={visible} transparent={true} animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.loaderBox}>
